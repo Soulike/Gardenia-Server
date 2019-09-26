@@ -24,25 +24,49 @@ export namespace Account
 
     export async function update(account: AccountClass): Promise<void>
     {
-        await transaction(pool, async (pool) =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(updateStatement, [account.username, account.hash]);
-        });
+            await transaction(client, async (client) =>
+            {
+                await client.query(updateStatement, [account.username, account.hash]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function insert(account: AccountClass): Promise<void>
     {
-        await transaction(pool, async (pool) =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(insertStatement, [account.username, account.hash]);
-        });
+            await transaction(client, async (client) =>
+            {
+                await client.query(insertStatement, [account.username, account.hash]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function del(username: AccountClass['username']): Promise<void>
     {
-        await transaction(pool, async (pool) =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(delStatement, [username]);
-        });
+            await transaction(client, async (client) =>
+            {
+                await client.query(delStatement, [username]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 }

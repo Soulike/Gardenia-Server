@@ -14,27 +14,51 @@ export namespace Profile
     export async function insert(profile: ProfileClass): Promise<void>
     {
         assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');
-        await transaction(pool, async pool =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(insertStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
-        });
+            await transaction(client, async client =>
+            {
+                await client.query(insertStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function del(username: ProfileClass['username']): Promise<void>
     {
-        await transaction(pool, async pool =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(delStatement, [username]);
-        });
+            await transaction(client, async client =>
+            {
+                await client.query(delStatement, [username]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function update(profile: ProfileClass): Promise<void>
     {
-        await transaction(pool, async pool =>
+        const client = await pool.connect();
+        try
         {
-            assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');
-            await pool.query(updateStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
-        });
+            await transaction(client, async client =>
+            {
+                assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');
+                await client.query(updateStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function select(username: ProfileClass['username']): Promise<ProfileClass | null>

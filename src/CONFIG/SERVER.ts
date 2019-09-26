@@ -5,4 +5,5 @@ export const SERVER = {
     ERROR_LOGGER: signale.error,
     WARN_LOGGER: signale.warn,
     INFO_LOGGER: signale.info,
+    SUCCESS_LOGGER: signale.success,
 };

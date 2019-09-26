@@ -9,7 +9,27 @@ const pool = new Pool({
     max: 64,
 });
 
+// 尝试进行连接
 pool.connect()
+    .then(client =>
+    {
+        return new Promise<void>(async (resolve, reject) =>
+        {
+            client.query('SELECT 1=1', e =>
+            {
+                if (e !== null)
+                {
+                    reject(e);
+                }
+                else
+                {
+                    SERVER.SUCCESS_LOGGER('数据库连接成功');
+                    resolve();
+                }
+                client.release();
+            });
+        });
+    })
     .catch(e =>
     {
         SERVER.ERROR_LOGGER(e.stack);

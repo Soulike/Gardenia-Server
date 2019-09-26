@@ -11,26 +11,50 @@ export namespace Repository
 {
     export async function insert(repository: RepositoryClass): Promise<void>
     {
-        await transaction(pool, async pool =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(insertStatement, [repository.username, repository.name, repository.description, repository.isPublic]);
-        });
+            await transaction(client, async client =>
+            {
+                await client.query(insertStatement, [repository.username, repository.name, repository.description, repository.isPublic]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function del(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<void>
     {
-        await transaction(pool, async pool =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(delStatement, [username, name]);
-        });
+            await transaction(client, async client =>
+            {
+                await client.query(delStatement, [username, name]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function update(repository: RepositoryClass): Promise<void>
     {
-        await transaction(pool, async pool =>
+        const client = await pool.connect();
+        try
         {
-            await pool.query(updateStatement, [repository.username, repository.name, repository.description, repository.isPublic]);
-        });
+            await transaction(client, async client =>
+            {
+                await client.query(updateStatement, [repository.username, repository.name, repository.description, repository.isPublic]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 
     export async function select(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<RepositoryClass | null>
