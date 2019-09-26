@@ -1,3 +1,3 @@
-# koa-template
+# Soulike Git Server
 
-基于 koa 的快速开发框架。
+自定义 git 服务器实现。接口文档见 [Api.md](./Api.md)。
