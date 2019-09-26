@@ -1,3 +1,3 @@
 export const SERVER = {
-    PORT: 4005,
+    PORT: 8000,
 };

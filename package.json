@@ -1,8 +1,8 @@
 {
-  "name": "koa-template",
+  "name": "soulike-git-server",
   "version": "0.1.0",
-  "description": "koa 快速编程框架",
-  "main": "index.js",
+  "description": "自定义 git 服务器实现",
+  "main": "dist/index.ts",
   "author": "soulike",
   "license": "MIT",
   "private": true,
@@ -22,7 +22,8 @@
     "koa": "^2.8.1",
     "koa-body": "^4.1.1",
     "signale": "^1.4.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.3",
+    "webdav-server": "^2.4.6"
   },
   "devDependencies": {
     "@types/jest": "^24.0.18",

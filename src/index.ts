@@ -1,11 +1,15 @@
 import Koa from 'koa';
 import body from 'koa-body';
 import {dispatcher} from './Dispatcher';
-import {BODY, SERVER} from './CONFIG';
+import {BODY, GIT, SERVER} from './CONFIG';
 import signale from 'signale';
 import {requestLogger} from './Middleware';
+import {v2 as webdav} from 'webdav-server';
 
 const app = new Koa();
+const server = new webdav.WebDAVServer({
+    rootFileSystem: new webdav.PhysicalFileSystem(GIT.ROOT),
+});
 
 app.on('error', (e: Error) =>
 {
@@ -17,5 +21,6 @@ app.use(requestLogger());
 app.use(dispatcher(app));
 app.listen(SERVER.PORT, () =>
 {
-    signale.info(`服务器运行在端口 ${SERVER.PORT} (PID: ${process.pid})`);
+    server.start(GIT.WEBDAV_PORT);
+    signale.info(`WebDAV 服务器运行在端口 ${GIT.WEBDAV_PORT}，服务器运行在端口 ${SERVER.PORT} (PID: ${process.pid})`);
 });
