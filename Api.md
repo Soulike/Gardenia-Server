@@ -161,6 +161,7 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
   - 文件不存在
 - 其他说明：
   - 当文件是二进制文件时，不包含 `content`
+  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
 
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
@@ -173,6 +174,7 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
 - 请求参数：
 ```ts
 {
+    username: string,   // 仓库所有者的名字
     name: string,   // 仓库的名字
 }
 ```

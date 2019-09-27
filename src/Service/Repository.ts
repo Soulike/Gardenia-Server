@@ -5,6 +5,7 @@ import {GIT, SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {exec, spawn} from 'child_process';
 import {File} from '../Function';
+import {Session} from 'koa-session';
 
 export namespace Repository
 {
@@ -110,13 +111,21 @@ export namespace Repository
         return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
     }
 
-    export async function getFile(username: RepositoryClass['username'], repositoryName: RepositoryClass['name'], filePath: string, hash: string): Promise<ServiceResponse<{ isBinary: boolean, content?: string } | void>>
+    export async function getFile(username: RepositoryClass['username'], repositoryName: RepositoryClass['name'], filePath: string, hash: string, session: Session): Promise<ServiceResponse<{ isBinary: boolean, content?: string } | void>>
     {
+        const repository = await RepositoryTable.select(username, repositoryName);
         // 检查仓库是否存在
-        if ((await RepositoryTable.select(username, repositoryName)) === null)
+        if (repository === null)
         {
             return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '文件不存在'));
         }
+        // 如果是私有仓库，非所有者返回 HTTP 404
+        const {isPublic} = repository;
+        if (!isPublic && username !== session.username)
+        {
+            return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '仓库不存在'));
+        }
+
         const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
 
         let stdout = '';
