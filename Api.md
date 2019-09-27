@@ -143,8 +143,9 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
 ```ts
 {
     json: {
-        path: string,       // 文件相对仓库目录的路径
-        hash?: string,       // commit hash 值
+        repositoryName: string, // 仓库名字
+        filePath: string,       // 文件相对仓库目录的路径
+        hash?: string,          // commit hash 值
     }
 }
 ```
