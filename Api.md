@@ -160,7 +160,7 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
 - 其他说明：
   - 当文件是二进制文件时，不包含 `content`
 
-#### Info 模块（`/info`）
+### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息获取操作。
 
