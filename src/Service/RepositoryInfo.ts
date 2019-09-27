@@ -81,6 +81,12 @@ export namespace RepositoryInfo
         try
         {
             const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, branch, filePath);
+            if (fileCommitInfoList.length === 0)  // 信息列表是空的，一定是文件不存在
+            {
+                return new ServiceResponse<void>(404, {},
+                    new ResponseBody<void>(false, '文件不存在'));
+            }
+
             return new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
                 200,
                 {},
