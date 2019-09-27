@@ -56,6 +56,8 @@ class Commit
 
 ## 模块接口信息
 
+所有接口均有前缀 `/server`。
+
 路由按照标题进行级连，例如 `/repository/info/directory`。
 
 ### Account 模块（`/account`）

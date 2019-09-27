@@ -4,13 +4,13 @@ import {Profile as ProfileClass} from '../../Class';
 import validator from 'validator';
 import {strict as assert} from 'assert';
 
-const insertStatement = 'INSERT INTO profiles(username, nickname, email, avatar) VALUES ($1, $2, $3, $4)';
-const delStatement = 'DELETE FROM profiles WHERE username=$1';
-const updateStatement = 'UPDATE profiles SET username=$1, nickname=$2, email=$3, avatar=$4 WHERE username=$1';
-const selectStatement = 'SELECT * FROM profiles WHERE username=$1';
-
 export namespace Profile
 {
+    export const insertStatement = 'INSERT INTO profiles(username, nickname, email, avatar) VALUES ($1, $2, $3, $4)';
+    export const delStatement = 'DELETE FROM profiles WHERE username=$1';
+    export const updateStatement = 'UPDATE profiles SET username=$1, nickname=$2, email=$3, avatar=$4 WHERE username=$1';
+    export const selectStatement = 'SELECT * FROM profiles WHERE username=$1';
+
     export async function insert(profile: ProfileClass): Promise<void>
     {
         assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');

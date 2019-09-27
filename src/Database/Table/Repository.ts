@@ -2,13 +2,13 @@ import {transaction} from '../Function';
 import pool from '../Pool';
 import {Repository as RepositoryClass} from '../../Class';
 
-const insertStatement = 'INSERT INTO repositories(username, name, description, ispublic) VALUES ($1, $2, $3, $4)';
-const delStatement = 'DELETE FROM repositories WHERE username=$1 AND name=$2';
-const updateStatement = 'UPDATE repositories SET username=$1, name=$2, description=$3, ispublic=$4 WHERE username=$1 AND name=$2';
-const selectStatement = 'SELECT * FROM repositories WHERE username=$1 AND name=$2';
-
 export namespace Repository
 {
+    export const insertStatement = 'INSERT INTO repositories(username, name, description, ispublic) VALUES ($1, $2, $3, $4)';
+    export const delStatement = 'DELETE FROM repositories WHERE username=$1 AND name=$2';
+    export const updateStatement = 'UPDATE repositories SET username=$1, name=$2, description=$3, ispublic=$4 WHERE username=$1 AND name=$2';
+    export const selectStatement = 'SELECT * FROM repositories WHERE username=$1 AND name=$2';
+
     export async function insert(repository: RepositoryClass): Promise<void>
     {
         const client = await pool.connect();

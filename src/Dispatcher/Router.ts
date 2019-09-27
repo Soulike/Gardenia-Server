@@ -1,7 +1,9 @@
 import Router from '@koa/router';
 import {dispatcher} from './Dispatcher';
 
-const router = new Router();
+const router = new Router({
+    prefix: '/server',
+});
 
 // 在此注入 router 到各个 dispatcher
 dispatcher(router);
