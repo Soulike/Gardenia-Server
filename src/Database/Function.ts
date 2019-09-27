@@ -1,5 +1,4 @@
 import {Client, PoolClient} from 'pg';
-import {SERVER} from '../CONFIG';
 
 /**
  * @description 对数据库事务的包装函数
@@ -16,7 +15,7 @@ export async function transaction<T extends Client | PoolClient>(client: T, tran
     }
     catch (e)
     {
-        SERVER.ERROR_LOGGER(e.stack);
         await client.query('ROLLBACK');
+        throw e;    // 把事务中的错误再次抛出
     }
 }
