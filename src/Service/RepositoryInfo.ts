@@ -3,7 +3,8 @@ import {Commit, Repository as RepositoryClass, ResponseBody, ServiceResponse} fr
 import {Repository as RepositoryTable} from '../Database';
 import {Git} from '../Function';
 import path from 'path';
-import {GIT} from '../CONFIG';
+import {GIT, SERVER} from '../CONFIG';
+import {ObjectType} from '../CONSTANT';
 
 export namespace RepositoryInfo
 {
@@ -60,5 +61,41 @@ export namespace RepositoryInfo
         const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
         return new ServiceResponse<Commit>(200, {},
             new ResponseBody<Commit>(true, '', await Git.getLastCommitInfo(repoPath, branch)));
+    }
+
+    export async function directory(username: string, name: string, branch: string, filePath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
+    {
+        if (username !== session.username)
+        {
+            return new ServiceResponse<void>(404, {},
+                new ResponseBody<void>(false, '仓库不存在'));
+        }
+
+        if ((await RepositoryTable.select(username, name)) === null)
+        {
+            return new ServiceResponse<void>(404, {},
+                new ResponseBody<void>(false, '仓库不存在'));
+        }
+        const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+
+        try
+        {
+            const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, branch, filePath);
+            return new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+                200,
+                {},
+                new ResponseBody<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+                    true,
+                    '',
+                    fileCommitInfoList,
+                ),
+            );
+        }
+        catch (e)   // 如果出错，那么一定是分支不存在
+        {
+            SERVER.WARN_LOGGER(e);
+            return new ServiceResponse<void>(404, {},
+                new ResponseBody<void>(false, '分支不存在'));
+        }
     }
 }

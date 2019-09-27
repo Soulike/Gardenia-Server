@@ -54,6 +54,24 @@ class Commit
 }
 ```
 
+---
+
+## 常量
+
+### ObjectType
+
+Git 对象的类型
+
+```ts
+export enum ObjectType
+{
+    BLOB = 'BLOB',
+    TREE = 'TREE'
+}
+```
+
+---
+
 ## 模块接口信息
 
 所有接口均有前缀 `/server`。
@@ -226,17 +244,23 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
 
 #### `/directory`
 
-- 功能：获取仓库某目录所有文件/目录的提交信息
+- 功能：获取仓库某目录所有文件/目录的信息
 - 方法：GET
 - 请求参数：
 ```ts
 {
-    name: string,   // 仓库的名字
-    branch: string, // 分支
-    path: string,   // 文件/目录的路径
+    json: {
+        username: string,   // 仓库所有者的名字
+        name: string,       // 仓库的名字
+        branch: string,     // 分支
+        path: string,       // 文件/目录的路径
+    }
 }
 ```
-- 响应体：`Array<{[path]:string: Commit}>`（文件名到 Commit 类实例对象的数组）
+- 响应体：文件路径、类型与最后一次提交信息的数组
+```ts
+Array<{ type: ObjectType, path: string, commit: Commit }>
+```
 - 响应消息：
   - 仓库不存在
   - 分支/文件不存在
