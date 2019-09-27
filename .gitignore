@@ -1,5 +1,6 @@
 .idea/
 dist/
+src/test.ts
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Node template
