@@ -174,8 +174,10 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
 - 请求参数：
 ```ts
 {
-    username: string,   // 仓库所有者的名字
-    name: string,       // 仓库的名字
+    json: {
+        username: string,   // 仓库所有者的名字
+        name: string,       // 仓库的名字
+    }
 }
 ```
 - 响应体：`Repository` 类的实例
@@ -191,8 +193,10 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
 - 请求参数：
 ```ts
 {
-    username: string,   // 仓库所有者的名字
-    name: string,       // 仓库的名字
+    json: {
+        username: string,   // 仓库所有者的名字
+        name: string,       // 仓库的名字
+    }
 }
 ```
 - 响应体：`Array<string>`（所有分支名组成的数组）
