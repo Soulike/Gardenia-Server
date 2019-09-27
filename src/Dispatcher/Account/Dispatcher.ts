@@ -20,7 +20,7 @@ export const dispatcher = (router: Router) =>
             }
             else
             {
-                const {statusCode, headers, body} = await AccountService.login(username, hash);
+                const {statusCode, headers, body} = await AccountService.login(username, hash, ctx.session);
                 if (headers)
                 {
                     ctx.response.set(headers);
