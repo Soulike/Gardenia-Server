@@ -114,7 +114,7 @@ export const dispatcher = (router: Router) =>
                 return;
             }
 
-            const {statusCode, headers, body} = await RepositoryService.getFile(username, repositoryName, filePath, hash);
+            const {statusCode, headers, body} = await RepositoryService.getFile(username, repositoryName, filePath, hash, ctx.session);
             if (headers)
             {
                 ctx.response.set(headers);
