@@ -58,6 +58,8 @@ class Commit
 
 所有接口均有前缀 `/server`。
 
+参数错误时返回消息为“请求参数错误”，服务器发送错误时返回消息为“服务器错误”。
+
 路由按照标题进行级连，例如 `/repository/info/directory`。
 
 ### Account 模块（`/account`）

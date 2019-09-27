@@ -17,6 +17,7 @@ export const dispatcher = (app: Koa): Koa.Middleware =>
         }
         catch (e)
         {
+            ctx.response.status = 500;
             ctx.response.body = new ResponseBody(false, '服务器错误');
             signale.error(e);
         }
