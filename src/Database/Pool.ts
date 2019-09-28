@@ -1,13 +1,7 @@
 import {Pool} from 'pg';
-import {SERVER} from '../CONFIG';
+import {DATABASE, SERVER} from '../CONFIG';
 
-const pool = new Pool({
-    user: '',
-    database: '',
-    password: '',
-    keepAlive: true,
-    max: 64,
-});
+const pool = new Pool(DATABASE);
 
 // 尝试进行连接
 pool.connect()
