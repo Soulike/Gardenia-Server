@@ -9,6 +9,7 @@ export namespace Repository
     export const updateStatement = 'UPDATE repositories SET username=$1, name=$2, description=$3, ispublic=$4 WHERE username=$1 AND name=$2';
     export const selectStatement = 'SELECT * FROM repositories WHERE username=$1 AND name=$2';
     export const selectByIsPublicStatement = 'SELECT * FROM repositories WHERE ispublic=$1 OFFSET $2 LIMIT $3';
+    export const selectByIsPublicAndUsernameStatement = 'SELECT * FROM repositories WHERE ispublic=$1 AND username=$2 OFFSET $3 LIMIT $4';
     export const selectByUsernameStatement = 'SELECT * FROM repositories WHERE username=$1 OFFSET $2 LIMIT $3';
 
     export async function insert(repository: RepositoryClass): Promise<void>
@@ -75,6 +76,12 @@ export namespace Repository
     export async function selectByIsPublic(isPublic: RepositoryClass['isPublic'], offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Array<RepositoryClass>>
     {
         const {rows} = await pool.query(selectByIsPublicStatement, [isPublic, offset, limit]);
+        return rows.map(row => RepositoryClass.from(row));
+    }
+
+    export async function selectByIsPublicAndUsername(isPublic: RepositoryClass['isPublic'], username: RepositoryClass['username'], offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Array<RepositoryClass>>
+    {
+        const {rows} = await pool.query(selectByIsPublicAndUsernameStatement, [isPublic, username, offset, limit]);
         return rows.map(row => RepositoryClass.from(row));
     }
 
