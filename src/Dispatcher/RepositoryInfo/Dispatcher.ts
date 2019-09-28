@@ -1,7 +1,7 @@
 import Router from '@koa/router';
 import {BRANCH, DIRECTORY, LAST_COMMIT, REPOSITORY} from './ROUTE';
 import {ResponseBody} from '../../Class';
-import {RepositoryInfo} from '../../Service/RepositoryInfo';
+import {RepositoryInfo} from '../../Service';
 import {getJsonParser} from '../../Middleware';
 
 export const dispatcher = (router: Router) =>
