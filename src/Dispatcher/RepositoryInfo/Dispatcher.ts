@@ -2,26 +2,15 @@ import Router from '@koa/router';
 import {BRANCH, DIRECTORY, LAST_COMMIT, REPOSITORY} from './ROUTE';
 import {ResponseBody} from '../../Class';
 import {RepositoryInfo} from '../../Service/RepositoryInfo';
-import {Util} from '../../Function/Util';
+import {getJsonParser} from '../../Middleware';
 
 export const dispatcher = (router: Router) =>
 {
-    router.get(REPOSITORY, async (ctx, next) =>
+    router.get(REPOSITORY, getJsonParser(), async (ctx, next) =>
     {
         try
         {
-            const {json} = ctx.query;
-            let obj = null;
-            try
-            {
-                obj = Util.parseJSONFromQuery(json);
-            }
-            catch (e)
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-            }
-            const {username, name} = obj;
+            const {username, name} = ctx.request.body;
             if (typeof username !== 'string' || typeof name !== 'string')
             {
                 ctx.response.status = 400;
@@ -42,22 +31,11 @@ export const dispatcher = (router: Router) =>
         }
     });
 
-    router.get(BRANCH, async (ctx, next) =>
+    router.get(BRANCH, getJsonParser(), async (ctx, next) =>
     {
         try
         {
-            const {json} = ctx.query;
-            let obj = null;
-            try
-            {
-                obj = Util.parseJSONFromQuery(json);
-            }
-            catch (e)
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-            }
-            const {username, name} = obj;
+            const {username, name} = ctx.request.body;
             if (typeof username !== 'string' || typeof name !== 'string')
             {
                 ctx.response.status = 400;
@@ -78,22 +56,11 @@ export const dispatcher = (router: Router) =>
         }
     });
 
-    router.get(LAST_COMMIT, async (ctx, next) =>
+    router.get(LAST_COMMIT, getJsonParser(), async (ctx, next) =>
     {
         try
         {
-            const {json} = ctx.query;
-            let obj = null;
-            try
-            {
-                obj = Util.parseJSONFromQuery(json);
-            }
-            catch (e)
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-            }
-            const {username, name, branch} = obj;
+            const {username, name, branch} = ctx.request.body;
             if (typeof username !== 'string' || typeof name !== 'string' || typeof branch !== 'string')
             {
                 ctx.response.status = 400;
@@ -114,22 +81,11 @@ export const dispatcher = (router: Router) =>
         }
     });
 
-    router.get(DIRECTORY, async (ctx, next) =>
+    router.get(DIRECTORY, getJsonParser(), async (ctx, next) =>
     {
         try
         {
-            const {json} = ctx.query;
-            let obj = null;
-            try
-            {
-                obj = Util.parseJSONFromQuery(json);
-            }
-            catch (e)
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-            }
-            const {username, name, branch, path} = obj;
+            const {username, name, branch, path} = ctx.request.body;
             if (typeof username !== 'string' || typeof name !== 'string' || typeof branch !== 'string' || typeof path !== 'string')
             {
                 ctx.response.status = 400;

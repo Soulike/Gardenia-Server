@@ -4,7 +4,7 @@ import koaBody from 'koa-body';
 import {BODY} from '../../CONFIG';
 import {Repository as RepositoryClass, ResponseBody} from '../../Class';
 import {Repository as RepositoryService} from '../../Service';
-import {Util} from '../../Function/Util';
+import {getJsonParser} from '../../Middleware';
 
 export const dispatcher = (router: Router) =>
 {
@@ -79,23 +79,11 @@ export const dispatcher = (router: Router) =>
         }
     });
 
-    router.get(GET_FILE, async (ctx, next) =>
+    router.get(GET_FILE, getJsonParser(), async (ctx, next) =>
     {
         try
         {
-            const {json} = ctx.query;
-            let obj = null;
-            try
-            {
-                obj = Util.parseJSONFromQuery(json);
-            }
-            catch (e)
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-            }
-
-            const {username, repositoryName, filePath, hash} = obj;
+            const {username, repositoryName, filePath, hash} = ctx.request.body;
             if (typeof username !== 'string' ||
                 typeof repositoryName !== 'string' ||
                 typeof filePath !== 'string' ||
