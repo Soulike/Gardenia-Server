@@ -19,7 +19,7 @@ export default (): Koa.Middleware =>
 
         try
         {
-            ctx.request.body = JSON.parse(JSON.parse(json));
+            ctx.request.body = JSON.parse(json);
             await next();
         }
         catch (e)
