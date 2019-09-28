@@ -2,7 +2,7 @@
 
 ## 对象
 
-### `Response`
+### `ResponseBody`
 
 后端的响应体均由以下类构建：
 
@@ -35,8 +35,6 @@ class Repository
 }
 ```
 
----
-
 ### `Commit`
 
 ```ts
@@ -51,6 +49,22 @@ class Commit
     public committerEmail: string;
     public time: string;
     public message: string;
+}
+```
+
+### `Profile`
+
+```ts
+/**
+ * @class
+ * @description 账号资料，对应数据库 profiles 表
+ * */
+class Profile
+{
+    public username: string;
+    public nickname: string;
+    public email: string;
+    public avatar: string;
 }
 ```
 
@@ -119,6 +133,27 @@ export enum ObjectType
 - 响应消息：
   - 用户名已存在
   - 散列值计算方法见 `/login`
+
+### Profile 模块（`/profile`）
+
+本模块负责用户资料的相关操作。
+
+#### `/get`
+
+- 功能：获取用户资料
+- 方法：GET
+- 请求体：
+```ts
+{
+    json: {
+        username: string,
+    }
+}
+```
+- 响应体：`Profile` 类实例
+- 响应消息：
+  - 用户不存在
+- 其他说明：无
 
 ### Git 模块
 
