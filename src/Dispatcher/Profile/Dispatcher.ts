@@ -10,7 +10,11 @@ export default (router: Router) =>
     {
         try
         {
-            const {username} = ctx.request.body;
+            let {username} = ctx.request.body;
+            if (typeof username !== 'string')
+            {
+                username = ctx.session.username;
+            }
             if (typeof username !== 'string')
             {
                 ctx.response.status = 400;
