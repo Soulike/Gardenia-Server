@@ -1,2 +1,5 @@
-export * from './RequestLogger';
-export * from './GetJsonParser';
+import getJsonParser from './GetJsonParser';
+import requestLogger from './RequestLogger';
+
+export {getJsonParser, requestLogger};
+

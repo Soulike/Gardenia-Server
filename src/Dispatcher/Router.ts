@@ -1,7 +1,7 @@
 import Router from '@koa/router';
-import {dispatcher as accountDispatcher} from './Account';
-import {dispatcher as repositoryDispatcher} from './Repository';
-import {dispatcher as repositoryInfoDispatcher} from './RepositoryInfo';
+import accountDispatcher from './Account';
+import repositoryDispatcher from './Repository';
+import repositoryInfoDispatcher from './RepositoryInfo';
 
 const router = new Router({
     prefix: '/server',

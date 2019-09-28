@@ -6,7 +6,7 @@ import {Repository as RepositoryClass, ResponseBody} from '../../Class';
 import {Repository as RepositoryService} from '../../Service';
 import {getJsonParser} from '../../Middleware';
 
-export const dispatcher = (router: Router) =>
+export default (router: Router) =>
 {
     router.post(CREATE, koaBody(BODY), async (ctx, next) =>
     {

@@ -4,7 +4,7 @@ import {ResponseBody} from '../../Class';
 import {RepositoryInfo} from '../../Service';
 import {getJsonParser} from '../../Middleware';
 
-export const dispatcher = (router: Router) =>
+export default (router: Router) =>
 {
     router.get(REPOSITORY, getJsonParser(), async (ctx, next) =>
     {

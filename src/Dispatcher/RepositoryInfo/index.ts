@@ -1,1 +1,1 @@
-export * from './Dispatcher';
+export {default} from './Dispatcher';

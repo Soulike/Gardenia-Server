@@ -4,7 +4,7 @@ import {getJsonParser} from '../../Middleware';
 import {ResponseBody} from '../../Class';
 import {Profile} from '../../Service';
 
-export const dispatcher = (router: Router) =>
+export default (router: Router) =>
 {
     router.get(GET, getJsonParser(), async (ctx, next) =>
     {

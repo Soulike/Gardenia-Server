@@ -6,7 +6,7 @@ import {ResponseBody} from '../../Class';
 import {Account as AccountService} from '../../Service';
 import validator from 'validator';
 
-export const dispatcher = (router: Router) =>
+export default (router: Router) =>
 {
     router.post(LOGIN, koaBody(BODY), async (ctx, next) =>
     {

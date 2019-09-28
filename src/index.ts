@@ -1,5 +1,5 @@
 import Koa from 'koa';
-import {dispatcher} from './Dispatcher';
+import dispatcher from './Dispatcher';
 import {GIT, SERVER, SESSION} from './CONFIG';
 import signale from 'signale';
 import {requestLogger} from './Middleware';

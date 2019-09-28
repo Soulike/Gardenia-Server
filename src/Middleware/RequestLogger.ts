@@ -1,7 +1,7 @@
 import Koa from 'koa';
 import signale from 'signale';
 
-export const requestLogger = (): Koa.Middleware =>
+export default (): Koa.Middleware =>
 {
     return async (ctx, next) =>
     {
