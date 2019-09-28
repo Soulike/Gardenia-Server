@@ -2,6 +2,7 @@ import Router from '@koa/router';
 import {BRANCH, DIRECTORY, LAST_COMMIT, REPOSITORY} from './ROUTE';
 import {ResponseBody} from '../../Class';
 import {RepositoryInfo} from '../../Service/RepositoryInfo';
+import {Util} from '../../Function/Util';
 
 export const dispatcher = (router: Router) =>
 {
@@ -10,25 +11,15 @@ export const dispatcher = (router: Router) =>
         try
         {
             const {json} = ctx.query;
-            if (typeof json !== 'string')
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-                return;
-            }
             let obj = null;
             try
             {
-                obj = JSON.parse(json);
+                obj = Util.parseJSONFromQuery(json);
             }
             catch (e)
             {
-                if (e instanceof SyntaxError)
-                {
-                    ctx.response.status = 400;
-                    ctx.response.body = new ResponseBody(false, '请求参数错误');
-                    return;
-                }
+                ctx.response.status = 400;
+                ctx.response.body = new ResponseBody(false, '请求参数错误');
             }
             const {username, name} = obj;
             if (typeof username !== 'string' || typeof name !== 'string')
@@ -56,25 +47,15 @@ export const dispatcher = (router: Router) =>
         try
         {
             const {json} = ctx.query;
-            if (typeof json !== 'string')
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-                return;
-            }
             let obj = null;
             try
             {
-                obj = JSON.parse(json);
+                obj = Util.parseJSONFromQuery(json);
             }
             catch (e)
             {
-                if (e instanceof SyntaxError)
-                {
-                    ctx.response.status = 400;
-                    ctx.response.body = new ResponseBody(false, '请求参数错误');
-                    return;
-                }
+                ctx.response.status = 400;
+                ctx.response.body = new ResponseBody(false, '请求参数错误');
             }
             const {username, name} = obj;
             if (typeof username !== 'string' || typeof name !== 'string')
@@ -102,25 +83,15 @@ export const dispatcher = (router: Router) =>
         try
         {
             const {json} = ctx.query;
-            if (typeof json !== 'string')
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-                return;
-            }
             let obj = null;
             try
             {
-                obj = JSON.parse(json);
+                obj = Util.parseJSONFromQuery(json);
             }
             catch (e)
             {
-                if (e instanceof SyntaxError)
-                {
-                    ctx.response.status = 400;
-                    ctx.response.body = new ResponseBody(false, '请求参数错误');
-                    return;
-                }
+                ctx.response.status = 400;
+                ctx.response.body = new ResponseBody(false, '请求参数错误');
             }
             const {username, name, branch} = obj;
             if (typeof username !== 'string' || typeof name !== 'string' || typeof branch !== 'string')
@@ -148,25 +119,15 @@ export const dispatcher = (router: Router) =>
         try
         {
             const {json} = ctx.query;
-            if (typeof json !== 'string')
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-                return;
-            }
             let obj = null;
             try
             {
-                obj = JSON.parse(json);
+                obj = Util.parseJSONFromQuery(json);
             }
             catch (e)
             {
-                if (e instanceof SyntaxError)
-                {
-                    ctx.response.status = 400;
-                    ctx.response.body = new ResponseBody(false, '请求参数错误');
-                    return;
-                }
+                ctx.response.status = 400;
+                ctx.response.body = new ResponseBody(false, '请求参数错误');
             }
             const {username, name, branch, path} = obj;
             if (typeof username !== 'string' || typeof name !== 'string' || typeof branch !== 'string' || typeof path !== 'string')
