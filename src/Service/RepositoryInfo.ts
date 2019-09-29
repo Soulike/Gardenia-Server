@@ -1,7 +1,7 @@
 import {Session} from 'koa-session';
 import {Commit, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Repository as RepositoryTable} from '../Database';
-import {Git} from '../Function';
+import {Git, Promisify} from '../Function';
 import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
@@ -98,6 +98,37 @@ export async function directory(username: string, name: string, branch: string, 
     catch (e)   // 如果出错，那么一定是分支不存在
     {
         SERVER.WARN_LOGGER(e);
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '分支不存在'));
+    }
+}
+
+export async function commitCount(username: string, name: string, branch: string, session: Session): Promise<ServiceResponse<{ commitCount: number } | void>>
+{
+    if (username !== session.username)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+
+    if ((await RepositoryTable.select(username, name)) === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+    const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+    try
+    {
+        const commitCountString = await Promisify.execPromise(`git rev-list ${branch} --count`, {
+            cwd: repoPath,
+        }) as string;
+        return new ServiceResponse<{ commitCount: number }>(200, {},
+            new ResponseBody<{ commitCount: number }>(true, '', {
+                commitCount: Number.parseInt(commitCountString),
+            }));
+    }
+    catch (e)
+    {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '分支不存在'));
     }
