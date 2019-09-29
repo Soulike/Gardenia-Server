@@ -4,7 +4,7 @@ import {execPromise} from './Promisify';
 import {ObjectType} from '../CONSTANT';
 
 /**
- * @description 获取仓库的所有分支
+ * @description 获取仓库的所有分支，主分支放在首个
  */
 export async function getBranches(repositoryPath: string): Promise<Array<string>>
 {
@@ -16,12 +16,13 @@ export async function getBranches(repositoryPath: string): Promise<Array<string>
             {
                 return reject(error);
             }
-            resolve(
-                stdout
-                    .split(/\s+/)
-                    .slice(1)
-                    .filter(branch => branch.length !== 0),
-            );
+            const splitResult = stdout.split(/\s+/).filter(branch => branch.length !== 0);
+            const masterPosition = splitResult.indexOf('*') + 1;
+
+            return resolve(([] as Array<string>).concat(
+                splitResult.slice(masterPosition, masterPosition + 1),
+                splitResult.slice(0, masterPosition - 1),
+                splitResult.slice(masterPosition + 1)));
         });
     });
 }
