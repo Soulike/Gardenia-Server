@@ -217,24 +217,24 @@ export async function getFile(username: RepositoryClass['username'], repositoryN
 
 }
 
-export async function getPublicList(start: number, end: number, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
+export async function getList(start: number, end: number, session: Session, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
 {
     let repositories: Array<RepositoryClass> = [];
     if (username)
     {
-        repositories = await RepositoryTable.selectByIsPublicAndUsername(true, username, start, end - start);
+        if (session.username !== username)
+        {
+            repositories = await RepositoryTable.selectByIsPublicAndUsername(true, username, start, end - start);
+        }
+        else
+        {
+            repositories = await RepositoryTable.selectByUsername(username, start, end - start);
+        }
     }
     else
     {
         repositories = await RepositoryTable.selectByIsPublic(true, start, end - start);
     }
-    return new ServiceResponse<Array<RepositoryClass>>(200, {},
-        new ResponseBody<Array<RepositoryClass>>(true, '', repositories));
-}
-
-export async function getPersonalList(username: RepositoryClass['username'], start: number, end: number): Promise<ServiceResponse<Array<RepositoryClass>>>
-{
-    const repositories = await RepositoryTable.selectByUsername(username, start, end - start);
     return new ServiceResponse<Array<RepositoryClass>>(200, {},
         new ResponseBody<Array<RepositoryClass>>(true, '', repositories));
 }

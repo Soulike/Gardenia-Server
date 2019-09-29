@@ -1,5 +1,5 @@
 import Router from '@koa/router';
-import {CREATE, DEL, GET_FILE, GET_PERSONAL_LIST, GET_PUBLIC_LIST} from './ROUTE';
+import {CREATE, DEL, GET_FILE, GET_LIST} from './ROUTE';
 import koaBody from 'koa-body';
 import {BODY} from '../../CONFIG';
 import {Repository as RepositoryClass, ResponseBody} from '../../Class';
@@ -108,7 +108,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(GET_PUBLIC_LIST, getJsonParser(), async (ctx, next) =>
+    router.get(GET_LIST, getJsonParser(), async (ctx, next) =>
     {
         try
         {
@@ -122,43 +122,7 @@ export default (router: Router) =>
                 return;
             }
 
-            const {statusCode, headers, body} = await RepositoryService.getPublicList(start, end, username);
-            if (headers)
-            {
-                ctx.response.set(headers);
-            }
-            ctx.response.body = body;
-            ctx.response.status = statusCode;
-        }
-        finally
-        {
-            await next();
-        }
-    });
-
-    router.get(GET_PERSONAL_LIST, getJsonParser(), async (ctx, next) =>
-    {
-        try
-        {
-            const {username} = ctx.session;
-
-            if (typeof username !== 'string')
-            {
-                ctx.response.status = 403;
-                ctx.response.body = new ResponseBody(false, '您未登录');
-                return;
-            }
-
-            const {start, end} = ctx.request.body;
-            if (typeof start !== 'number' ||
-                typeof end !== 'number')
-            {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody(false, '请求参数错误');
-                return;
-            }
-
-            const {statusCode, headers, body} = await RepositoryService.getPersonalList(username, start, end);
+            const {statusCode, headers, body} = await RepositoryService.getList(start, end, ctx.session, username);
             if (headers)
             {
                 ctx.response.set(headers);
