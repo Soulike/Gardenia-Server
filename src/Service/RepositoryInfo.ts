@@ -105,13 +105,14 @@ export async function directory(username: string, name: string, branch: string, 
 
 export async function commitCount(username: string, name: string, branch: string, session: Session): Promise<ServiceResponse<{ commitCount: number } | void>>
 {
-    if (username !== session.username)
+    const repository = await RepositoryTable.select(username, name);
+    if (repository === null)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
 
-    if ((await RepositoryTable.select(username, name)) === null)
+    if (!repository.isPublic && username !== session.username)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
