@@ -3,10 +3,10 @@ import pool from '../Pool';
 import {transaction} from '../Function';
 import * as Profile from './Profile';
 
-export const selectStatement = 'SELECT * FROM accounts WHERE username=$1';
-export const updateStatement = 'UPDATE accounts SET username=$1, hash=$2 WHERE username=$1';
-export const insertStatement = 'INSERT INTO accounts(username, hash) VALUES ($1, $2)';
-export const delStatement = 'DELETE FROM accounts WHERE username=$1';
+export const selectStatement = 'SELECT * FROM accounts WHERE "username"=$1';
+export const updateStatement = 'UPDATE accounts SET "username"=$1, "hash"=$2 WHERE "username"=$1';
+export const insertStatement = 'INSERT INTO accounts("username", "hash") VALUES ($1, $2)';
+export const delStatement = 'DELETE FROM accounts WHERE "username"=$1';
 
 export async function select(username: AccountClass['username']): Promise<AccountClass | null>
 {

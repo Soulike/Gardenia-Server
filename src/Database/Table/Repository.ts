@@ -2,13 +2,13 @@ import {transaction} from '../Function';
 import pool from '../Pool';
 import {Repository as RepositoryClass} from '../../Class';
 
-export const insertStatement = 'INSERT INTO repositories(username, name, description, ispublic) VALUES ($1, $2, $3, $4)';
-export const delStatement = 'DELETE FROM repositories WHERE username=$1 AND name=$2';
-export const updateStatement = 'UPDATE repositories SET username=$1, name=$2, description=$3, ispublic=$4 WHERE username=$1 AND name=$2';
-export const selectStatement = 'SELECT * FROM repositories WHERE username=$1 AND name=$2';
-export const selectByIsPublicStatement = 'SELECT * FROM repositories WHERE ispublic=$1 OFFSET $2 LIMIT $3';
-export const selectByIsPublicAndUsernameStatement = 'SELECT * FROM repositories WHERE ispublic=$1 AND username=$2 OFFSET $3 LIMIT $4';
-export const selectByUsernameStatement = 'SELECT * FROM repositories WHERE username=$1 OFFSET $2 LIMIT $3';
+export const insertStatement = 'INSERT INTO repositories("username", "name", "description", "isPublic") VALUES ($1, $2, $3, $4)';
+export const delStatement = 'DELETE FROM repositories WHERE "username"=$1 AND "name"=$2';
+export const updateStatement = 'UPDATE repositories SET "username"=$1, "name"=$2, "description"=$3, "isPublic"=$4 WHERE "username"=$1 AND "name"=$2';
+export const selectStatement = 'SELECT * FROM repositories WHERE "username"=$1 AND "name"=$2';
+export const selectByIsPublicStatement = 'SELECT * FROM "repositories" WHERE "isPublic"=$1 OFFSET $2 LIMIT $3';
+export const selectByIsPublicAndUsernameStatement = 'SELECT * FROM repositories WHERE "isPublic"=$1 AND "username"=$2 OFFSET $3 LIMIT $4';
+export const selectByUsernameStatement = 'SELECT * FROM repositories WHERE "username"=$1 OFFSET $2 LIMIT $3';
 
 export async function insert(repository: RepositoryClass): Promise<void>
 {

@@ -16,7 +16,7 @@ CREATE TABLE profiles
 
 CREATE TABLE repositories
 (
-    "username"    VARCHAR(255) REFERENCES accounts ("username") UNIQUE NOT NULL,
+    "username"    VARCHAR(255) REFERENCES accounts ("username")      NOT NULL,
     "name"        VARCHAR(255)                                       NOT NULL,
     "description" TEXT DEFAULT ''                                    NOT NULL,
     "isPublic"    BOOLEAN                                            NOT NULL,
