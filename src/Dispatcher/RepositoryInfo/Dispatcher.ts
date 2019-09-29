@@ -60,14 +60,18 @@ export default (router: Router) =>
     {
         try
         {
-            const {username, name, branch} = ctx.request.body;
-            if (typeof username !== 'string' || typeof name !== 'string' || typeof branch !== 'string')
+            const {username, name, branch, file} = ctx.request.body;
+            if (
+                typeof username !== 'string' ||
+                typeof name !== 'string' ||
+                typeof branch !== 'string' ||
+                (typeof file !== 'undefined' && typeof file !== 'string'))
             {
                 ctx.response.status = 400;
                 ctx.response.body = new ResponseBody(false, '请求参数错误');
                 return;
             }
-            const {statusCode, headers, body} = await RepositoryInfo.lastCommit(username, name, branch, ctx.session);
+            const {statusCode, headers, body} = await RepositoryInfo.lastCommit(username, name, branch, ctx.session, file);
             if (headers)
             {
                 ctx.response.set(headers);

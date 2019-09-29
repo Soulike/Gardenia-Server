@@ -4,7 +4,7 @@ import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {exec, spawn} from 'child_process';
-import {File} from '../Function';
+import {File, Promisify} from '../Function';
 import {Session} from 'koa-session';
 
 export async function create(repository: RepositoryClass): Promise<ServiceResponse<void>>
@@ -165,27 +165,18 @@ export async function getFile(username: RepositoryClass['username'], repositoryN
     {
         const objectHash = (stdout.split(/\s+/))[2];
         // 判断文件类型
-        const fileStdout = await (async () =>
-        {
-            return new Promise<string>((resolve, reject) =>
-            {
-                exec(`git cat-file -p ${objectHash} | file -`, (error, stdout) =>
-                {
-                    if (error)
-                    {
-                        return reject(error);
-                    }
-                    return resolve(stdout);
-                });
-            });
-        })();
+        const fileStdout = await Promisify.execPromise(`git cat-file -p ${objectHash} | file -`,
+            {cwd: repoPath}) as string;
         if (fileStdout.toLowerCase().includes('text'))   // 是文本文件，就读取并返回内容
         {
             const fileContent = await (async () =>
             {
                 return new Promise<string>((resolve, reject) =>
                 {
-                    exec(`git cat-file -p ${objectHash}`, {cwd: repoPath}, (error, stdout) =>
+                    exec(`git cat-file -p ${objectHash}`, {
+                        cwd: repoPath,
+                        maxBuffer: 1024 * 1024 * 10,
+                    }, (error, stdout) =>
                     {
                         if (error)
                         {

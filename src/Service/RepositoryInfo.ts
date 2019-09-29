@@ -43,7 +43,7 @@ export async function branch(username: string, name: string, session: Session): 
         new ResponseBody<Array<string>>(true, '', branches));
 }
 
-export async function lastCommit(username: string, name: string, branch: string, session: Session): Promise<ServiceResponse<Commit | void>>
+export async function lastCommit(username: string, name: string, branch: string, session: Session, file?: string): Promise<ServiceResponse<Commit | void>>
 {
     if (username !== session.username)
     {
@@ -57,8 +57,17 @@ export async function lastCommit(username: string, name: string, branch: string,
             new ResponseBody<void>(false, '仓库不存在'));
     }
     const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
-    return new ServiceResponse<Commit>(200, {},
-        new ResponseBody<Commit>(true, '', await Git.getLastCommitInfo(repoPath, branch)));
+    try
+    {
+        return new ServiceResponse<Commit>(200, {},
+            new ResponseBody<Commit>(true, '', await Git.getLastCommitInfo(repoPath, branch, file)));
+    }
+    catch (e)
+    {
+        SERVER.WARN_LOGGER(e);
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '分支不存在'));
+    }
 }
 
 export async function directory(username: string, name: string, branch: string, filePath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
