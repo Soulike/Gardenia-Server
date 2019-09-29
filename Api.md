@@ -344,3 +344,29 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 分支/文件不存在
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+
+#### `/commitCount`
+
+- 功能：获取仓库提交次数
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        username: string,   // 仓库所有者的名字
+        name: string,       // 仓库的名字
+        branch: string,     // 分支
+    }
+}
+```
+- 响应体：
+```ts
+{
+    commitCount: number,    // 指定分支的提交次数
+}
+```
+- 响应消息：
+  - 仓库不存在
+  - 分支不存在
+- 其他说明：
+  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
