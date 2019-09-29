@@ -134,6 +134,20 @@ export enum ObjectType
   - 用户名已存在
   - 散列值计算方法见 `/login`
 
+#### `/checkSession`
+
+- 功能：检测当前 Session 是否有效
+- 方法：GET
+- 请求体：无
+- 响应体：
+```ts
+{
+    isValid: boolean,
+}
+```
+- 响应消息：无
+- 其他说明：无
+
 ### Profile 模块（`/profile`）
 
 本模块负责用户资料的相关操作。

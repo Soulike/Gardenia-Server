@@ -1,5 +1,5 @@
 import Router from '@koa/router';
-import {LOGIN, REGISTER} from './ROUTE';
+import {CHECK_SESSION, LOGIN, REGISTER} from './ROUTE';
 import koaBody from 'koa-body';
 import {BODY} from '../../CONFIG';
 import {ResponseBody} from '../../Class';
@@ -56,6 +56,21 @@ export default (router: Router) =>
                 ctx.response.body = body;
                 ctx.response.status = statusCode;
             }
+        }
+        finally
+        {
+            await next();
+        }
+    });
+
+    router.get(CHECK_SESSION, async (ctx, next) =>
+    {
+        try
+        {
+            const {username} = ctx.session;
+            ctx.response.body = new ResponseBody(true, '',
+                {isValid: typeof username === 'string'},
+            );
         }
         finally
         {
