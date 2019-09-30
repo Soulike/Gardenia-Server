@@ -6,36 +6,37 @@ import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
 
-export async function repository(username: string, name: string, session: Session): Promise<ServiceResponse<RepositoryClass | null>>
+export async function repository(username: string, name: string, session: Session): Promise<ServiceResponse<RepositoryClass | void>>
 {
-    if (username !== session.username)
-    {
-        return new ServiceResponse<null>(404, {},
-            new ResponseBody<null>(false, '仓库不存在'));
-    }
-
     const repository = await RepositoryTable.select(username, name);
     if (repository === null)
     {
-        return new ServiceResponse<null>(404, {},
-            new ResponseBody<null>(false, '仓库不存在'));
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+    const {isPublic} = repository;
+    if (!isPublic && username !== session.username)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
     }
     return new ServiceResponse<RepositoryClass>(200, {},
         new ResponseBody<RepositoryClass>(true, '', repository));
 }
 
-export async function branch(username: string, name: string, session: Session): Promise<ServiceResponse<Array<string> | null>>
+export async function branch(username: string, name: string, session: Session): Promise<ServiceResponse<Array<string> | void>>
 {
-    if (username !== session.username)
+    const repository = await RepositoryTable.select(username, name);
+    if (repository === null)
     {
-        return new ServiceResponse<null>(404, {},
-            new ResponseBody<null>(false, '仓库不存在'));
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
     }
-
-    if ((await RepositoryTable.select(username, name)) === null)
+    const {isPublic} = repository;
+    if (!isPublic && username !== session.username)
     {
-        return new ServiceResponse<null>(404, {},
-            new ResponseBody<null>(false, '仓库不存在'));
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
     }
     const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
     const branches = await Git.getBranches(repoPath);
@@ -45,13 +46,14 @@ export async function branch(username: string, name: string, session: Session): 
 
 export async function lastCommit(username: string, name: string, branch: string, session: Session, file?: string): Promise<ServiceResponse<Commit | void>>
 {
-    if (username !== session.username)
+    const repository = await RepositoryTable.select(username, name);
+    if (repository === null)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-
-    if ((await RepositoryTable.select(username, name)) === null)
+    const {isPublic} = repository;
+    if (!isPublic && username !== session.username)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -72,19 +74,19 @@ export async function lastCommit(username: string, name: string, branch: string,
 
 export async function directory(username: string, name: string, branch: string, filePath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
-    if (username !== session.username)
+    const repository = await RepositoryTable.select(username, name);
+    if (repository === null)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-
-    if ((await RepositoryTable.select(username, name)) === null)
+    const {isPublic} = repository;
+    if (!isPublic && username !== session.username)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
     const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
-
     try
     {
         const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, branch, filePath);
@@ -120,8 +122,8 @@ export async function commitCount(username: string, name: string, branch: string
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-
-    if (!repository.isPublic && username !== session.username)
+    const {isPublic} = repository;
+    if (!isPublic && username !== session.username)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
