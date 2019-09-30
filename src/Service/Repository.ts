@@ -20,7 +20,7 @@ export async function create(repository: RepositoryClass): Promise<ServiceRespon
     // 尝试创建文件夹及 git 裸仓库，并创建数据库记录
     try
     {
-        await fsPromise.mkdir(repoPath);
+        await fsPromise.mkdir(repoPath, {recursive: true});
         await (async () =>
         {
             return new Promise((resolve, reject) =>
