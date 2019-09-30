@@ -1,7 +1,7 @@
 import signale from 'signale';
 
 export const SERVER = {
-    PORT: 8000,
+    PORT: 4006,
     ERROR_LOGGER: signale.error,
     WARN_LOGGER: signale.warn,
     INFO_LOGGER: signale.info,
