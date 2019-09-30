@@ -61,10 +61,16 @@ export async function lastCommit(username: string, name: string, branch: string,
     const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
     try
     {
+        const commit = await Git.getLastCommitInfo(repoPath, branch, file);
+        if (commit.commitHash.length === 0)  // 没有内容，文件不存在
+        {
+            return new ServiceResponse<Commit>(404, {},
+                new ResponseBody<Commit>(false, '文件不存在'));
+        }
         return new ServiceResponse<Commit>(200, {},
-            new ResponseBody<Commit>(true, '', await Git.getLastCommitInfo(repoPath, branch, file)));
+            new ResponseBody<Commit>(true, '', commit));
     }
-    catch (e)
+    catch (e)   // 报错，是分支不存在
     {
         SERVER.WARN_LOGGER(e);
         return new ServiceResponse<void>(404, {},
@@ -141,6 +147,13 @@ export async function commitCount(username: string, name: string, branch: string
     }
     catch (e)
     {
+        if (branch.trim() === 'HEAD')
+        {
+            return new ServiceResponse<{ commitCount: number }>(200, {},
+                new ResponseBody<{ commitCount: number }>(true, '', {
+                    commitCount: 0,
+                }));
+        }
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '分支不存在'));
     }

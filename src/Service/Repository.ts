@@ -149,10 +149,10 @@ export async function getFile(username: RepositoryClass['username'], repositoryN
             });
         })();
     }
-    catch (e)   // 报错，那么就是 commit hash 不存在
+    catch (e)   // 报错，那么就是 commit hash 不存在要么是文件不存在
     {
         SERVER.WARN_LOGGER(e);
-        return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '提交不存在'));
+        return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '文件/提交不存在'));
     }
 
     // 通过输出提取出文件对象 hash
