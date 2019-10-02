@@ -369,3 +369,33 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 当 `branch` 值是 `HEAD` 时，如果查询不到提交次数，向前端返回提交次数 0 而不是报错
     - 用于前端判断仓库是不是空仓库
+
+#### `/fileInfo`
+
+- 功能：获取指定文件信息
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        username: string,           // 仓库所有者名字
+        repositoryName: string,     // 仓库名字
+        filePath: string,           // 文件相对仓库目录的路径
+        commitHash: string,         // commit hash 值
+    }
+}
+```
+- 响应体：
+```ts
+{
+    exists: boolean,        // 文件是否存在，如果不存在，就不需要返回其他参数
+    type?: ObjectType,      // 对象类型，如果是 TREE 就不需要下面剩余参数
+    size?: number,          // 文件大小
+    isBinary?: boolean,     // 是否是二进制文件
+}
+```
+- 响应消息：
+  - 仓库不存在
+  - 提交不存在
+- 其他说明：
+  - 在文件不存在时，不返回 404

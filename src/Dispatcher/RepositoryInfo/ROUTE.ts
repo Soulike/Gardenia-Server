@@ -8,3 +8,4 @@ export const BRANCH = prefix('/branch');
 export const LAST_COMMIT = prefix('/lastCommit');
 export const DIRECTORY = prefix('/directory');
 export const COMMIT_COUNT = prefix('/commitCount');
+export const FILE_INFO = prefix('/fileInfo');
