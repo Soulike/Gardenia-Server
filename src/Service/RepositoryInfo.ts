@@ -195,8 +195,8 @@ export async function fileInfo(username: string, repositoryName: string, filePat
     }
     if (objectHash === null || objectType === null)
     {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '文件不存在'));
+        return new ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(200, {},
+            new ResponseBody<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(true, '', {exists: false}));
     }
 
     // 把文件内容送给 file 命令行工具查看类型
