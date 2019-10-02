@@ -77,3 +77,39 @@ export async function getFileCommitInfoList(repositoryPath: string, branch: stri
     }));
     return fileCommitInfoList;
 }
+
+/**
+ * @description 获取对象的哈希
+ * */
+export async function getObjectHash(repositoryPath: string, filePath: string, commitHash: string): Promise<string | null>
+{
+    // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
+    const lsTreeOut = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`,
+        {cwd: repositoryPath}) as string;
+    if (lsTreeOut.length === 0) // 没有输出则文件不存在，返回 null
+    {
+        return null;
+    }
+    else
+    {
+        return lsTreeOut.split(/\s+/)[2];
+    }
+}
+
+/**
+ * @description 获取对象的类型
+ * */
+export async function getObjectType(repositoryPath: string, filePath: string, commitHash: string): Promise<ObjectType | null>
+{
+    // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
+    const lsTreeOut = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`,
+        {cwd: repositoryPath}) as string;
+    if (lsTreeOut.length === 0) // 没有输出则文件不存在，返回 null
+    {
+        return null;
+    }
+    else
+    {
+        return lsTreeOut.split(/\s+/)[1] === 'tree' ? ObjectType.TREE : ObjectType.BLOB;
+    }
+}
