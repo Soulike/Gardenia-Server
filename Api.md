@@ -224,34 +224,6 @@ Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现
   - 仓库不存在
 - 其他说明：无
 
-#### `/getFile`
-
-- 功能：获取文件内容
-- 方法：GET
-- 请求参数：
-```ts
-{
-    json: {
-        username: string,       // 仓库所有者名字
-        repositoryName: string, // 仓库名字
-        filePath: string,       // 文件相对仓库目录的路径
-        hash: string,          // commit hash 值
-    }
-}
-```
-- 响应体：
-```ts
-{
-    isBinary: boolean,      // 文件是否是二进制文件
-    content?: string,       // 文件的内容
-}
-```
-- 响应消息：
-  - 文件/分支不存在
-- 其他说明：
-  - 当文件是二进制文件时，不包含 `content`
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
-
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息获取操作。

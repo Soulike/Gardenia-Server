@@ -3,8 +3,8 @@ import {Repository as RepositoryTable} from '../Database/Table';
 import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
-import {exec, spawn} from 'child_process';
-import {File, Promisify} from '../Function';
+import {spawn} from 'child_process';
+import {File} from '../Function';
 import {Session} from 'koa-session';
 
 export async function create(repository: RepositoryClass): Promise<ServiceResponse<void>>
@@ -107,105 +107,6 @@ export async function del(username: RepositoryClass['username'], name: Repositor
     await File.rm(tempPath);
 
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
-}
-
-export async function getFile(username: RepositoryClass['username'], repositoryName: RepositoryClass['name'], filePath: string, hash: string, session: Session): Promise<ServiceResponse<{ isBinary: boolean, content?: string } | void>>
-{
-    const repository = await RepositoryTable.select(username, repositoryName);
-    // 检查仓库是否存在
-    if (repository === null)
-    {
-        return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '文件不存在'));
-    }
-    // 如果是私有仓库，非所有者返回 HTTP 404
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
-    {
-        return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '仓库不存在'));
-    }
-
-    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
-
-    let stdout = '';
-
-    // 通过 commit hash 和文件路径找到文件的对象 hash
-    try
-    {
-        stdout = await (async () =>
-        {
-            return new Promise<string>((resolve, reject) =>
-            {
-                exec(`git ls-tree --full-tree ${hash} -- ${filePath}`, {cwd: repoPath}, (error, stdout) =>
-                {
-                    if (error)
-                    {
-                        reject(error);
-                    }
-                    else
-                    {
-                        resolve(stdout);
-                    }
-                });
-            });
-        })();
-    }
-    catch (e)   // 报错，那么就是 commit hash 不存在要么是文件不存在
-    {
-        SERVER.WARN_LOGGER(e);
-        return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '文件/提交不存在'));
-    }
-
-    // 通过输出提取出文件对象 hash
-    if (stdout.length === 0)    // 输出是空，文件不存在
-    {
-        return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '文件不存在'));
-    }
-    // 格式为 100644 blob 717a1cf8df1d86acd7daef6193298b6f7e4c1ccb	README.md
-    else
-    {
-        const objectHash = (stdout.split(/\s+/))[2];
-        // 判断文件类型
-        const fileStdout = await Promisify.execPromise(`git cat-file -p ${objectHash} | file -`,
-            {cwd: repoPath}) as string;
-        if (fileStdout.toLowerCase().includes('text'))   // 是文本文件，就读取并返回内容
-        {
-            const fileContent = await (async () =>
-            {
-                return new Promise<string>((resolve, reject) =>
-                {
-                    exec(`git cat-file -p ${objectHash}`, {
-                        cwd: repoPath,
-                        maxBuffer: 1024 * 1024 * 10,
-                    }, (error, stdout) =>
-                    {
-                        if (error)
-                        {
-                            reject(error);
-                        }
-                        else
-                        {
-                            resolve(stdout);
-                        }
-                    });
-                });
-            })();
-            return new ServiceResponse<{ isBinary: boolean, content?: string } | void>(
-                200, {},
-                new ResponseBody<{ isBinary: boolean, content?: string } | void>(true, '', {
-                    isBinary: false,
-                    content: fileContent,
-                }),
-            );
-        }
-        else    // !fileStdout.toLowerCase().includes('text') 不是文本文件，就不读取内容
-        {
-            return new ServiceResponse<{ isBinary: boolean, content?: string } | void>(200, {},
-                new ResponseBody<{ isBinary: boolean, content?: string } | void>(
-                    true, '', {isBinary: true},
-                ));
-        }
-    }
-
 }
 
 export async function getList(start: number, end: number, session: Session, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
