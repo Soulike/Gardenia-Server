@@ -16,7 +16,7 @@ export async function execPromise(command: string, options?: ExecOptions): Promi
     });
 }
 
-export async function waitForEvent(eventEmitter: EventEmitter, event: string | symbol): Promise<any>
+export async function waitForEvent(eventEmitter: EventEmitter, event: string | symbol): Promise<any[]>
 {
     return new Promise((resolve, reject) =>
     {
