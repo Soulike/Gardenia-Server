@@ -1,5 +1,5 @@
 import Router from '@koa/router';
-import {BRANCH, COMMIT_COUNT, DIRECTORY, FILE_INFO, LAST_COMMIT, REPOSITORY} from './ROUTE';
+import {BRANCH, COMMIT_COUNT, DIRECTORY, FILE_INFO, LAST_COMMIT, RAW_FILE, REPOSITORY} from './ROUTE';
 import {ResponseBody} from '../../Class';
 import {RepositoryInfo} from '../../Service';
 import {getJsonParser} from '../../Middleware';
@@ -159,6 +159,30 @@ export default (router: Router) =>
             }
             ctx.response.body = body;
             ctx.response.status = statusCode;
+        }
+        finally
+        {
+            await next();
+        }
+    });
+
+    router.get(RAW_FILE, getJsonParser(), async (ctx, next) =>
+    {
+        try
+        {
+            const {username, repositoryName, filePath, commitHash} = ctx.request.body;
+            if (typeof username !== 'string' ||
+                typeof repositoryName !== 'string' ||
+                typeof filePath !== 'string' ||
+                typeof commitHash !== 'string')
+            {
+                ctx.response.status = 400;
+                ctx.response.body = new ResponseBody(false, '请求参数错误');
+                return;
+            }
+
+            // 直接操纵响应流
+            await RepositoryInfo.rawFile(username, repositoryName, filePath, commitHash, ctx.session, ctx.res);
         }
         finally
         {

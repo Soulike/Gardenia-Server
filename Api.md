@@ -400,3 +400,27 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 在文件不存在时，不返回 404
+
+#### `/rawFile`
+
+- 功能：获取文件内容
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        username: string,           // 仓库所有者名字
+        repositoryName: string,     // 仓库名字
+        filePath: string,           // 文件相对仓库目录的路径
+        commitHash: string,         // commit hash 值
+    }
+}
+```
+- 响应体：二进制文件流
+- 响应消息：
+  - 仓库不存在
+  - 文件不存在
+  - 提交不存在
+- 其他说明：
+  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+  - 直接调用标准输出流和响应流进行发送

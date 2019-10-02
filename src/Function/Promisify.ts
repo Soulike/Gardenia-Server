@@ -1,4 +1,5 @@
 import {exec, ExecOptions} from 'child_process';
+import EventEmitter from 'events';
 
 export async function execPromise(command: string, options?: ExecOptions): Promise<string | Buffer>
 {
@@ -11,6 +12,22 @@ export async function execPromise(command: string, options?: ExecOptions): Promi
                 return reject(error);
             }
             return resolve(stdout);
+        });
+    });
+}
+
+export async function waitForEvent(eventEmitter: EventEmitter, event: string | symbol): Promise<any>
+{
+    return new Promise((resolve, reject) =>
+    {
+        eventEmitter.on(event, (...param) =>
+        {
+            resolve(param);
+        });
+
+        eventEmitter.on('error', e =>
+        {
+            reject(e);
         });
     });
 }

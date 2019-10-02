@@ -5,6 +5,8 @@ import {Git, Promisify} from '../Function';
 import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
+import {ServerResponse} from 'http';
+import {spawn} from 'child_process';
 
 export async function repository(username: string, name: string, session: Session): Promise<ServiceResponse<RepositoryClass | void>>
 {
@@ -221,4 +223,42 @@ export async function fileInfo(username: string, repositoryName: string, filePat
                 },
             ));
     }
+}
+
+export async function rawFile(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session, res: ServerResponse): Promise<void>
+{
+    const repository = await RepositoryTable.select(username, repositoryName);
+    if (repository === null)
+    {
+        res.statusCode = 404;
+        return;
+    }
+    const {isPublic} = repository;
+    if (!isPublic && username !== session.username)
+    {
+        res.statusCode = 404;
+        return;
+    }
+    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
+    let objectHash: string | null = null;
+    try
+    {
+        // 获取对象哈希
+        objectHash = await Git.getObjectHash(repoPath, filePath, commitHash);
+    }
+    catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
+    {
+        res.statusCode = 404;
+        return;
+    }
+    if (objectHash === null)
+    {
+        res.statusCode = 404;
+        return;
+    }
+    // 执行命令获取文件内容
+    const childProcess = spawn(`git cat-file -p ${objectHash}`, {cwd: repoPath, shell: true});
+    res.statusCode = 200;
+    childProcess.stdout.pipe(res);  // 用流的形式发出文件内容
+    await Promisify.waitForEvent(childProcess, 'close');    // 等待传输结束
 }
