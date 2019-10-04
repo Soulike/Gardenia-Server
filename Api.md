@@ -313,6 +313,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 分支/文件不存在
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+  - 对数组进行排序，类型为 TREE 的在前，BLOB 的在后
 
 #### `/commitCount`
 
