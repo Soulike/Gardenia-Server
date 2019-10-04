@@ -4,7 +4,7 @@ import koaBody from 'koa-body';
 import {BODY} from '../../CONFIG';
 import {Repository as RepositoryClass, ResponseBody} from '../../Class';
 import {Repository as RepositoryService} from '../../Service';
-import {getJsonParser} from '../../Middleware';
+import {JSONQueryParameterParser} from '../../Middleware';
 
 export default (router: Router) =>
 {
@@ -79,7 +79,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(GET_LIST, getJsonParser(), async (ctx, next) =>
+    router.get(GET_LIST, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {

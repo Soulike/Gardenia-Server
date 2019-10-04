@@ -1,5 +1,4 @@
-import getJsonParser from './GetJsonParser';
+import JSONQueryParameterParser from './JSONQueryParameterParser';
 import requestLogger from './RequestLogger';
 
-export {getJsonParser, requestLogger};
-
+export {JSONQueryParameterParser, requestLogger};

@@ -2,11 +2,11 @@ import Router from '@koa/router';
 import {BRANCH, COMMIT_COUNT, DIRECTORY, FILE_INFO, LAST_COMMIT, RAW_FILE, REPOSITORY} from './ROUTE';
 import {ResponseBody} from '../../Class';
 import {RepositoryInfo} from '../../Service';
-import {getJsonParser} from '../../Middleware';
+import {JSONQueryParameterParser} from '../../Middleware';
 
 export default (router: Router) =>
 {
-    router.get(REPOSITORY, getJsonParser(), async (ctx, next) =>
+    router.get(REPOSITORY, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {
@@ -31,7 +31,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(BRANCH, getJsonParser(), async (ctx, next) =>
+    router.get(BRANCH, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {
@@ -56,7 +56,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(LAST_COMMIT, getJsonParser(), async (ctx, next) =>
+    router.get(LAST_COMMIT, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {
@@ -85,7 +85,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(DIRECTORY, getJsonParser(), async (ctx, next) =>
+    router.get(DIRECTORY, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {
@@ -110,7 +110,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(COMMIT_COUNT, getJsonParser(), async (ctx, next) =>
+    router.get(COMMIT_COUNT, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {
@@ -137,7 +137,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(FILE_INFO, getJsonParser(), async (ctx, next) =>
+    router.get(FILE_INFO, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {
@@ -166,7 +166,7 @@ export default (router: Router) =>
         }
     });
 
-    router.get(RAW_FILE, getJsonParser(), async (ctx, next) =>
+    router.get(RAW_FILE, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {

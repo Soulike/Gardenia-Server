@@ -1,12 +1,12 @@
 import Router from '@koa/router';
 import {GET} from './ROUTE';
-import {getJsonParser} from '../../Middleware';
+import {JSONQueryParameterParser} from '../../Middleware';
 import {ResponseBody} from '../../Class';
 import {Profile} from '../../Service';
 
 export default (router: Router) =>
 {
-    router.get(GET, getJsonParser(), async (ctx, next) =>
+    router.get(GET, JSONQueryParameterParser(), async (ctx, next) =>
     {
         try
         {
