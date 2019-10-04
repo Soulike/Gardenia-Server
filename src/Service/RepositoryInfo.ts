@@ -104,6 +104,35 @@ export async function directory(username: string, name: string, branch: string, 
                 new ResponseBody<void>(false, '文件不存在'));
         }
 
+        // 对获取的数组进行排序，类型为 TREE 的在前，BLOB 的在后
+        fileCommitInfoList.sort((fileCommitInfoA, fileCommitInfoB) =>
+        {
+            const {type: AType, path: APath} = fileCommitInfoA;
+            const {type: BType, path: BPath} = fileCommitInfoB;
+            if (AType === ObjectType.TREE)
+            {
+                if (BType === ObjectType.TREE)   // 类型相同，就按照名称排序
+                {
+                    return path.basename(APath) > path.basename(BPath) ? 1 : 0;
+                }
+                else // BType === ObjectType.BLOB
+                {
+                    return -1;
+                }
+            }
+            else    // AType === ObjectType.BLOB
+            {
+                if (BType === ObjectType.TREE)
+                {
+                    return 1;
+                }
+                else // BType === ObjectType.BLOB 类型相同，就按照名称排序
+                {
+                    return path.basename(APath) > path.basename(BPath) ? 1 : 0;
+                }
+            }
+        });
+
         return new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
             200,
             {},
