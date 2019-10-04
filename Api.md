@@ -79,8 +79,8 @@ Git 对象的类型
 ```ts
 export enum ObjectType
 {
-    BLOB = 'BLOB',
-    TREE = 'TREE'
+    BLOB = 'blob',
+    TREE = 'tree'
 }
 ```
 
