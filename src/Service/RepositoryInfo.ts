@@ -7,6 +7,7 @@ import {GIT, SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
 import {ServerResponse} from 'http';
 import {spawn} from 'child_process';
+import mime from 'mime-types';
 
 export async function repository(username: string, name: string, session: Session): Promise<ServiceResponse<RepositoryClass | void>>
 {
@@ -288,6 +289,7 @@ export async function rawFile(username: string, repositoryName: string, filePath
     // 执行命令获取文件内容
     const childProcess = spawn(`git cat-file -p ${objectHash}`, {cwd: repoPath, shell: true});
     res.statusCode = 200;
+    res.setHeader('Content-Type', mime.contentType(filePath) || 'application/octet-stream');
     childProcess.stdout.pipe(res);  // 用流的形式发出文件内容
     await Promisify.waitForEvent(childProcess, 'close');    // 等待传输结束
 }
