@@ -51,7 +51,7 @@ export default (): Koa.Middleware =>
         }
         else
         {
-            ctx.status = 500;
+            responseWithAuthenticationRequirement(ctx);
         }
     };
 };
