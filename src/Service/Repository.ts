@@ -25,7 +25,7 @@ export async function create(repository: RepositoryClass): Promise<ServiceRespon
         {
             return new Promise((resolve, reject) =>
             {
-                const childProcess = spawn('git init --bare && cp hooks/post-update.sample hooks/post-update && git update-server-info', {
+                const childProcess = spawn('git init --bare && cp hooks/post-update.sample hooks/post-update && git update-server-info && git config http.receivepack true', {
                     shell: true,
                     cwd: repoPath,
                 });

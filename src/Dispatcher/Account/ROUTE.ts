@@ -1,8 +1,10 @@
-function prefix(url: string): string
+import {prefix} from '../Function';
+
+function accountPrefix(url: string): string
 {
-    return `/account${url}`;
+    return prefix(`/account${url}`);
 }
 
-export const LOGIN = prefix('/login');
-export const REGISTER = prefix('/register');
-export const CHECK_SESSION = prefix('/checkSession');
+export const LOGIN = accountPrefix('/login');
+export const REGISTER = accountPrefix('/register');
+export const CHECK_SESSION = accountPrefix('/checkSession');

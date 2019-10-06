@@ -23,15 +23,16 @@
     "@types/pg": "^7.11.1",
     "@types/signale": "^1.2.1",
     "@types/validator": "^10.11.3",
+    "cgi": "^0.3.1",
     "koa": "^2.8.1",
+    "koa-better-http-proxy": "^0.2.4",
     "koa-body": "^4.1.1",
     "koa-session": "^5.12.3",
     "mime-types": "^2.1.24",
     "pg": "^7.12.1",
     "signale": "^1.4.0",
     "typescript": "^3.6.3",
-    "validator": "^11.1.0",
-    "webdav-server": "^2.4.6"
+    "validator": "^11.1.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.18",

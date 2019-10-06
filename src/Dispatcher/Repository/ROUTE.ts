@@ -1,8 +1,10 @@
-function prefix(url: string): string
+import {prefix} from '../Function';
+
+function repositoryPrefix(url: string): string
 {
-    return `/repository${url}`;
+    return prefix(`/repository${url}`);
 }
 
-export const CREATE = prefix('/create');
-export const DEL = prefix('/del');
-export const GET_LIST = prefix('/getList');
+export const CREATE = repositoryPrefix('/create');
+export const DEL = repositoryPrefix('/del');
+export const GET_LIST = repositoryPrefix('/getList');

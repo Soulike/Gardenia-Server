@@ -1,12 +1,14 @@
-function prefix(url: string): string
+import {prefix} from '../Function';
+
+function repositoryInfoPrefix(url: string): string
 {
-    return `/repositoryInfo${url}`;
+    return prefix(`/repositoryInfo${url}`);
 }
 
-export const REPOSITORY = prefix('/repository');
-export const BRANCH = prefix('/branch');
-export const LAST_COMMIT = prefix('/lastCommit');
-export const DIRECTORY = prefix('/directory');
-export const COMMIT_COUNT = prefix('/commitCount');
-export const FILE_INFO = prefix('/fileInfo');
-export const RAW_FILE = prefix('/rawFile');
+export const REPOSITORY = repositoryInfoPrefix('/repository');
+export const BRANCH = repositoryInfoPrefix('/branch');
+export const LAST_COMMIT = repositoryInfoPrefix('/lastCommit');
+export const DIRECTORY = repositoryInfoPrefix('/directory');
+export const COMMIT_COUNT = repositoryInfoPrefix('/commitCount');
+export const FILE_INFO = repositoryInfoPrefix('/fileInfo');
+export const RAW_FILE = repositoryInfoPrefix('/rawFile');

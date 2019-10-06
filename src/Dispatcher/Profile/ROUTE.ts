@@ -1,6 +1,8 @@
-function prefix(url: string): string
+import {prefix} from '../Function';
+
+function profilePrefix(url: string): string
 {
-    return `/profile${url}`;
+    return prefix(`/profile${url}`);
 }
 
-export const GET = prefix('/get');
+export const GET = profilePrefix('/get');

@@ -1,4 +1,4 @@
-import {router} from './Router';
+import router from './Router';
 import Koa from 'koa';
 import signale from 'signale';
 import {ResponseBody} from '../Class';
