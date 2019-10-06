@@ -1,5 +1,6 @@
 import {Middleware} from 'koa';
 import proxy from './Proxy';
+import {responseWithAuthenticationRequirement} from '../Function';
 
 export default (): Middleware =>
 {
@@ -14,8 +15,7 @@ export default (): Middleware =>
         }
         else
         {
-            ctx.response.status = 404;
-            ctx.response.body = '仓库不存在';
+            responseWithAuthenticationRequirement(ctx);
         }
     };
 }

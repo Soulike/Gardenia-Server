@@ -2,14 +2,7 @@ import Koa from 'koa';
 import {Crypto, Util} from '../../../Function';
 import {Account} from '../../../Database';
 import repositoryOwnerJudge from './RepositoryOwnerJudge';
-
-function responseWithAuthenticationRequirement(ctx: Koa.ParameterizedContext)
-{
-    ctx.response.status = 401;
-    ctx.response.set({
-        'WWW-Authenticate': 'Basic realm=git',
-    });
-}
+import {responseWithAuthenticationRequirement} from '../Function';
 
 export default (): Koa.Middleware =>
 {
