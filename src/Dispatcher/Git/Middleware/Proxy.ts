@@ -3,6 +3,7 @@ import http from 'http';
 import {GIT} from '../../../CONFIG';
 import {AddressInfo} from 'net';
 import proxy from 'koa-better-http-proxy';
+import {Promisify} from '../../../Function';
 
 const cgi = require('cgi');
 
@@ -19,6 +20,7 @@ export default (): Middleware =>
             stderr: process.stderr,
             shell: true,
         })).listen();
+        await Promisify.waitForEvent(server, 'listening');
         const port = (server.address() as AddressInfo).port;
         await proxy(`localhost`, {
             port,
@@ -27,5 +29,6 @@ export default (): Middleware =>
             parseReqBody: false,
         })(ctx, next);
         server.close(); // 请求处理完成立即关闭
+        await Promisify.waitForEvent(server, 'close');
     };
 }
