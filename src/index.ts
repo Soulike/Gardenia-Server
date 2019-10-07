@@ -8,10 +8,10 @@ const app = new Koa();
 
 app.on('error', (e: Error) =>
 {
-    signale.error(`服务器未捕获的错误:\n${e.stack}`);
+    signale.error(`未捕获的错误:\n${e.stack}`);
 });
 app.use(session(SESSION, app));
-app.use(dispatcher(app));
+app.use(dispatcher());
 app.listen(SERVER.PORT, () =>
 {
     signale.info(`服务器运行在端口 ${SERVER.PORT} (PID: ${process.pid})`);

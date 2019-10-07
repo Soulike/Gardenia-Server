@@ -8,11 +8,9 @@ import validator from 'validator';
 
 export default (router: Router) =>
 {
-    router.post(LOGIN, koaBody(BODY), async (ctx, next) =>
+    router.post(LOGIN, koaBody(BODY), async (ctx) =>
     {
-        try
-        {
-            const {username, hash} = ctx.request.body;
+        const {username, hash} = ctx.request.body;
             if (typeof username !== 'string' || typeof hash !== 'string' || hash.length !== 64)
             {
                 ctx.response.status = 400;
@@ -28,18 +26,11 @@ export default (router: Router) =>
                 ctx.response.body = body;
                 ctx.response.status = statusCode;
             }
-        }
-        finally
-        {
-            await next();
-        }
     });
 
-    router.post(REGISTER, koaBody(BODY), async (ctx, next) =>
+    router.post(REGISTER, koaBody(BODY), async (ctx) =>
     {
-        try
-        {
-            const {username, hash, email} = ctx.request.body;
+        const {username, hash, email} = ctx.request.body;
             if (typeof username !== 'string' || typeof hash !== 'string' || hash.length !== 64 ||
                 typeof email !== 'string' || !validator.isEmail(email))
             {
@@ -56,25 +47,13 @@ export default (router: Router) =>
                 ctx.response.body = body;
                 ctx.response.status = statusCode;
             }
-        }
-        finally
-        {
-            await next();
-        }
     });
 
-    router.get(CHECK_SESSION, async (ctx, next) =>
+    router.get(CHECK_SESSION, async (ctx) =>
     {
-        try
-        {
-            const {username} = ctx.session;
+        const {username} = ctx.session;
             ctx.response.body = new ResponseBody(true, '',
                 {isValid: typeof username === 'string'},
             );
-        }
-        finally
-        {
-            await next();
-        }
     });
 };

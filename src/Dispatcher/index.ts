@@ -1,25 +1,12 @@
 import router from './Router';
-import Koa from 'koa';
-import signale from 'signale';
-import {ResponseBody} from '../Class';
+import compose from 'koa-compose';
+import errorProcessor from './Middleware/ErrorProcessor';
 
-export default (app: Koa): Koa.Middleware =>
+export default () =>
 {
-    app
-        .use(router.routes())
-        .use(router.allowedMethods());
-
-    return async (ctx, next) =>
-    {
-        try
-        {
-            await next();
-        }
-        catch (e)
-        {
-            ctx.response.status = 500;
-            ctx.response.body = new ResponseBody(false, '服务器错误');
-            signale.error(e);
-        }
-    };
+    return compose([
+        errorProcessor(),
+        router.routes(),
+        router.allowedMethods(),
+    ]);
 };
