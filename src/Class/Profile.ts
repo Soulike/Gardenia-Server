@@ -11,13 +11,26 @@ export class Profile
 
     constructor(username: string, nickname: string, email: string, avatar: string)
     {
+        if (!Profile.validate({username, nickname, email, avatar}))
+        {
+            throw new TypeError('Profile constructor parameter type is incorrect');
+        }
         this.username = username;
         this.nickname = nickname;
         this.email = email;
         this.avatar = avatar;
     }
 
-    static from(obj: any)
+    static validate(obj: Record<keyof Profile, any>): boolean
+    {
+        const {username, nickname, email, avatar} = obj;
+        return typeof username === 'string'
+            && typeof nickname === 'string'
+            && typeof email === 'string' && validator.isEmail(email)
+            && typeof avatar === 'string';
+    }
+
+    static from(obj: Record<keyof Profile, any>)
     {
         const {username, nickname, email, avatar} = obj;
         return new Profile(username, nickname, email, avatar);

@@ -9,11 +9,22 @@ export class Account
 
     constructor(username: string, hash: string)
     {
+        if (!Account.validate({username, hash}))
+        {
+            throw new TypeError('Account constructor parameter type is incorrect');
+        }
         this.username = username;
         this.hash = hash;
     }
 
-    static from(obj: any)
+    static validate(obj: Record<keyof Account, any>): boolean
+    {
+        const {username, hash} = obj;
+        return typeof username === 'string'
+            && typeof hash === 'string';
+    }
+
+    static from(obj: Record<keyof Account, any>)
     {
         const {username, hash} = obj;
         return new Account(username, hash);

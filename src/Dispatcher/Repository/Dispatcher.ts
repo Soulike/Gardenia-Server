@@ -12,10 +12,7 @@ export default (router: Router) =>
     {
         const {username: usernameInSession} = ctx.session;
         const {username, name, description, isPublic} = ctx.request.body;
-        if (typeof username !== 'string' ||
-            typeof name !== 'string' ||
-            typeof description !== 'string' ||
-            typeof isPublic !== 'boolean')
+        if (!RepositoryClass.validate({username, name, description, isPublic}))
         {
             ctx.response.status = 400;
             ctx.response.body = new ResponseBody(false, '请求参数错误');
