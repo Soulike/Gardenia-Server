@@ -8,8 +8,8 @@ export const create: ParameterValidator = body =>
 
 export const del: ParameterValidator = body =>
 {
-    const {name} = body;
-    return typeof name === 'string';
+    const {repositoryName} = body;
+    return typeof repositoryName === 'string';
 };
 
 export const getList: ParameterValidator = body =>

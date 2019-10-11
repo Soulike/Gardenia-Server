@@ -218,7 +218,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 - 请求体：
 ```ts
 {
-    name: string,   // 仓库的名字
+    repositoryName: string,   // 仓库的名字
 }
 ```
 - 响应体：无
@@ -239,7 +239,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 {
     json: {
         username: string,   // 仓库所有者的名字
-        name: string,       // 仓库的名字
+        repositoryName: string,       // 仓库的名字
     }
 }
 ```
@@ -258,7 +258,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 {
     json: {
         username: string,   // 仓库所有者的名字
-        name: string,       // 仓库的名字
+        repositoryName: string,       // 仓库的名字
     }
 }
 ```
@@ -277,9 +277,9 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 {
     json: {
         username: string,   // 仓库所有者的名字
-        name: string,       // 仓库的名字
+        repositoryName: string,       // 仓库的名字
         branch: string,     // 分支
-        file?: string,      // 文件，相对路径
+        filePath?: string,      // 文件，相对路径
     }
 }
 ```
@@ -300,9 +300,9 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 {
     json: {
         username: string,   // 仓库所有者的名字
-        name: string,       // 仓库的名字
+        repositoryName: string,       // 仓库的名字
         branch: string,     // 分支
-        path: string,       // 文件/目录的路径
+        directoryPath: string,       // 文件/目录的路径
     }
 }
 ```
@@ -326,7 +326,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     json: {
         username: string,   // 仓库所有者的名字
-        name: string,       // 仓库的名字
+        repositoryName: string,       // 仓库的名字
         branch: string,     // 分支
     }
 }

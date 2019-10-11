@@ -2,35 +2,35 @@ import {ParameterValidator} from '../../Interface';
 
 export const repository: ParameterValidator = body =>
 {
-    const {username, name} = body;
-    return typeof username === 'string' || typeof name === 'string';
+    const {username, repositoryName} = body;
+    return typeof username === 'string' || typeof repositoryName === 'string';
 };
 
 export const branch = repository;
 
 export const lastCommit: ParameterValidator = body =>
 {
-    const {username, name, branch, file} = body;
+    const {username, repositoryName, branch, filePath} = body;
     return typeof username === 'string'
-        && typeof name === 'string'
+        && typeof repositoryName === 'string'
         && typeof branch === 'string'
-        && (typeof file === 'undefined' || typeof file === 'string');
+        && (typeof filePath === 'undefined' || typeof filePath === 'string');
 };
 
 export const directory: ParameterValidator = body =>
 {
-    const {username, name, branch, path} = body;
+    const {username, repositoryName, branch, directoryPath} = body;
     return typeof username === 'string'
-        && typeof name === 'string'
+        && typeof repositoryName === 'string'
         && typeof branch === 'string'
-        && typeof path === 'string';
+        && typeof directoryPath === 'string';
 };
 
 export const commitCount: ParameterValidator = body =>
 {
-    const {username, name, branch} = body;
+    const {username, repositoryName, branch} = body;
     return typeof username === 'string'
-        && typeof name === 'string'
+        && typeof repositoryName === 'string'
         && typeof branch === 'string';
 };
 

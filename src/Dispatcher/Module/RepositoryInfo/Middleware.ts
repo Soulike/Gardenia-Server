@@ -11,8 +11,8 @@ export const repository: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, name} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.repository(username, name, ctx.session);
+        const {username, repositoryName} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.repository(username, repositoryName, ctx.session);
     };
 };
 
@@ -24,8 +24,8 @@ export const branch: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, name} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.branch(username, name, ctx.session);
+        const {username, repositoryName} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.branch(username, repositoryName, ctx.session);
     };
 };
 
@@ -37,8 +37,8 @@ export const lastCommit: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, name, branch, file} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(username, name, branch, ctx.session, file);
+        const {username, repositoryName, branch, filePath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(username, repositoryName, branch, ctx.session, filePath);
     };
 };
 
@@ -50,8 +50,8 @@ export const directory: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, name, branch, path} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.directory(username, name, branch, path, ctx.session);
+        const {username, repositoryName, branch, directoryPath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.directory(username, repositoryName, branch, directoryPath, ctx.session);
     };
 };
 
@@ -63,8 +63,8 @@ export const commitCount: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, name, branch} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.commitCount(username, name, branch, ctx.session);
+        const {username, repositoryName, branch} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitCount(username, repositoryName, branch, ctx.session);
     };
 };
 

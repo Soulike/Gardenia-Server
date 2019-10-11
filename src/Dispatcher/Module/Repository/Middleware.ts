@@ -32,7 +32,7 @@ export const del: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {name} = ctx.request.body;
+        const {repositoryName} = ctx.request.body;
         const {username} = ctx.session;
         if (typeof username !== 'string')
         {
@@ -41,7 +41,7 @@ export const del: MiddlewareWrapper = () =>
             return;
         }
 
-        ctx.state.serviceResponse = await RepositoryService.del(username, name);
+        ctx.state.serviceResponse = await RepositoryService.del(username, repositoryName);
     };
 };
 

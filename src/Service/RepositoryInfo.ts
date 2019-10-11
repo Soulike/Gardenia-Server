@@ -9,9 +9,9 @@ import {ServerResponse} from 'http';
 import {spawn} from 'child_process';
 import mime from 'mime-types';
 
-export async function repository(username: string, name: string, session: Session): Promise<ServiceResponse<RepositoryClass | void>>
+export async function repository(username: string, repositoryName: string, session: Session): Promise<ServiceResponse<RepositoryClass | void>>
 {
-    const repository = await RepositoryTable.select(username, name);
+    const repository = await RepositoryTable.select(username, repositoryName);
     if (repository === null)
     {
         return new ServiceResponse<void>(404, {},
@@ -27,9 +27,9 @@ export async function repository(username: string, name: string, session: Sessio
         new ResponseBody<RepositoryClass>(true, '', repository));
 }
 
-export async function branch(username: string, name: string, session: Session): Promise<ServiceResponse<Array<string> | void>>
+export async function branch(username: string, repositoryName: string, session: Session): Promise<ServiceResponse<Array<string> | void>>
 {
-    const repository = await RepositoryTable.select(username, name);
+    const repository = await RepositoryTable.select(username, repositoryName);
     if (repository === null)
     {
         return new ServiceResponse<void>(404, {},
@@ -41,15 +41,15 @@ export async function branch(username: string, name: string, session: Session): 
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
     const branches = await Git.getBranches(repoPath);
     return new ServiceResponse<Array<string>>(200, {},
         new ResponseBody<Array<string>>(true, '', branches));
 }
 
-export async function lastCommit(username: string, name: string, branch: string, session: Session, file?: string): Promise<ServiceResponse<Commit | void>>
+export async function lastCommit(username: string, repositoryName: string, branch: string, session: Session, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
-    const repository = await RepositoryTable.select(username, name);
+    const repository = await RepositoryTable.select(username, repositoryName);
     if (repository === null)
     {
         return new ServiceResponse<void>(404, {},
@@ -61,10 +61,10 @@ export async function lastCommit(username: string, name: string, branch: string,
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
     try
     {
-        const commit = await Git.getLastCommitInfo(repoPath, branch, file);
+        const commit = await Git.getLastCommitInfo(repoPath, branch, filePath);
         if (commit.commitHash.length === 0)  // 没有内容，文件不存在
         {
             return new ServiceResponse<Commit>(404, {},
@@ -81,9 +81,9 @@ export async function lastCommit(username: string, name: string, branch: string,
     }
 }
 
-export async function directory(username: string, name: string, branch: string, filePath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
+export async function directory(username: string, repositoryName: string, branch: string, directoryPath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
-    const repository = await RepositoryTable.select(username, name);
+    const repository = await RepositoryTable.select(username, repositoryName);
     if (repository === null)
     {
         return new ServiceResponse<void>(404, {},
@@ -95,10 +95,10 @@ export async function directory(username: string, name: string, branch: string, 
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
     try
     {
-        const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, branch, filePath);
+        const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, branch, directoryPath);
         if (fileCommitInfoList.length === 0)  // 信息列表是空的，一定是文件不存在
         {
             return new ServiceResponse<void>(404, {},
