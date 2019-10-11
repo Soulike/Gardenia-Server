@@ -1,8 +1,8 @@
-import {Middleware} from 'koa';
 import proxy from './Proxy';
 import {responseWithAuthenticationRequirement} from '../Function';
+import {MiddlewareWrapper} from '../../../Interface';
 
-export default (): Middleware =>
+const middlewareWrapper: MiddlewareWrapper = () =>
 {
     return async (ctx, next) =>
     {
@@ -18,4 +18,6 @@ export default (): Middleware =>
             responseWithAuthenticationRequirement(ctx);
         }
     };
-}
+};
+
+export default middlewareWrapper;

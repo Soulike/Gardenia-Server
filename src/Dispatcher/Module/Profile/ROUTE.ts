@@ -1,4 +1,4 @@
-import {prefix} from '../Function';
+import {prefix} from '../../Function';
 
 function profilePrefix(url: string): string
 {

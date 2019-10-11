@@ -1,9 +1,9 @@
-import {Middleware} from 'koa';
-import {Repository} from '../../../Database';
+import {MiddlewareWrapper} from '../../../Interface';
+import {Repository} from '../../../../Database';
 import requestMethodJudge from './RequestMethodJudge';
 import authentication from './Authentication';
 
-export default (): Middleware =>
+const middlewareWrapper: MiddlewareWrapper = () =>
 {
     return async (ctx, next) =>
     {
@@ -27,4 +27,6 @@ export default (): Middleware =>
             await authentication()(ctx, next);
         }
     };
-}
+};
+
+export default middlewareWrapper;

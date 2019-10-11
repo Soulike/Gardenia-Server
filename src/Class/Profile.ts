@@ -1,3 +1,5 @@
+import validator from 'validator';
+
 /**
  * @class
  * @description 账号资料，对应数据库 profiles 表

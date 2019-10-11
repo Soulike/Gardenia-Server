@@ -1,9 +1,9 @@
-import {Middleware} from 'koa';
 import {AddressInfo} from 'net';
 import proxy from 'koa-better-http-proxy';
-import {GitHTTPCgiServer} from '../../../Class';
+import {GitHTTPCgiServer} from '../../../../Class';
+import {MiddlewareWrapper} from '../../../Interface';
 
-export default (): Middleware =>
+const middlewareWrapper: MiddlewareWrapper = () =>
 {
     return async (ctx, next) =>
     {
@@ -16,4 +16,6 @@ export default (): Middleware =>
             parseReqBody: false,
         })(ctx, next);
     };
-}
+};
+
+export default middlewareWrapper;

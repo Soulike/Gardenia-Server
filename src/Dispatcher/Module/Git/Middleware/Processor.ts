@@ -1,10 +1,12 @@
-import {Middleware} from 'koa';
 import privateRepositoryJudge from './PrivateRepositoryJudge';
+import {MiddlewareWrapper} from '../../../Interface';
 
-export default (): Middleware =>
+const middlewareWrapper: MiddlewareWrapper = () =>
 {
     return async (ctx, next) =>
     {
         await privateRepositoryJudge()(ctx, next);
     };
-}
+};
+
+export default middlewareWrapper;

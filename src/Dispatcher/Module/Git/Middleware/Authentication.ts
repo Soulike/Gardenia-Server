@@ -1,10 +1,10 @@
-import Koa from 'koa';
-import {Crypto, Util} from '../../../Function';
-import {Account} from '../../../Database';
+import {Crypto, Util} from '../../../../Function';
+import {Account} from '../../../../Database';
 import repositoryOwnerJudge from './RepositoryOwnerJudge';
 import {responseWithAuthenticationRequirement} from '../Function';
+import {MiddlewareWrapper} from '../../../Interface';
 
-export default (): Koa.Middleware =>
+const middlewareWrapper: MiddlewareWrapper = () =>
 {
     return async (ctx, next) =>
     {
@@ -55,3 +55,5 @@ export default (): Koa.Middleware =>
         }
     };
 };
+
+export default middlewareWrapper;

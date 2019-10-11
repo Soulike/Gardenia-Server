@@ -1,9 +1,9 @@
 import Router from '@koa/router';
-import accountDispatcher from './Account';
-import repositoryDispatcher from './Repository';
-import repositoryInfoDispatcher from './RepositoryInfo';
-import profileDispatcher from './Profile';
-import gitDispatcher from './Git';
+import accountDispatcher from './Module/Account';
+import repositoryDispatcher from './Module/Repository';
+import repositoryInfoDispatcher from './Module/RepositoryInfo';
+import profileDispatcher from './Module/Profile';
+import gitDispatcher from './Module/Git';
 import http from 'http';
 
 const router = new Router({

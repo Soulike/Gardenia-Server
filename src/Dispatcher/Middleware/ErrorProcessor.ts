@@ -1,7 +1,8 @@
 import {SERVER} from '../../CONFIG';
-import {Middleware} from 'koa';
+import {MiddlewareWrapper} from '../Interface';
+import {ServiceResponse} from '../../Class';
 
-export default (): Middleware =>
+const middlewareWrapper: MiddlewareWrapper = () =>
 {
     return async (ctx, next) =>
     {
@@ -11,8 +12,17 @@ export default (): Middleware =>
         }
         catch (e)
         {
-            ctx.response.status = 500;
-            SERVER.ERROR_LOGGER(e);
+            if (e instanceof ServiceResponse)
+            {
+                ctx.state.serviceResponse = e;
+            }
+            else
+            {
+                ctx.response.status = 500;
+                SERVER.ERROR_LOGGER(e);
+            }
         }
     };
-}
+};
+
+export default middlewareWrapper;
