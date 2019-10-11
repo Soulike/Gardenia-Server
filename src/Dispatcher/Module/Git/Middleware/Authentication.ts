@@ -1,8 +1,9 @@
-import {Crypto, Util} from '../../../../Function';
+import {Util} from '../../../../Function';
 import {Account} from '../../../../Database';
 import repositoryOwnerJudge from './RepositoryOwnerJudge';
 import {responseWithAuthenticationRequirement} from '../Function';
 import {MiddlewareWrapper} from '../../../Interface';
+import {Account as AccountClass} from '../../../../Class';
 
 const middlewareWrapper: MiddlewareWrapper = () =>
 {
@@ -31,7 +32,7 @@ const middlewareWrapper: MiddlewareWrapper = () =>
         }
 
         const [username, password] = usernameAndPasswordInBase64;
-        const hash = Crypto.sha256(Crypto.sha256(username) + Crypto.sha256(password));
+        const hash = AccountClass.calculateHash(username, password);
         const account = await Account.select(username);
         if (account !== null)
         {
