@@ -2,7 +2,7 @@ import Router from '@koa/router';
 import {CHECK_SESSION, LOGIN, REGISTER} from './ROUTE';
 import koaBody from 'koa-body';
 import {BODY} from '../../CONFIG';
-import {ResponseBody} from '../../Class';
+import {Account, ResponseBody} from '../../Class';
 import {Account as AccountService} from '../../Service';
 import validator from 'validator';
 
@@ -11,21 +11,22 @@ export default (router: Router) =>
     router.post(LOGIN, koaBody(BODY), async (ctx) =>
     {
         const {username, hash} = ctx.request.body;
-            if (typeof username !== 'string' || typeof hash !== 'string' || hash.length !== 64)
+        if (typeof username !== 'string' || typeof hash !== 'string')
+        {
+            ctx.response.status = 400;
+            ctx.response.body = new ResponseBody<void>(false, '请求参数错误');
+        }
+        else
+        {
+            const {statusCode, headers, body} = await AccountService.login(
+                Account.from({username, hash}), ctx.session);
+            if (headers)
             {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody<void>(false, '请求参数错误');
+                ctx.response.set(headers);
             }
-            else
-            {
-                const {statusCode, headers, body} = await AccountService.login(username, hash, ctx.session);
-                if (headers)
-                {
-                    ctx.response.set(headers);
-                }
-                ctx.response.body = body;
-                ctx.response.status = statusCode;
-            }
+            ctx.response.body = body;
+            ctx.response.status = statusCode;
+        }
     });
 
     router.post(REGISTER, koaBody(BODY), async (ctx) =>

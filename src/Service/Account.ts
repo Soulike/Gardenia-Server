@@ -2,16 +2,17 @@ import {Account as AccountClass, Profile as ProfileClass, ResponseBody, ServiceR
 import {Account as AccountTable} from '../Database';
 import {Session} from 'koa-session';
 
-export async function login(username: AccountClass['username'], hash: AccountClass['hash'], session: Session): Promise<ServiceResponse<void>>
+export async function login(account: AccountClass, session: Session): Promise<ServiceResponse<void>>
 {
-    const account = await AccountTable.select(username);
-    if (account === null)   // 检查用户名是否存在
+    const {username, hash} = account;
+    const accountInDatabase = await AccountTable.select(username);
+    if (accountInDatabase === null)   // 检查用户名是否存在
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名或密码错误'));
     }
 
-    if (hash === account.hash)  // 检查密码是否正确
+    if (hash === accountInDatabase.hash)  // 检查密码是否正确
     {
         session.username = username;
         return new ServiceResponse<void>(200, {},

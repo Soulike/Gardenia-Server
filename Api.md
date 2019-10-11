@@ -19,6 +19,16 @@ class ResponseBody<TBody>
 }
 ```
 
+### `Account`
+
+```ts
+class Account
+{
+    public username: string;
+    public hash: string;
+}
+```
+
 ### `Repository`
 
 ```ts
@@ -102,13 +112,7 @@ export enum ObjectType
 
 - 功能：登录
 - 方法：POST
-- 请求体：
-```ts
-{
-    username: string,   // 用户名
-    hash: string,       // 散列
-}
-```
+- 请求体：`Account` 类的实例
 - 响应体：无
 - 响应消息：
   - 用户名或密码错误
