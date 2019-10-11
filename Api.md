@@ -174,7 +174,7 @@ export enum ObjectType
 
 ### Git 模块
 
-Git 模块供普通 Git 命令行指令调用，托管到 WebDAV 服务器实现。**监听端口与主服务器不同**，详情见配置文件。
+Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server` 官方 CGI 脚本。
 
 ### Repository 模块（`/repository`）
 

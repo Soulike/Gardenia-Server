@@ -56,8 +56,8 @@ export default (router: Router) =>
     router.get(CHECK_SESSION, async (ctx) =>
     {
         const {username} = ctx.session;
-            ctx.response.body = new ResponseBody(true, '',
-                {isValid: typeof username === 'string'},
-            );
+        ctx.response.body = new ResponseBody(true, '',
+            {isValid: typeof username === 'string'},
+        );
     });
 };
