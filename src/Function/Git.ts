@@ -30,15 +30,15 @@ export async function getBranches(repositoryPath: string): Promise<Array<string>
 /**
  * @description 获取分支/文件的最后一次提交信息
  */
-export async function getLastCommitInfo(repositoryPath: string, branch: string, file?: string): Promise<Commit>
+export async function getLastCommitInfo(repositoryPath: string, commitHash: string, file?: string): Promise<Commit>
 {
     const tail = file ? `-- ${file}` : '';
     const info = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' -1 ${branch} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' -1 ${branch} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' -1 ${branch} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cr' -1 ${branch} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' -1 ${branch} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%H' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cn' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ce' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cr' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
     ]) as Array<string>;
 
     return new Commit(info[0], info[1], info[2], info[3], info[4]);
@@ -47,9 +47,9 @@ export async function getLastCommitInfo(repositoryPath: string, branch: string, 
 /**
  * @description 获取某个路径下所有文件的类型、路径与最终提交信息
  * */
-export async function getFileCommitInfoList(repositoryPath: string, branch: string, path: string): Promise<Array<{ type: ObjectType, path: string, commit: Commit }>>
+export async function getFileCommitInfoList(repositoryPath: string, commitHash: string, path: string): Promise<Array<{ type: ObjectType, path: string, commit: Commit }>>
 {
-    const stdout = await execPromise(`git ls-tree ${branch} ${path}`, {cwd: repositoryPath}) as string;
+    const stdout = await execPromise(`git ls-tree ${commitHash} ${path}`, {cwd: repositoryPath}) as string;
     const fileInfoStringList = stdout.split(/\n/).filter(file => file.length !== 0);
     const fileCommitInfoList: Array<{ type: ObjectType, path: string, commit: Commit }> = [];
     await Promise.all(fileInfoStringList.map(async fileInfoString =>
@@ -72,7 +72,7 @@ export async function getFileCommitInfoList(repositoryPath: string, branch: stri
         fileCommitInfoList.push({
             type: fileType,
             path: infoStringArray[3],
-            commit: await getLastCommitInfo(repositoryPath, branch, infoStringArray[3]),
+            commit: await getLastCommitInfo(repositoryPath, commitHash, infoStringArray[3]),
         });
     }));
     return fileCommitInfoList;

@@ -47,7 +47,7 @@ export async function branch(username: string, repositoryName: string, session: 
         new ResponseBody<Array<string>>(true, '', branches));
 }
 
-export async function lastCommit(username: string, repositoryName: string, branch: string, session: Session, filePath?: string): Promise<ServiceResponse<Commit | void>>
+export async function lastCommit(username: string, repositoryName: string, commitHash: string, session: Session, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
     if (repository === null)
@@ -64,7 +64,7 @@ export async function lastCommit(username: string, repositoryName: string, branc
     const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
     try
     {
-        const commit = await Git.getLastCommitInfo(repoPath, branch, filePath);
+        const commit = await Git.getLastCommitInfo(repoPath, commitHash, filePath);
         if (commit.commitHash.length === 0)  // 没有内容，文件不存在
         {
             return new ServiceResponse<Commit>(404, {},
@@ -81,7 +81,7 @@ export async function lastCommit(username: string, repositoryName: string, branc
     }
 }
 
-export async function directory(username: string, repositoryName: string, branch: string, directoryPath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
+export async function directory(username: string, repositoryName: string, commitHash: string, directoryPath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
     if (repository === null)
@@ -98,7 +98,7 @@ export async function directory(username: string, repositoryName: string, branch
     const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
     try
     {
-        const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, branch, directoryPath);
+        const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, commitHash, directoryPath);
         if (fileCommitInfoList.length === 0)  // 信息列表是空的，一定是文件不存在
         {
             return new ServiceResponse<void>(404, {},
@@ -152,7 +152,7 @@ export async function directory(username: string, repositoryName: string, branch
     }
 }
 
-export async function commitCount(username: string, name: string, branch: string, session: Session): Promise<ServiceResponse<{ commitCount: number } | void>>
+export async function commitCount(username: string, name: string, commitHash: string, session: Session): Promise<ServiceResponse<{ commitCount: number } | void>>
 {
     const repository = await RepositoryTable.select(username, name);
     if (repository === null)
@@ -169,7 +169,7 @@ export async function commitCount(username: string, name: string, branch: string
     const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
     try
     {
-        const commitCountString = await Promisify.execPromise(`git rev-list ${branch} --count`, {
+        const commitCountString = await Promisify.execPromise(`git rev-list ${commitHash} --count`, {
             cwd: repoPath,
         }) as string;
         return new ServiceResponse<{ commitCount: number }>(200, {},
@@ -179,7 +179,7 @@ export async function commitCount(username: string, name: string, branch: string
     }
     catch (e)
     {
-        if (branch.trim() === 'HEAD')
+        if (commitHash.trim() === 'HEAD')
         {
             return new ServiceResponse<{ commitCount: number }>(200, {},
                 new ResponseBody<{ commitCount: number }>(true, '', {

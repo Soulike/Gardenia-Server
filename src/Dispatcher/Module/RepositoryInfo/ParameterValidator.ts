@@ -10,28 +10,28 @@ export const branch = repository;
 
 export const lastCommit: ParameterValidator = body =>
 {
-    const {username, repositoryName, branch, filePath} = body;
+    const {username, repositoryName, commitHash, filePath} = body;
     return typeof username === 'string'
         && typeof repositoryName === 'string'
-        && typeof branch === 'string'
+        && typeof commitHash === 'string'
         && (typeof filePath === 'undefined' || typeof filePath === 'string');
 };
 
 export const directory: ParameterValidator = body =>
 {
-    const {username, repositoryName, branch, directoryPath} = body;
+    const {username, repositoryName, commitHash, directoryPath} = body;
     return typeof username === 'string'
         && typeof repositoryName === 'string'
-        && typeof branch === 'string'
+        && typeof commitHash === 'string'
         && typeof directoryPath === 'string';
 };
 
 export const commitCount: ParameterValidator = body =>
 {
-    const {username, repositoryName, branch} = body;
+    const {username, repositoryName, commitHash} = body;
     return typeof username === 'string'
         && typeof repositoryName === 'string'
-        && typeof branch === 'string';
+        && typeof commitHash === 'string';
 };
 
 export const fileInfo: ParameterValidator = body =>

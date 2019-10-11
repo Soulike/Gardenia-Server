@@ -37,8 +37,8 @@ export const lastCommit: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, branch, filePath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(username, repositoryName, branch, ctx.session, filePath);
+        const {username, repositoryName, commitHash, filePath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(username, repositoryName, commitHash, ctx.session, filePath);
     };
 };
 
@@ -50,8 +50,8 @@ export const directory: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, branch, directoryPath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.directory(username, repositoryName, branch, directoryPath, ctx.session);
+        const {username, repositoryName, commitHash, directoryPath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.directory(username, repositoryName, commitHash, directoryPath, ctx.session);
     };
 };
 
@@ -63,8 +63,8 @@ export const commitCount: MiddlewareWrapper = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, branch} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.commitCount(username, repositoryName, branch, ctx.session);
+        const {username, repositoryName, commitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitCount(username, repositoryName, commitHash, ctx.session);
     };
 };
 
