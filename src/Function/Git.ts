@@ -34,11 +34,11 @@ export async function getLastCommitInfo(repositoryPath: string, commitHash: stri
 {
     const tail = file ? `-- ${file}` : '';
     const info = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cr' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN git log --pretty=format:'%H' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN git log --pretty=format:'%cn' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN git log --pretty=format:'%ce' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN git log --pretty=format:'%cr' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
     ]) as Array<string>;
 
     return new Commit(info[0], info[1], info[2], info[3], info[4]);
