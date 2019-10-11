@@ -35,3 +35,10 @@ export async function register(account: AccountClass, profile: Omit<ProfileClass
     await AccountTable.create(account, {username: account.username, ...profile});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
+
+export async function checkSession(session: Session): Promise<ServiceResponse<{ isValid: boolean }>>
+{
+    const {username} = session;
+    return new ServiceResponse<{ isValid: boolean }>(200, {},
+        new ResponseBody(true, '', {isValid: typeof username === 'string'}));
+}

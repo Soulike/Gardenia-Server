@@ -1,4 +1,3 @@
-import {ResponseBody} from '../../../Class';
 import {Account as AccountService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
 import {MiddlewareWrapper} from '../../Interface';
@@ -39,9 +38,6 @@ export const checkSession: MiddlewareWrapper = () =>
 {
     return async (ctx) =>
     {
-        const {username} = ctx.session;
-        ctx.response.body = new ResponseBody(true, '',
-            {isValid: typeof username === 'string'},
-        );
+        ctx.state.serviceResponse = await AccountService.checkSession(ctx.session);
     };
 };
