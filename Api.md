@@ -128,15 +128,13 @@ export enum ObjectType
 - 请求体：
 ```ts
 {
-    username: string,   // 用户名
-    hash: string,       // 散列
-    email: string,      // email
+    account: Account,
+    profile: Omit<ProfileClass, 'username'>,
 }
 ```
 - 响应体：无
 - 响应消息：
   - 用户名已存在
-  - 散列值计算方法见 `/login`
 
 #### `/checkSession`
 

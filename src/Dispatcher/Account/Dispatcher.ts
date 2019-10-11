@@ -31,23 +31,26 @@ export default (router: Router) =>
 
     router.post(REGISTER, koaBody(BODY), async (ctx) =>
     {
-        const {username, hash, email} = ctx.request.body;
-            if (typeof username !== 'string' || typeof hash !== 'string' || hash.length !== 64 ||
-                typeof email !== 'string' || !validator.isEmail(email))
+        const {account, profile} = ctx.request.body;
+        const {username, hash} = account;
+        const {nickname, avatar, email} = profile;
+        if (typeof username !== 'string' || typeof hash !== 'string' || typeof nickname !== 'string' ||
+            typeof avatar !== 'string' || typeof email !== 'string' || !validator.isEmail(email))
+        {
+            ctx.response.status = 400;
+            ctx.response.body = new ResponseBody<void>(false, '请求参数错误');
+        }
+        else
+        {
+            const {statusCode, headers, body} = await AccountService.register(
+                {username, hash}, {nickname, avatar, email});
+            if (headers)
             {
-                ctx.response.status = 400;
-                ctx.response.body = new ResponseBody<void>(false, '请求参数错误');
+                ctx.response.set(headers);
             }
-            else
-            {
-                const {statusCode, headers, body} = await AccountService.register(username, hash, email);
-                if (headers)
-                {
-                    ctx.response.set(headers);
-                }
-                ctx.response.body = body;
-                ctx.response.status = statusCode;
-            }
+            ctx.response.body = body;
+            ctx.response.status = statusCode;
+        }
     });
 
     router.get(CHECK_SESSION, async (ctx) =>

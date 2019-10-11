@@ -25,14 +25,13 @@ export async function login(account: AccountClass, session: Session): Promise<Se
     }
 }
 
-export async function register(username: AccountClass['username'], hash: AccountClass['hash'], email: ProfileClass['email']): Promise<ServiceResponse<void>>
+export async function register(account: AccountClass, profile: Omit<ProfileClass, 'username'>): Promise<ServiceResponse<void>>
 {
+    const {username} = account;
     if ((await AccountTable.select(username)) !== null) // 检查用户名是不是已经存在了
     {
         return new ServiceResponse<void>(200, {}, new ResponseBody<void>(false, '用户名已存在'));
     }
-    const account = new AccountClass(username, hash);
-    const profile = new ProfileClass(username, username, email, '');
-    await AccountTable.create(account, profile);
+    await AccountTable.create(account, {username: account.username, ...profile});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
