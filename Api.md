@@ -237,7 +237,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
-本模块负责执行 Git 仓库内容信息获取操作。
+本模块负责执行 Git 仓库内容信息操作。
 
 #### `/repository`
 
@@ -408,3 +408,22 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 直接调用标准输出流和响应流进行发送
+
+#### `/setName`
+
+- 功能：修改仓库名
+- 方法：POST
+- 请求参数：
+```ts
+{
+    json: {
+        repositoryName: string,     // 仓库名字
+        newRepositoryName: string,
+    }
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+  - 仓库名已存在
+- 其他说明：无

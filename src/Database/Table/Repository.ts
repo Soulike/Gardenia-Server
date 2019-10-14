@@ -4,7 +4,7 @@ import {Repository as RepositoryClass} from '../../Class';
 
 export const insertStatement = 'INSERT INTO repositories("username", "name", "description", "isPublic") VALUES ($1, $2, $3, $4)';
 export const delStatement = 'DELETE FROM repositories WHERE "username"=$1 AND "name"=$2';
-export const updateStatement = 'UPDATE repositories SET "username"=$1, "name"=$2, "description"=$3, "isPublic"=$4 WHERE "username"=$1 AND "name"=$2';
+export const updateStatement = 'UPDATE repositories SET "username"=$1, "name"=$2, "description"=$3, "isPublic"=$4 WHERE "username"=$5 AND "name"=$6';
 export const selectStatement = 'SELECT * FROM repositories WHERE "username"=$1 AND "name"=$2';
 export const selectByIsPublicStatement = 'SELECT * FROM "repositories" WHERE "isPublic"=$1 OFFSET $2 LIMIT $3';
 export const selectByIsPublicAndUsernameStatement = 'SELECT * FROM repositories WHERE "isPublic"=$1 AND "username"=$2 OFFSET $3 LIMIT $4';
@@ -42,14 +42,17 @@ export async function del(username: RepositoryClass['username'], name: Repositor
     }
 }
 
-export async function update(repository: RepositoryClass): Promise<void>
+export async function update(repository: RepositoryClass, primaryKey?: Pick<RepositoryClass, 'username' | 'name'>): Promise<void>
 {
     const client = await pool.connect();
     try
     {
         await transaction(client, async client =>
         {
-            await client.query(updateStatement, [repository.username, repository.name, repository.description, repository.isPublic]);
+            await client.query(updateStatement,
+                [repository.username, repository.name, repository.description, repository.isPublic,
+                    primaryKey ? primaryKey.username : repository.username,
+                    primaryKey ? primaryKey.name : repository.name]);
         });
     }
     finally

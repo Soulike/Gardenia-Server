@@ -1,4 +1,5 @@
 import {spawn} from 'child_process';
+import {ncp, Options} from 'ncp';
 
 /**
  * @description 删除文件或递归删除文件夹
@@ -18,6 +19,24 @@ export async function rm(path: string): Promise<void>
         childProcess.on('error', err =>
         {
             reject(err);
+        });
+    });
+}
+
+export async function copyDirectory(source: string, destination: string, options?: Options)
+{
+    return new Promise((resolve, reject) =>
+    {
+        ncp(source, destination, options, e =>
+        {
+            if (e)
+            {
+                reject(e);
+            }
+            else
+            {
+                resolve();
+            }
         });
     });
 }

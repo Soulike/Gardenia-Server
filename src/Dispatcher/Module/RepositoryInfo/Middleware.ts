@@ -1,7 +1,7 @@
 import {MiddlewareWrapper} from '../../Interface';
 import {RepositoryInfo} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {WrongParameterError} from '../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../Class';
 
 export const repository: MiddlewareWrapper = () =>
 {
@@ -91,5 +91,23 @@ export const rawFile: MiddlewareWrapper = () =>
         }
         const {username, repositoryName, filePath, commitHash} = ctx.request.body;
         ctx.state.serviceResponse = await RepositoryInfo.rawFile(username, repositoryName, filePath, commitHash, ctx.session, ctx.res);
+    };
+};
+
+export const setName: MiddlewareWrapper = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.setName(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        if (typeof username !== 'string')
+        {
+            throw new InvalidSessionError();
+        }
+        const {repositoryName, newRepositoryName} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.setName(username, repositoryName, newRepositoryName);
     };
 };

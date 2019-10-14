@@ -44,3 +44,10 @@ export const fileInfo: ParameterValidator = body =>
 };
 
 export const rawFile = fileInfo;
+
+export const setName: ParameterValidator = body =>
+{
+    const {repositoryName, newRepositoryName} = body;
+    return typeof repositoryName === 'string'
+        && typeof newRepositoryName === 'string';
+};

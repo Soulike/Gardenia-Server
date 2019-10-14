@@ -1,7 +1,7 @@
 import {Session} from 'koa-session';
 import {Commit, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Repository as RepositoryTable} from '../Database';
-import {Git, Promisify} from '../Function';
+import {File, Git, Promisify} from '../Function';
 import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
@@ -292,4 +292,49 @@ export async function rawFile(username: string, repositoryName: string, filePath
     res.setHeader('Content-Type', mime.contentType(filePath) || 'application/octet-stream');
     childProcess.stdout.pipe(res);  // 用流的形式发出文件内容
     await Promisify.waitForEvent(childProcess, 'close');    // 等待传输结束
+}
+
+export async function setName(username: string, repositoryName: string, newRepositoryName: string): Promise<ServiceResponse<void>>
+{
+    if ((await RepositoryTable.select(username, newRepositoryName)) !== null)
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '仓库名已存在'));
+    }
+
+    const repository = await RepositoryTable.select(username, repositoryName);
+    if (repository === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+
+    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
+    const newRepoPath = path.join(GIT.ROOT, username, `${newRepositoryName}.git`);
+    try
+    {
+        await File.copyDirectory(repoPath, newRepoPath, {
+            clobber: false,
+            stopOnErr: true,
+        });
+    }
+    catch (e)
+    {
+        await File.rm(newRepoPath);
+        throw e;
+    }
+
+    try
+    {
+        const {username, name} = repository;
+        repository.name = newRepositoryName;
+        await RepositoryTable.update(repository, {username, name});
+    }
+    catch (e)
+    {
+        await File.rm(newRepoPath);
+        throw e;
+    }
+    await File.rm(repoPath);
+    return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
