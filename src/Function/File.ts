@@ -23,7 +23,7 @@ export async function rm(path: string): Promise<void>
     });
 }
 
-export async function copyDirectory(source: string, destination: string, options?: Options)
+export async function copyDirectory(source: string, destination: string, options: Options)
 {
     return new Promise((resolve, reject) =>
     {
