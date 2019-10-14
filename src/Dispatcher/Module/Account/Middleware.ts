@@ -41,3 +41,11 @@ export const checkSession: MiddlewareWrapper = () =>
         ctx.state.serviceResponse = await AccountService.checkSession(ctx.session);
     };
 };
+
+export const logout: MiddlewareWrapper = () =>
+{
+    return async (ctx) =>
+    {
+        ctx.state.serviceResponse = await AccountService.logout(ctx.session);
+    };
+};

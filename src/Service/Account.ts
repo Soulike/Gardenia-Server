@@ -42,3 +42,9 @@ export async function checkSession(session: Session): Promise<ServiceResponse<{ 
     return new ServiceResponse<{ isValid: boolean }>(200, {},
         new ResponseBody(true, '', {isValid: typeof username === 'string'}));
 }
+
+export async function logout(session: Session): Promise<ServiceResponse<void>>
+{
+    delete session.username;
+    return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
+}
