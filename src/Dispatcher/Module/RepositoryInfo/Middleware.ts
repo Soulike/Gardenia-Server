@@ -111,3 +111,21 @@ export const setName: MiddlewareWrapper = () =>
         ctx.state.serviceResponse = await RepositoryInfo.setName(username, repositoryName, newRepositoryName);
     };
 };
+
+export const setDescription: MiddlewareWrapper = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.setDescription(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        if (typeof username !== 'string')
+        {
+            throw new InvalidSessionError();
+        }
+        const {repositoryName, description} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.setDescription(username, repositoryName, description);
+    };
+};

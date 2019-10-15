@@ -338,3 +338,16 @@ export async function setName(username: string, repositoryName: string, newRepos
     await File.rm(repoPath);
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
+
+export async function setDescription(username: string, repositoryName: string, description: string): Promise<ServiceResponse<void>>
+{
+    const repository = await RepositoryTable.select(username, repositoryName);
+    if (repository === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+    repository.description = description;
+    await RepositoryTable.update(repository);
+    return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
+}

@@ -416,14 +416,29 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求参数：
 ```ts
 {
-    json: {
-        repositoryName: string,     // 仓库名字
-        newRepositoryName: string,
-    }
+    repositoryName: string,     // 仓库名字
+    newRepositoryName: string,
 }
 ```
 - 响应体：无
 - 响应消息：
   - 仓库不存在
   - 仓库名已存在
+- 其他说明：无
+
+#### `/setDescription`
+
+- 功能：修改仓库名
+- 方法：POST
+- 请求参数：
+```ts
+{
+    repositoryName: string,     // 仓库名字
+    description: string,
+
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
 - 其他说明：无

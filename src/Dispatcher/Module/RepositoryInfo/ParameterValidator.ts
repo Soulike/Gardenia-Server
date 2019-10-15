@@ -51,3 +51,10 @@ export const setName: ParameterValidator = body =>
     return typeof repositoryName === 'string'
         && typeof newRepositoryName === 'string';
 };
+
+export const setDescription: ParameterValidator = body =>
+{
+    const {repositoryName, description} = body;
+    return typeof repositoryName === 'string'
+        && typeof description === 'string';
+};
