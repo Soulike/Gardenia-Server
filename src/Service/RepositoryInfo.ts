@@ -194,9 +194,9 @@ export async function fileInfo(username: string, repositoryName: string, filePat
     }
 
     // 把文件内容送给 file 命令行工具查看类型
-    const fileOut = await Promisify.execPromise(`git cat-file -p ${objectHash} | file -`,
-        {cwd: repoPath}) as string;
-    if (fileOut.toLowerCase().includes('text')) // 当 file 工具的输出包含 "text" 时，是文本文件
+    const fileOut = (await Promisify.execPromise(`git cat-file -p ${objectHash} | file -`,
+        {cwd: repoPath}) as string).toLowerCase();
+    if (fileOut.includes('text') || fileOut.includes('json')) // 当 file 工具的输出包含 "text" 或 "json" 时，是文本文件
     {
         // 获取文件大小
         const sizeString = await Promisify.execPromise(`git cat-file -s ${objectHash}`, {cwd: repoPath}) as string;
