@@ -1,8 +1,8 @@
 import proxy from './Proxy';
 import authentication from './Authentication';
-import {MiddlewareWrapper} from '../../../Interface';
+import {IRouteHandler} from '../../../Interface';
 
-const middlewareWrapper: MiddlewareWrapper = () =>
+const middlewareWrapper: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {

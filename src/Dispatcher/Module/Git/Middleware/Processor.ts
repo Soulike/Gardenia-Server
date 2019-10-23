@@ -1,7 +1,7 @@
 import privateRepositoryJudge from './PrivateRepositoryJudge';
-import {MiddlewareWrapper} from '../../../Interface';
+import {IRouteHandler} from '../../../Interface';
 
-const middlewareWrapper: MiddlewareWrapper = () =>
+const middlewareWrapper: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {

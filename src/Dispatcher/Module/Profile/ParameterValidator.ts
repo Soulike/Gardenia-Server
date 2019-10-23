@@ -1,6 +1,6 @@
-import {ParameterValidator} from '../../Interface';
+import {IParameterValidator} from '../../Interface';
 
-export const get: ParameterValidator = body =>
+export const get: IParameterValidator = body =>
 {
     const {username} = body;
     return typeof username === 'undefined' || typeof username === 'string';

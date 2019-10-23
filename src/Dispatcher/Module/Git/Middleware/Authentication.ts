@@ -2,10 +2,10 @@ import {Util} from '../../../../Function';
 import {Account} from '../../../../Database';
 import repositoryOwnerJudge from './RepositoryOwnerJudge';
 import {responseWithAuthenticationRequirement} from '../Function';
-import {MiddlewareWrapper} from '../../../Interface';
+import {IRouteHandler} from '../../../Interface';
 import {Account as AccountClass} from '../../../../Class';
 
-const middlewareWrapper: MiddlewareWrapper = () =>
+const middlewareWrapper: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {
@@ -39,7 +39,7 @@ const middlewareWrapper: MiddlewareWrapper = () =>
             const {hash: expectedHash} = account;
             if (hash === expectedHash)
             {
-                ctx.session = {username};
+                Object.assign(ctx.session, username);
                 // 移除 authorization 头部再转发
                 const {authorization, ...rest} = ctx.request.headers;
                 ctx.request.headers = rest;

@@ -1,9 +1,9 @@
 import {AddressInfo} from 'net';
 import proxy from 'koa-better-http-proxy';
 import {GitHTTPCgiServer} from '../../../../Class';
-import {MiddlewareWrapper} from '../../../Interface';
+import {IRouteHandler} from '../../../Interface';
 
-const middlewareWrapper: MiddlewareWrapper = () =>
+const middlewareWrapper: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {

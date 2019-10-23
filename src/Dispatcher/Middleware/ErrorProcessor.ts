@@ -1,8 +1,8 @@
 import {SERVER} from '../../CONFIG';
-import {MiddlewareWrapper} from '../Interface';
+import {IRouteHandler} from '../Interface';
 import {ServiceResponse} from '../../Class';
 
-const middlewareWrapper: MiddlewareWrapper = () =>
+const middlewareWrapper: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {

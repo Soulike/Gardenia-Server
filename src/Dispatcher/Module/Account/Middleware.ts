@@ -1,9 +1,9 @@
 import {Account as AccountService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {MiddlewareWrapper} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {WrongParameterError} from '../../Class';
 
-export const login: MiddlewareWrapper = () =>
+export const login: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -13,11 +13,11 @@ export const login: MiddlewareWrapper = () =>
         }
         const {username, hash} = ctx.request.body;
         ctx.state.serviceResponse = await AccountService.login(
-            {username, hash}, ctx.session);
+            {username, hash});
     };
 };
 
-export const register: MiddlewareWrapper = () =>
+export const register: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -34,7 +34,7 @@ export const register: MiddlewareWrapper = () =>
     };
 };
 
-export const checkSession: MiddlewareWrapper = () =>
+export const checkSession: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -42,10 +42,10 @@ export const checkSession: MiddlewareWrapper = () =>
     };
 };
 
-export const logout: MiddlewareWrapper = () =>
+export const logout: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        ctx.state.serviceResponse = await AccountService.logout(ctx.session);
+        ctx.state.serviceResponse = await AccountService.logout();
     };
 };

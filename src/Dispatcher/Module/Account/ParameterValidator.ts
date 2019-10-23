@@ -1,12 +1,12 @@
 import {Account, Profile} from '../../../Class';
-import {ParameterValidator} from '../../Interface';
+import {IParameterValidator} from '../../Interface';
 
-export const login: ParameterValidator = (body: any) =>
+export const login: IParameterValidator = (body: any) =>
 {
     return Account.validate(body);
 };
 
-export const register: ParameterValidator = (body: any) =>
+export const register: IParameterValidator = (body: any) =>
 {
     const {account, profile} = body;
     return Account.validate(account) && Profile.validate({username: '', ...profile});

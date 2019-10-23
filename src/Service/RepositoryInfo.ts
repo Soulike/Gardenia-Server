@@ -9,34 +9,22 @@ import {ServerResponse} from 'http';
 import {spawn} from 'child_process';
 import mime from 'mime-types';
 
-export async function repository(username: string, repositoryName: string, session: Session): Promise<ServiceResponse<RepositoryClass | void>>
+export async function repository(username: string, repositoryName: string, session: Session | null): Promise<ServiceResponse<RepositoryClass | void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
     return new ServiceResponse<RepositoryClass>(200, {},
-        new ResponseBody<RepositoryClass>(true, '', repository));
+        new ResponseBody<RepositoryClass>(true, '', repository!));
 }
 
-export async function branch(username: string, repositoryName: string, session: Session): Promise<ServiceResponse<Array<string> | void>>
+export async function branch(username: string, repositoryName: string, session: Session | null): Promise<ServiceResponse<Array<string> | void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -47,16 +35,10 @@ export async function branch(username: string, repositoryName: string, session: 
         new ResponseBody<Array<string>>(true, '', branches));
 }
 
-export async function lastCommit(username: string, repositoryName: string, commitHash: string, session: Session, filePath?: string): Promise<ServiceResponse<Commit | void>>
+export async function lastCommit(username: string, repositoryName: string, commitHash: string, session: Session | null, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -81,16 +63,10 @@ export async function lastCommit(username: string, repositoryName: string, commi
     }
 }
 
-export async function directory(username: string, repositoryName: string, commitHash: string, directoryPath: string, session: Session): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
+export async function directory(username: string, repositoryName: string, commitHash: string, directoryPath: string, session: Session | null): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -152,16 +128,10 @@ export async function directory(username: string, repositoryName: string, commit
     }
 }
 
-export async function commitCount(username: string, name: string, commitHash: string, session: Session): Promise<ServiceResponse<{ commitCount: number } | void>>
+export async function commitCount(username: string, name: string, commitHash: string, session: Session | null): Promise<ServiceResponse<{ commitCount: number } | void>>
 {
     const repository = await RepositoryTable.select(username, name);
-    if (repository === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -191,16 +161,10 @@ export async function commitCount(username: string, name: string, commitHash: st
     }
 }
 
-export async function fileInfo(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
+export async function fileInfo(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session | null): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -255,16 +219,10 @@ export async function fileInfo(username: string, repositoryName: string, filePat
     }
 }
 
-export async function rawFile(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session, res: ServerResponse): Promise<void>
+export async function rawFile(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session | null, res: ServerResponse): Promise<void>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
-    {
-        res.statusCode = 404;
-        return;
-    }
-    const {isPublic} = repository;
-    if (!isPublic && username !== session.username)
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         res.statusCode = 404;
         return;
@@ -303,7 +261,7 @@ export async function setName(username: string, repositoryName: string, newRepos
     }
 
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
+    if (!repositoryIsAvailableToTheViewer(repository))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -326,9 +284,9 @@ export async function setName(username: string, repositoryName: string, newRepos
 
     try
     {
-        const {username, name} = repository;
-        repository.name = newRepositoryName;
-        await RepositoryTable.update(repository, {username, name});
+        const {username, name} = repository!;
+        repository!.name = newRepositoryName;
+        await RepositoryTable.update(repository!, {username, name});
     }
     catch (e)
     {
@@ -342,12 +300,45 @@ export async function setName(username: string, repositoryName: string, newRepos
 export async function setDescription(username: string, repositoryName: string, description: string): Promise<ServiceResponse<void>>
 {
     const repository = await RepositoryTable.select(username, repositoryName);
-    if (repository === null)
+    if (!repositoryIsAvailableToTheViewer(repository))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    repository.description = description;
-    await RepositoryTable.update(repository);
+    repository!.description = description;
+    await RepositoryTable.update(repository!);
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
+}
+
+/**
+ * @description 检查访问者是否有权限访问某仓库
+ * @param repository - 被访问的仓库
+ * @param session - 访问者的 Session 对象，若不传入则仅检查仓库是否存在
+ * */
+function repositoryIsAvailableToTheViewer(repository: RepositoryClass | null, session?: Session | null): boolean
+{
+    let isAvailable = false;
+    if (repository === null)
+    {
+        isAvailable = false;
+    }
+    else    // repository !== null
+    {
+        const {isPublic} = repository;
+        if (isPublic)
+        {
+            isAvailable = true;
+        }
+        else if (session === null || session === undefined)    // !isPublic
+        {
+            isAvailable = false;
+        }
+        else    // !isPublic && session !== null && session !== undefined
+        {
+            const {username} = repository;
+            const {username: usernameInSession} = session;
+            isAvailable = username === usernameInSession;
+        }
+    }
+    return isAvailable;
 }

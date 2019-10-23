@@ -23,8 +23,9 @@ import {
     setDescription,
     setName,
 } from './Middleware';
+import {IContext, IState} from '../../Interface';
 
-export default (router: Router) =>
+export default (router: Router<IState, IContext>) =>
 {
     router.get(REPOSITORY, JSONQueryParameterParser(), repository());
     router.get(BRANCH, JSONQueryParameterParser(), branch());

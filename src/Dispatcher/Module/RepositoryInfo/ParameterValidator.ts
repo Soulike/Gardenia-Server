@@ -1,6 +1,6 @@
-import {ParameterValidator} from '../../Interface';
+import {IParameterValidator} from '../../Interface';
 
-export const repository: ParameterValidator = body =>
+export const repository: IParameterValidator = body =>
 {
     const {username, repositoryName} = body;
     return typeof username === 'string' || typeof repositoryName === 'string';
@@ -8,7 +8,7 @@ export const repository: ParameterValidator = body =>
 
 export const branch = repository;
 
-export const lastCommit: ParameterValidator = body =>
+export const lastCommit: IParameterValidator = body =>
 {
     const {username, repositoryName, commitHash, filePath} = body;
     return typeof username === 'string'
@@ -17,7 +17,7 @@ export const lastCommit: ParameterValidator = body =>
         && (typeof filePath === 'undefined' || typeof filePath === 'string');
 };
 
-export const directory: ParameterValidator = body =>
+export const directory: IParameterValidator = body =>
 {
     const {username, repositoryName, commitHash, directoryPath} = body;
     return typeof username === 'string'
@@ -26,7 +26,7 @@ export const directory: ParameterValidator = body =>
         && typeof directoryPath === 'string';
 };
 
-export const commitCount: ParameterValidator = body =>
+export const commitCount: IParameterValidator = body =>
 {
     const {username, repositoryName, commitHash} = body;
     return typeof username === 'string'
@@ -34,7 +34,7 @@ export const commitCount: ParameterValidator = body =>
         && typeof commitHash === 'string';
 };
 
-export const fileInfo: ParameterValidator = body =>
+export const fileInfo: IParameterValidator = body =>
 {
     const {username, repositoryName, filePath, commitHash} = body;
     return typeof username === 'string'
@@ -45,14 +45,14 @@ export const fileInfo: ParameterValidator = body =>
 
 export const rawFile = fileInfo;
 
-export const setName: ParameterValidator = body =>
+export const setName: IParameterValidator = body =>
 {
     const {repositoryName, newRepositoryName} = body;
     return typeof repositoryName === 'string'
         && typeof newRepositoryName === 'string';
 };
 
-export const setDescription: ParameterValidator = body =>
+export const setDescription: IParameterValidator = body =>
 {
     const {repositoryName, description} = body;
     return typeof repositoryName === 'string'

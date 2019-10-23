@@ -1,7 +1,7 @@
-import {MiddlewareWrapper} from '../Interface';
+import {IRouteHandler} from '../Interface';
 import {ServiceResponse} from '../../Class';
 
-const middlewareWrapper: MiddlewareWrapper = () =>
+const middlewareWrapper: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {
@@ -10,11 +10,12 @@ const middlewareWrapper: MiddlewareWrapper = () =>
         const {serviceResponse} = ctx.state;
         if (serviceResponse instanceof ServiceResponse)
         {
-            const {statusCode, headers, body} = serviceResponse;
+            const {statusCode, headers, body, session} = serviceResponse;
             if (headers)
             {
                 ctx.response.set(headers);
             }
+            Object.assign(ctx.session, session);
             ctx.response.body = body;
             ctx.response.status = statusCode;
         }

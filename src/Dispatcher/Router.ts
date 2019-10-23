@@ -5,8 +5,9 @@ import repositoryInfoDispatcher from './Module/RepositoryInfo';
 import profileDispatcher from './Module/Profile';
 import gitDispatcher from './Module/Git';
 import http from 'http';
+import {IContext, IState} from './Interface';
 
-const router = new Router({
+const router = new Router<IState, IContext>({
     methods: http.METHODS,
 });
 

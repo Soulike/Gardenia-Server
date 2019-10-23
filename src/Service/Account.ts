@@ -1,8 +1,9 @@
 import {Account as AccountClass, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable} from '../Database';
 import {Session} from 'koa-session';
+import {Session as SessionFunction} from '../Function';
 
-export async function login(account: AccountClass, session: Session): Promise<ServiceResponse<void>>
+export async function login(account: AccountClass): Promise<ServiceResponse<void>>
 {
     const {username, hash} = account;
     const accountInDatabase = await AccountTable.select(username);
@@ -14,9 +15,8 @@ export async function login(account: AccountClass, session: Session): Promise<Se
 
     if (hash === accountInDatabase.hash)  // 检查密码是否正确
     {
-        session.username = username;
         return new ServiceResponse<void>(200, {},
-            new ResponseBody<void>(true));
+            new ResponseBody<void>(true), {username: username});
     }
     else
     {
@@ -36,15 +36,13 @@ export async function register(account: AccountClass, profile: Omit<ProfileClass
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function checkSession(session: Session): Promise<ServiceResponse<{ isValid: boolean }>>
+export async function checkSession(session: Session | null): Promise<ServiceResponse<{ isValid: boolean }>>
 {
-    const {username} = session;
     return new ServiceResponse<{ isValid: boolean }>(200, {},
-        new ResponseBody(true, '', {isValid: typeof username === 'string'}));
+        new ResponseBody(true, '', {isValid: SessionFunction.isValid(session)}));
 }
 
-export async function logout(session: Session): Promise<ServiceResponse<void>>
+export async function logout(): Promise<ServiceResponse<void>>
 {
-    delete session.username;
-    return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
+    return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true), {username: undefined});
 }

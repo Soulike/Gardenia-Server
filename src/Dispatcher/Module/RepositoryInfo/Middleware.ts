@@ -1,9 +1,9 @@
-import {MiddlewareWrapper} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {RepositoryInfo} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
 import {InvalidSessionError, WrongParameterError} from '../../Class';
 
-export const repository: MiddlewareWrapper = () =>
+export const repository: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -16,7 +16,7 @@ export const repository: MiddlewareWrapper = () =>
     };
 };
 
-export const branch: MiddlewareWrapper = () =>
+export const branch: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -29,7 +29,7 @@ export const branch: MiddlewareWrapper = () =>
     };
 };
 
-export const lastCommit: MiddlewareWrapper = () =>
+export const lastCommit: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -42,7 +42,7 @@ export const lastCommit: MiddlewareWrapper = () =>
     };
 };
 
-export const directory: MiddlewareWrapper = () =>
+export const directory: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -55,7 +55,7 @@ export const directory: MiddlewareWrapper = () =>
     };
 };
 
-export const commitCount: MiddlewareWrapper = () =>
+export const commitCount: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -68,7 +68,7 @@ export const commitCount: MiddlewareWrapper = () =>
     };
 };
 
-export const fileInfo: MiddlewareWrapper = () =>
+export const fileInfo: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -81,7 +81,7 @@ export const fileInfo: MiddlewareWrapper = () =>
     };
 };
 
-export const rawFile: MiddlewareWrapper = () =>
+export const rawFile: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -94,7 +94,7 @@ export const rawFile: MiddlewareWrapper = () =>
     };
 };
 
-export const setName: MiddlewareWrapper = () =>
+export const setName: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -112,7 +112,7 @@ export const setName: MiddlewareWrapper = () =>
     };
 };
 
-export const setDescription: MiddlewareWrapper = () =>
+export const setDescription: IRouteHandler = () =>
 {
     return async (ctx) =>
     {

@@ -1,10 +1,10 @@
-import {MiddlewareWrapper} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {ResponseBody} from '../../../Class';
 import {Repository as RepositoryService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
 import {WrongParameterError} from '../../Class';
 
-export const create: MiddlewareWrapper = () =>
+export const create: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -24,7 +24,7 @@ export const create: MiddlewareWrapper = () =>
     };
 };
 
-export const del: MiddlewareWrapper = () =>
+export const del: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
@@ -45,7 +45,7 @@ export const del: MiddlewareWrapper = () =>
     };
 };
 
-export const getList: MiddlewareWrapper = () =>
+export const getList: IRouteHandler = () =>
 {
     return async (ctx) =>
     {

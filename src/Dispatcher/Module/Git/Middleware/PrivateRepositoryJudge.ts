@@ -1,9 +1,9 @@
-import {MiddlewareWrapper} from '../../../Interface';
+import {IRouteHandler} from '../../../Interface';
 import {Repository} from '../../../../Database';
 import requestMethodJudge from './RequestMethodJudge';
 import authentication from './Authentication';
 
-const middlewareWrapper: MiddlewareWrapper = () =>
+const middlewareWrapper: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {

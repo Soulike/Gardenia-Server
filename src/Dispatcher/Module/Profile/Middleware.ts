@@ -1,9 +1,9 @@
 import {Profile} from '../../../Service';
-import {MiddlewareWrapper} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import * as ParameterValidator from './ParameterValidator';
 import {WrongParameterError} from '../../Class';
 
-export const get: MiddlewareWrapper = () =>
+export const get: IRouteHandler = () =>
 {
     return async (ctx) =>
     {

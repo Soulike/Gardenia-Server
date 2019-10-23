@@ -4,7 +4,7 @@ import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
-import {File} from '../Function';
+import {File, Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
 
 export async function create(repository: RepositoryClass): Promise<ServiceResponse<void>>
@@ -109,12 +109,12 @@ export async function del(username: RepositoryClass['username'], name: Repositor
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function getList(start: number, end: number, session: Session, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
+export async function getList(start: number, end: number, session: Session | null, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
 {
     let repositories: Array<RepositoryClass> = [];
     if (username)
     {
-        if (session.username !== username)
+        if (!SessionFunction.isValid(session) || !SessionFunction.isRequestedBySessionOwner(session, username))
         {
             repositories = await RepositoryTable.selectByIsPublicAndUsername(true, username, start, end - start);
         }
