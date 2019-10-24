@@ -1,9 +1,9 @@
-import {Util} from '../../../../Function';
 import {Account} from '../../../../Database';
 import repositoryOwnerJudge from './RepositoryOwnerJudge';
 import {responseWithAuthenticationRequirement} from '../Function';
 import {IRouteHandler} from '../../../Interface';
 import {Account as AccountClass} from '../../../../Class';
+import {Base64} from 'js-base64';
 
 const middlewareWrapper: IRouteHandler = () =>
 {
@@ -23,7 +23,7 @@ const middlewareWrapper: IRouteHandler = () =>
             return;
         }
 
-        const decode = Util.decodeBase64(parts[1]);
+        const decode = Base64.decode(parts[1]);
         const usernameAndPasswordInBase64 = decode.split(':');
         if (usernameAndPasswordInBase64.length !== 2)
         {
