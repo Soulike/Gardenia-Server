@@ -39,7 +39,7 @@ const middlewareWrapper: IRouteHandler = () =>
             const {hash: expectedHash} = account;
             if (hash === expectedHash)
             {
-                Object.assign(ctx.session, username);
+                Object.assign(ctx.session, {username});
                 // 移除 authorization 头部再转发
                 const {authorization, ...rest} = ctx.request.headers;
                 ctx.request.headers = rest;
