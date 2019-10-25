@@ -1,13 +1,14 @@
 import {Session} from 'koa-session';
 import {Commit, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Repository as RepositoryTable} from '../Database';
-import {File, Git, Promisify} from '../Function';
+import {Git, Promisify} from '../Function';
 import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
 import {ServerResponse} from 'http';
 import {spawn} from 'child_process';
 import mime from 'mime-types';
+import fse from 'fs-extra';
 
 export async function repository(username: string, repositoryName: string, session: Session | null): Promise<ServiceResponse<RepositoryClass | void>>
 {
@@ -271,14 +272,15 @@ export async function setName(username: string, repositoryName: string, newRepos
     const newRepoPath = path.join(GIT.ROOT, username, `${newRepositoryName}.git`);
     try
     {
-        await File.copyDirectory(repoPath, newRepoPath, {
-            clobber: false,
-            stopOnErr: true,
+        await fse.copy(repoPath, newRepoPath, {
+            overwrite: false,
+            errorOnExist: true,
+            preserveTimestamps: true,
         });
     }
     catch (e)
     {
-        await File.rm(newRepoPath);
+        await fse.remove(newRepoPath);
         throw e;
     }
 
@@ -290,10 +292,10 @@ export async function setName(username: string, repositoryName: string, newRepos
     }
     catch (e)
     {
-        await File.rm(newRepoPath);
+        await fse.remove(newRepoPath);
         throw e;
     }
-    await File.rm(repoPath);
+    await fse.remove(repoPath);
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 

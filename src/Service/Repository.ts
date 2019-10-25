@@ -4,8 +4,9 @@ import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
-import {File, Session as SessionFunction} from '../Function';
+import {Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
+import fse from 'fs-extra';
 
 export async function create(repository: RepositoryClass): Promise<ServiceResponse<void>>
 {
@@ -50,7 +51,7 @@ export async function create(repository: RepositoryClass): Promise<ServiceRespon
         {
             try
             {
-                await File.rm(repoPath);
+                await fse.remove(repoPath);
             }
             catch (e)
             {
@@ -104,7 +105,7 @@ export async function del(username: RepositoryClass['username'], name: Repositor
         throw e;
     }
     // 数据库记录删除成功，删除临时文件夹
-    await File.rm(tempPath);
+    await fse.remove(tempPath);
 
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
