@@ -1,6 +1,6 @@
 import {Account as AccountClass, Profile as ProfileClass} from '../../Class';
 import pool from '../Pool';
-import {transaction} from '../Function';
+import {executeTransaction} from '../Function';
 import * as Profile from './Profile';
 
 export const selectStatement = 'SELECT * FROM accounts WHERE "username"=$1';
@@ -26,7 +26,7 @@ export async function update(account: AccountClass): Promise<void>
     const client = await pool.connect();
     try
     {
-        await transaction(client, async (client) =>
+        await executeTransaction(client, async (client) =>
         {
             await client.query(updateStatement, [account.username, account.hash]);
         });
@@ -42,7 +42,7 @@ export async function insert(account: AccountClass): Promise<void>
     const client = await pool.connect();
     try
     {
-        await transaction(client, async (client) =>
+        await executeTransaction(client, async (client) =>
         {
             await client.query(insertStatement, [account.username, account.hash]);
         });
@@ -58,7 +58,7 @@ export async function del(username: AccountClass['username']): Promise<void>
     const client = await pool.connect();
     try
     {
-        await transaction(client, async (client) =>
+        await executeTransaction(client, async (client) =>
         {
             await client.query(delStatement, [username]);
         });
@@ -77,7 +77,7 @@ export async function create(account: AccountClass, profile: ProfileClass): Prom
     const client = await pool.connect();
     try
     {
-        await transaction(client, async (client) =>
+        await executeTransaction(client, async (client) =>
         {
             await client.query(insertStatement, [account.username, account.hash]);
             await client.query(Profile.insertStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);

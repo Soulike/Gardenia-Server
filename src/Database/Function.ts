@@ -5,7 +5,7 @@ import {Client, PoolClient} from 'pg';
  * @param client - pg 创建的 Client 实例。根据文档，此处不能是 Pool
  * @param transaction - 要执行的事务
  * */
-export async function transaction<T extends Client | PoolClient>(client: T, transaction: (client: T) => Promise<any>)
+export async function executeTransaction<T extends Client | PoolClient>(client: T, transaction: (client: T) => Promise<any>)
 {
     try
     {

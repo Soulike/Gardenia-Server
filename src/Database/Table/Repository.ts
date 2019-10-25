@@ -1,4 +1,4 @@
-import {transaction} from '../Function';
+import {executeTransaction} from '../Function';
 import pool from '../Pool';
 import {Repository as RepositoryClass} from '../../Class';
 
@@ -15,7 +15,7 @@ export async function insert(repository: RepositoryClass): Promise<void>
     const client = await pool.connect();
     try
     {
-        await transaction(client, async client =>
+        await executeTransaction(client, async client =>
         {
             await client.query(insertStatement, [repository.username, repository.name, repository.description, repository.isPublic]);
         });
@@ -31,7 +31,7 @@ export async function del(username: RepositoryClass['username'], name: Repositor
     const client = await pool.connect();
     try
     {
-        await transaction(client, async client =>
+        await executeTransaction(client, async client =>
         {
             await client.query(delStatement, [username, name]);
         });
@@ -47,7 +47,7 @@ export async function update(repository: RepositoryClass, primaryKey?: Pick<Repo
     const client = await pool.connect();
     try
     {
-        await transaction(client, async client =>
+        await executeTransaction(client, async client =>
         {
             await client.query(updateStatement,
                 [repository.username, repository.name, repository.description, repository.isPublic,

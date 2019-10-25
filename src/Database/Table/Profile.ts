@@ -1,4 +1,4 @@
-import {transaction} from '../Function';
+import {executeTransaction} from '../Function';
 import pool from '../Pool';
 import {Profile as ProfileClass} from '../../Class';
 import validator from 'validator';
@@ -15,7 +15,7 @@ export async function insert(profile: ProfileClass): Promise<void>
     const client = await pool.connect();
     try
     {
-        await transaction(client, async client =>
+        await executeTransaction(client, async client =>
         {
             await client.query(insertStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
         });
@@ -31,7 +31,7 @@ export async function del(username: ProfileClass['username']): Promise<void>
     const client = await pool.connect();
     try
     {
-        await transaction(client, async client =>
+        await executeTransaction(client, async client =>
         {
             await client.query(delStatement, [username]);
         });
@@ -47,7 +47,7 @@ export async function update(profile: ProfileClass): Promise<void>
     const client = await pool.connect();
     try
     {
-        await transaction(client, async client =>
+        await executeTransaction(client, async client =>
         {
             assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');
             await client.query(updateStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
