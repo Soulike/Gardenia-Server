@@ -5,13 +5,20 @@ export async function execPromise(command: string, options?: ExecOptions): Promi
 {
     return new Promise<string | Buffer>((resolve, reject) =>
     {
-        exec(command, options, (error, stdout) =>
+        exec(command, options, (error, stdout, stderr) =>
         {
             if (error)
             {
-                return reject(error);
+                reject(error);
             }
-            return resolve(stdout);
+            else if (stderr)
+            {
+                reject(new Error(stderr as string));
+            }
+            else
+            {
+                return resolve(stdout);
+            }
         });
     });
 }
