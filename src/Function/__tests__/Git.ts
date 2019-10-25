@@ -1,4 +1,11 @@
-import {getBranches, getFileCommitInfoList, getLastCommitInfo, getObjectHash, getObjectType} from '../Git';
+import {
+    getBranches,
+    getFileCommitInfoList,
+    getLastCommitInfo,
+    getObjectHash,
+    getObjectType,
+    isEmptyRepository,
+} from '../Git';
 import fs from 'fs';
 import {exec} from 'child_process';
 import {promisify} from 'util';
@@ -9,6 +16,7 @@ import {ObjectType} from '../../CONSTANT';
 import os from 'os';
 
 let repositoryPath = '';
+let bareRepositoryPath = '';
 const branches = ['test1', 'test2', 'test3'];
 const mainBranchName = 'main';
 const firstCommitFileName = 'testFile';
@@ -76,6 +84,36 @@ describe(getLastCommitInfo, () =>
         await expect(getLastCommitInfo('addwadawd', mainBranchName, firstCommitFileName)).rejects.toThrow();
         await expect(getLastCommitInfo(repositoryPath, 'dawdawdawdfsf', firstCommitFileName)).rejects.toThrow();
         await expect(getLastCommitInfo(repositoryPath, mainBranchName, 'gergergergerg')).rejects.toThrow();
+    });
+});
+
+describe(isEmptyRepository, () =>
+{
+    beforeAll(async () =>
+    {
+        await createBareRepository();
+        await createRepository();
+    });
+
+    afterAll(async () =>
+    {
+        await destroyRepository();
+    });
+
+    it('should return true when repository is empty', async function ()
+    {
+        expect(await isEmptyRepository(bareRepositoryPath)).toBe(true);
+    });
+
+    it('should return false when repository is not empty', async function ()
+    {
+        await doFirstCommit();
+        expect(await isEmptyRepository(repositoryPath)).toBe(false);
+    });
+
+    it('should reject when repository does not exist', async function ()
+    {
+        await expect(isEmptyRepository('dfafafeasfseg')).rejects.toThrow();
     });
 });
 
@@ -203,6 +241,12 @@ async function createRepository()
     await promisify(exec)('git init', {cwd: repositoryPath});
 }
 
+async function createBareRepository()
+{
+    bareRepositoryPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), '__test'));
+    await promisify(exec)('git init --bare', {cwd: bareRepositoryPath});
+}
+
 async function doFirstCommit()
 {
     await fs.promises.writeFile(path.join(repositoryPath, firstCommitFileName), '');
@@ -215,6 +259,7 @@ async function doFirstCommit()
 async function destroyRepository()
 {
     await fse.remove(repositoryPath);
+    await fse.remove(bareRepositoryPath);
 }
 
 async function createBranches()

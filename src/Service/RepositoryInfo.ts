@@ -178,12 +178,7 @@ export async function fileInfo(username: string, repositoryName: string, filePat
         objectHash = result[0];
         objectType = result[1];
     }
-    catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '文件或提交不存在'));
-    }
-    if (objectHash === null || objectType === null)
+    catch (e)
     {
         return new ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(200, {},
             new ResponseBody<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(true, '', {exists: false}));

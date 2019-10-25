@@ -2,6 +2,7 @@ import {exec} from 'child_process';
 import {Commit} from '../Class';
 import {execPromise} from './Promisify';
 import {ObjectType} from '../CONSTANT';
+import {promisify} from 'util';
 
 /**
  * @description 获取仓库的所有分支，主分支放在首个
@@ -50,6 +51,15 @@ export async function getLastCommitInfo(repositoryPath: string, commitHash: stri
 }
 
 /**
+ * @description 代码仓库是否进行过提交
+ * */
+export async function isEmptyRepository(repositoryPath: string): Promise<boolean>
+{
+    const {stdout} = await promisify(exec)(`git log --oneline | wc -l`, {cwd: repositoryPath});
+    return Number.parseInt(stdout) === 0;
+}
+
+/**
  * @description 获取某个路径下所有文件的类型、路径与最终提交信息
  * */
 export async function getFileCommitInfoList(repositoryPath: string, commitHash: string, path: string): Promise<Array<{ type: ObjectType, path: string, commit: Commit }>>
@@ -90,7 +100,7 @@ export async function getFileCommitInfoList(repositoryPath: string, commitHash: 
 /**
  * @description 获取对象的哈希
  * */
-export async function getObjectHash(repositoryPath: string, filePath: string, commitHash: string): Promise<string | null>
+export async function getObjectHash(repositoryPath: string, filePath: string, commitHash: string): Promise<string>
 {
     // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
     const lsTreeOut = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`,
@@ -108,7 +118,7 @@ export async function getObjectHash(repositoryPath: string, filePath: string, co
 /**
  * @description 获取对象的类型
  * */
-export async function getObjectType(repositoryPath: string, filePath: string, commitHash: string): Promise<ObjectType | null>
+export async function getObjectType(repositoryPath: string, filePath: string, commitHash: string): Promise<ObjectType>
 {
     // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
     const lsTreeOut = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`,
