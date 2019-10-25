@@ -41,7 +41,12 @@ export async function getLastCommitInfo(repositoryPath: string, commitHash: stri
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
     ]) as Array<string>;
 
-    return new Commit(info[0], info[1], info[2], info[3], info[4]);
+    const commit = new Commit(info[0], info[1], info[2], info[3], info[4]);
+    if (commit.commitHash.length === 0)
+    {
+        throw new Error('Object does not exist');
+    }
+    return commit;
 }
 
 /**
@@ -75,6 +80,10 @@ export async function getFileCommitInfoList(repositoryPath: string, commitHash: 
             commit: await getLastCommitInfo(repositoryPath, commitHash, infoStringArray[3]),
         });
     }));
+    if (fileCommitInfoList.length === 0)
+    {
+        throw new Error('Folder does not exist');
+    }
     return fileCommitInfoList;
 }
 
@@ -86,9 +95,9 @@ export async function getObjectHash(repositoryPath: string, filePath: string, co
     // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
     const lsTreeOut = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`,
         {cwd: repositoryPath}) as string;
-    if (lsTreeOut.length === 0) // 没有输出则文件不存在，返回 null
+    if (lsTreeOut.length === 0) // 没有输出则文件不存在
     {
-        return null;
+        throw new Error('Object does not exist');
     }
     else
     {
@@ -104,9 +113,9 @@ export async function getObjectType(repositoryPath: string, filePath: string, co
     // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
     const lsTreeOut = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`,
         {cwd: repositoryPath}) as string;
-    if (lsTreeOut.length === 0) // 没有输出则文件不存在，返回 null
+    if (lsTreeOut.length === 0) // 没有输出则文件不存在
     {
-        return null;
+        throw new Error('Object does not exist');
     }
     else
     {

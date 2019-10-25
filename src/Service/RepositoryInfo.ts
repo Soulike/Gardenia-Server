@@ -48,19 +48,14 @@ export async function lastCommit(username: string, repositoryName: string, commi
     try
     {
         const commit = await Git.getLastCommitInfo(repoPath, commitHash, filePath);
-        if (commit.commitHash.length === 0)  // 没有内容，文件不存在
-        {
-            return new ServiceResponse<Commit>(404, {},
-                new ResponseBody<Commit>(false, '文件不存在'));
-        }
         return new ServiceResponse<Commit>(200, {},
             new ResponseBody<Commit>(true, '', commit));
     }
-    catch (e)   // 报错，是分支不存在
+    catch (e)
     {
         SERVER.WARN_LOGGER(e);
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '分支不存在'));
+            new ResponseBody<void>(false, '分支或文件不存在'));
     }
 }
 
@@ -186,7 +181,7 @@ export async function fileInfo(username: string, repositoryName: string, filePat
     catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '提交不存在'));
+            new ResponseBody<void>(false, '文件或提交不存在'));
     }
     if (objectHash === null || objectType === null)
     {
@@ -236,11 +231,6 @@ export async function rawFile(username: string, repositoryName: string, filePath
         objectHash = await Git.getObjectHash(repoPath, filePath, commitHash);
     }
     catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
-    {
-        res.statusCode = 404;
-        return;
-    }
-    if (objectHash === null)
     {
         res.statusCode = 404;
         return;

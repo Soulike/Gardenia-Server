@@ -11,7 +11,8 @@
     "start": "nodemon dist/index.js",
     "build": "tsc",
     "prestart": "yarn build",
-    "test": "jest --passWithNoTests"
+    "test": "jest",
+    "test-coverage": "jest --collectCoverage"
   },
   "dependencies": {
     "@koa/router": "^8.0.1",
