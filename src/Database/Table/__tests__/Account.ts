@@ -2,7 +2,8 @@ import {create, del, insert, select, update} from '../Account';
 import {Account, Profile} from '../../../Class';
 import faker from 'faker';
 import pool from '../../Pool';
-import {PoolClient} from 'pg';
+import {Client, PoolClient} from 'pg';
+import {deleteFakeProfile} from './Profile';
 
 const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
 const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
@@ -24,12 +25,12 @@ describe(select, () =>
 
     beforeAll(async () =>
     {
-        await insertFakeAccount();
+        await insertFakeAccount(client, fakeAccount);
     });
 
     afterAll(async () =>
     {
-        await deleteFakeAccount();
+        await deleteFakeAccount(client, fakeAccount.username);
     });
 
     it('should select account', async function ()
@@ -47,22 +48,21 @@ describe(select, () =>
 
 describe(update, () =>
 {
-    const modifiedFakeAccount = new Account(fakeAccount.username, faker.random.alphaNumeric(64));
-
     beforeEach(async () =>
     {
-        await insertFakeAccount();
+        await insertFakeAccount(client, fakeAccount);
     });
 
     afterEach(async () =>
     {
-        await deleteFakeAccount();
+        await deleteFakeAccount(client, fakeAccount.username);
     });
 
     it('should update account', async function ()
     {
+        const modifiedFakeAccount = new Account(fakeAccount.username, faker.random.alphaNumeric(64));
         await update(modifiedFakeAccount);
-        expect(await selectFakeAccount()).toStrictEqual(modifiedFakeAccount);
+        expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(modifiedFakeAccount);
     });
 
     it('should rollback when error happens', async function ()
@@ -70,7 +70,7 @@ describe(update, () =>
         const modifiedFakeAccountWithInvalidHash =
             new Account(fakeAccount.username, faker.random.alphaNumeric(100));
         await expect(update(modifiedFakeAccountWithInvalidHash)).rejects.toThrow();
-        expect(await selectFakeAccount()).toStrictEqual(fakeAccount);
+        expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(fakeAccount);
     });
 });
 
@@ -78,20 +78,20 @@ describe(insert, () =>
 {
     afterEach(async () =>
     {
-        await deleteFakeAccount();
+        await deleteFakeAccount(client, fakeAccount.username);
     });
 
     it('should insert account', async function ()
     {
         await insert(fakeAccount);
-        expect(await selectFakeAccount()).toStrictEqual(fakeAccount);
+        expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(fakeAccount);
     });
 
     it('should throw error when insert the same accounts', async function ()
     {
-        await insertFakeAccount();
+        await insertFakeAccount(client, fakeAccount);
         await expect(insert(fakeAccount)).rejects.toThrow();
-        expect(await selectFakeAccount()).toStrictEqual(fakeAccount);
+        expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(fakeAccount);
     });
 
     it('should rollback when error happens', async function ()
@@ -99,7 +99,7 @@ describe(insert, () =>
         const fakeAccountWithInvalidHash =
             new Account(fakeAccount.username, faker.random.alphaNumeric(65));
         await expect(insert(fakeAccountWithInvalidHash)).rejects.toThrow();
-        expect(await selectFakeAccount()).toBeNull();
+        expect(await selectFakeAccount(client, fakeAccount.username)).toBeNull();
     });
 });
 
@@ -107,18 +107,18 @@ describe(del, () =>
 {
     beforeEach(async () =>
     {
-        await insertFakeAccount();
+        await insertFakeAccount(client, fakeAccount);
     });
 
     beforeEach(async () =>
     {
-        await deleteFakeAccount();
+        await deleteFakeAccount(client, fakeAccount.username);
     });
 
     it('should delete account', async function ()
     {
         await del(fakeAccount.username);
-        expect(await selectFakeAccount()).toBeNull();
+        expect(await selectFakeAccount(client, fakeAccount.username)).toBeNull();
     });
 });
 
@@ -126,8 +126,8 @@ describe(create, () =>
 {
     afterEach(async () =>
     {
-        await deleteFakeProfile();
-        await deleteFakeAccount();
+        await deleteFakeProfile(client, fakeProfile.username);
+        await deleteFakeAccount(client, fakeAccount.username);
     });
 
     it('should create account and profile', async function ()
@@ -159,29 +159,29 @@ describe(create, () =>
     });
 });
 
-async function insertFakeAccount()
+export async function insertFakeAccount(client: Client | PoolClient, account: Account)
 {
     await client.query('START TRANSACTION');
     await client.query(
         'INSERT INTO accounts (username, hash) VALUES ($1, $2)',
-        [fakeAccount.username, fakeAccount.hash]);
+        [account.username, account.hash]);
     await client.query('COMMIT');
 }
 
-async function deleteFakeAccount()
+export async function deleteFakeAccount(client: Client | PoolClient, username: Account['username'])
 {
     await client.query('START TRANSACTION');
     await client.query(
         'DELETE FROM accounts WHERE username=$1',
-        [fakeAccount.username]);
+        [username]);
     await client.query('COMMIT');
 }
 
-async function selectFakeAccount(): Promise<Account | null>
+export async function selectFakeAccount(client: Client | PoolClient, username: Account['username']): Promise<Account | null>
 {
-    const {rows, rowCount} = await pool.query(
+    const {rows, rowCount} = await client.query(
         'SELECT * FROM accounts WHERE username=$1',
-        [fakeAccount.username]);
+        [username]);
     if (rowCount === 1)
     {
         return Account.from(rows[0]);
@@ -190,13 +190,4 @@ async function selectFakeAccount(): Promise<Account | null>
     {
         return null;
     }
-}
-
-async function deleteFakeProfile()
-{
-    await client.query('START TRANSACTION');
-    await client.query(
-        'DELETE FROM profiles WHERE username=$1',
-        [fakeAccount.username]);
-    await client.query('COMMIT');
 }
