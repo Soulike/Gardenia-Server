@@ -17,10 +17,7 @@ export class GitHTTPCgiServer
 
     public static async getCgiServer(): Promise<Server>
     {
-        if (!GitHTTPCgiServer.cgiServer.listening)
-        {
-            await GitHTTPCgiServer.waitForListeningEvent();
-        }
+        await GitHTTPCgiServer.waitForListeningEvent();
         return GitHTTPCgiServer.cgiServer;
     }
 
