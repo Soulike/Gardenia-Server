@@ -133,26 +133,34 @@ describe(getFileCommitInfoList, () =>
 
     it('should get file commit info list at root', async function ()
     {
-        const retAtRoot = await getFileCommitInfoList(repositoryPath, mainBranchName, '');
-        expect(retAtRoot).toContainEqual({
+        const commitInfoList = await getFileCommitInfoList(repositoryPath, mainBranchName, '');
+        commitInfoList.forEach(commitInfo => commitInfo.commit.time = '');   // 防止测试运行时间差造成失败
+        const folderCommitInfo = await getFileCommitInfo(mainBranchName, firstCommitFolderName);
+        folderCommitInfo.time = '';
+        const fileCommitInfo = await getFileCommitInfo(mainBranchName, firstCommitFileName);
+        fileCommitInfo.time = '';
+        expect(commitInfoList).toContainEqual({
             type: ObjectType.TREE,
             path: firstCommitFolderName,
-            commit: await getFileCommitInfo(mainBranchName, firstCommitFolderName),
+            commit: folderCommitInfo,
         });
-        expect(retAtRoot).toContainEqual({
+        expect(commitInfoList).toContainEqual({
             type: ObjectType.BLOB,
             path: firstCommitFileName,
-            commit: await getFileCommitInfo(mainBranchName, firstCommitFileName),
+            commit: fileCommitInfo,
         });
     });
 
     it('should get file commit info list in folder', async function ()
     {
-        const retAtRoot = await getFileCommitInfoList(repositoryPath, mainBranchName, firstCommitFileInFolderPath);
-        expect(retAtRoot).toContainEqual({
+        const commitInfoList = await getFileCommitInfoList(repositoryPath, mainBranchName, firstCommitFileInFolderPath);
+        commitInfoList.forEach(commitInfo => commitInfo.commit.time = '');   // 防止测试运行时间差造成失败
+        const expectedCommit = await getFileCommitInfo(mainBranchName, firstCommitFileInFolderPath);
+        expectedCommit.time = '';
+        expect(commitInfoList).toContainEqual({
             type: ObjectType.BLOB,
             path: firstCommitFileInFolderPath,
-            commit: await getFileCommitInfo(mainBranchName, firstCommitFileInFolderPath),
+            commit: expectedCommit,
         });
     });
 
