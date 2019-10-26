@@ -1,6 +1,6 @@
 import {GitHTTPCgiServer} from '../GitHTTPCgiServer';
 
-describe('GitHTTPCgiServer', () =>
+describe(GitHTTPCgiServer, () =>
 {
     it('should always get the same cgi server instance', async function ()
     {
