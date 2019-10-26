@@ -64,14 +64,6 @@ describe(update, () =>
         await update(modifiedFakeAccount);
         expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(modifiedFakeAccount);
     });
-
-    it('should rollback when error happens', async function ()
-    {
-        const modifiedFakeAccountWithInvalidHash =
-            new Account(fakeAccount.username, faker.random.alphaNumeric(100));
-        await expect(update(modifiedFakeAccountWithInvalidHash)).rejects.toThrow();
-        expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(fakeAccount);
-    });
 });
 
 describe(insert, () =>
@@ -92,14 +84,6 @@ describe(insert, () =>
         await insertFakeAccount(client, fakeAccount);
         await expect(insert(fakeAccount)).rejects.toThrow();
         expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(fakeAccount);
-    });
-
-    it('should rollback when error happens', async function ()
-    {
-        const fakeAccountWithInvalidHash =
-            new Account(fakeAccount.username, faker.random.alphaNumeric(65));
-        await expect(insert(fakeAccountWithInvalidHash)).rejects.toThrow();
-        expect(await selectFakeAccount(client, fakeAccount.username)).toBeNull();
     });
 });
 
