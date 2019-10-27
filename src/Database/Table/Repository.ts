@@ -26,7 +26,7 @@ export async function insert(repository: RepositoryClass): Promise<void>
     }
 }
 
-export async function del(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<void>
+export async function deleteByUsernameAndName(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -61,7 +61,7 @@ export async function update(repository: RepositoryClass, primaryKey?: Pick<Repo
     }
 }
 
-export async function select(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<RepositoryClass | null>
+export async function selectByUsernameAndName(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<RepositoryClass | null>
 {
     const {rows, rowCount} = await pool.query(selectStatement, [username, name]);
     if (rowCount === 0)

@@ -4,10 +4,6 @@ import {Profile as ProfileClass} from '../../Class';
 import validator from 'validator';
 import {strict as assert} from 'assert';
 
-export const insertStatement = 'INSERT INTO profiles("username", "nickname", "email", "avatar") VALUES ($1, $2, $3, $4)';
-export const updateStatement = 'UPDATE profiles SET "username"=$1, "nickname"=$2, "email"=$3, "avatar"=$4 WHERE "username"=$1';
-export const selectStatement = 'SELECT * FROM profiles WHERE "username"=$1';
-
 export async function update(profile: ProfileClass): Promise<void>
 {
     const client = await pool.connect();
@@ -16,7 +12,9 @@ export async function update(profile: ProfileClass): Promise<void>
         await executeTransaction(client, async client =>
         {
             assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');
-            await client.query(updateStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
+            await client.query(
+                'UPDATE profiles SET "username"=$1, "nickname"=$2, "email"=$3, "avatar"=$4 WHERE "username"=$1',
+                [profile.username, profile.nickname, profile.email, profile.avatar]);
         });
     }
     finally
@@ -25,9 +23,11 @@ export async function update(profile: ProfileClass): Promise<void>
     }
 }
 
-export async function select(username: ProfileClass['username']): Promise<ProfileClass | null>
+export async function selectByUsername(username: ProfileClass['username']): Promise<ProfileClass | null>
 {
-    const {rows, rowCount} = await pool.query(selectStatement, [username]);
+    const {rows, rowCount} = await pool.query(
+        'SELECT * FROM profiles WHERE "username"=$1',
+        [username]);
     if (rowCount === 0)
     {
         return null;

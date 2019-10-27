@@ -6,7 +6,7 @@ import {Session as SessionFunction} from '../Function';
 export async function login(account: AccountClass): Promise<ServiceResponse<void>>
 {
     const {username, hash} = account;
-    const accountInDatabase = await AccountTable.select(username);
+    const accountInDatabase = await AccountTable.selectByUsername(username);
     if (accountInDatabase === null)   // 检查用户名是否存在
     {
         return new ServiceResponse<void>(200, {},
@@ -28,7 +28,7 @@ export async function login(account: AccountClass): Promise<ServiceResponse<void
 export async function register(account: AccountClass, profile: Omit<ProfileClass, 'username'>): Promise<ServiceResponse<void>>
 {
     const {username} = account;
-    if ((await AccountTable.select(username)) !== null) // 检查用户名是不是已经存在了
+    if ((await AccountTable.selectByUsername(username)) !== null) // 检查用户名是不是已经存在了
     {
         return new ServiceResponse<void>(200, {}, new ResponseBody<void>(false, '用户名已存在'));
     }

@@ -1,16 +1,12 @@
 import {Account as AccountClass, Profile as ProfileClass} from '../../Class';
 import pool from '../Pool';
 import {executeTransaction} from '../Function';
-import * as Profile from './Profile';
 
-export const selectStatement = 'SELECT * FROM accounts WHERE "username"=$1';
-export const updateStatement = 'UPDATE accounts SET "username"=$1, "hash"=$2 WHERE "username"=$1';
-export const insertStatement = 'INSERT INTO accounts("username", "hash") VALUES ($1, $2)';
-export const delStatement = 'DELETE FROM accounts WHERE "username"=$1';
-
-export async function select(username: AccountClass['username']): Promise<AccountClass | null>
+export async function selectByUsername(username: AccountClass['username']): Promise<AccountClass | null>
 {
-    const {rows, rowCount} = await pool.query(selectStatement, [username]);
+    const {rows, rowCount} = await pool.query(
+        'SELECT * FROM accounts WHERE "username"=$1',
+        [username]);
     if (rowCount === 0)
     {
         return null;
@@ -28,7 +24,9 @@ export async function update(account: AccountClass): Promise<void>
     {
         await executeTransaction(client, async (client) =>
         {
-            await client.query(updateStatement, [account.username, account.hash]);
+            await client.query(
+                'UPDATE accounts SET "username"=$1, "hash"=$2 WHERE "username"=$1',
+                [account.username, account.hash]);
         });
     }
     finally
@@ -44,7 +42,9 @@ export async function insert(account: AccountClass): Promise<void>
     {
         await executeTransaction(client, async (client) =>
         {
-            await client.query(insertStatement, [account.username, account.hash]);
+            await client.query(
+                'INSERT INTO accounts("username", "hash") VALUES ($1, $2)',
+                [account.username, account.hash]);
         });
     }
     finally
@@ -53,14 +53,16 @@ export async function insert(account: AccountClass): Promise<void>
     }
 }
 
-export async function del(username: AccountClass['username']): Promise<void>
+export async function deleteByUsername(username: AccountClass['username']): Promise<void>
 {
     const client = await pool.connect();
     try
     {
         await executeTransaction(client, async (client) =>
         {
-            await client.query(delStatement, [username]);
+            await client.query(
+                'DELETE FROM accounts WHERE "username"=$1',
+                [username]);
         });
     }
     finally
@@ -79,8 +81,12 @@ export async function create(account: AccountClass, profile: ProfileClass): Prom
     {
         await executeTransaction(client, async (client) =>
         {
-            await client.query(insertStatement, [account.username, account.hash]);
-            await client.query(Profile.insertStatement, [profile.username, profile.nickname, profile.email, profile.avatar]);
+            await client.query(
+                'INSERT INTO accounts("username", "hash") VALUES ($1, $2)',
+                [account.username, account.hash]);
+            await client.query(
+                'INSERT INTO profiles("username", "nickname", "email", "avatar") VALUES ($1, $2, $3, $4)',
+                [profile.username, profile.nickname, profile.email, profile.avatar]);
         });
     }
     finally

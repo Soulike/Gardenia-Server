@@ -2,7 +2,7 @@ import {Account, Profile} from '../../../Class';
 import faker from 'faker';
 import {Client, PoolClient} from 'pg';
 import pool from '../../Pool';
-import {select, update} from '../Profile';
+import {selectByUsername, update} from '../Profile';
 import {deleteFakeAccount, insertFakeAccount} from './Account';
 
 const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -21,7 +21,7 @@ afterAll(async () =>
     client.release();
 });
 
-describe(select, () =>
+describe(selectByUsername, () =>
 {
     beforeAll(async () =>
     {
@@ -35,14 +35,14 @@ describe(select, () =>
 
     it('should select profile', async function ()
     {
-        const profile = await select(fakeProfile.username);
+        const profile = await selectByUsername(fakeProfile.username);
         expect(profile).toStrictEqual(fakeProfile);
     });
 
     it('should return null when profile does not exists', async function ()
     {
         const nonexistentFakeProfile = new Profile(faker.name.firstName(), faker.name.firstName(), faker.internet.email(), '');
-        const profile = await select(nonexistentFakeProfile.username);
+        const profile = await selectByUsername(nonexistentFakeProfile.username);
         expect(profile).toBeNull();
     });
 });

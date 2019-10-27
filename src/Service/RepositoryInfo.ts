@@ -12,7 +12,7 @@ import fse from 'fs-extra';
 
 export async function repository(username: string, repositoryName: string, session: Session | null): Promise<ServiceResponse<RepositoryClass | void>>
 {
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -24,7 +24,7 @@ export async function repository(username: string, repositoryName: string, sessi
 
 export async function branch(username: string, repositoryName: string, session: Session | null): Promise<ServiceResponse<Array<string> | void>>
 {
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -38,7 +38,7 @@ export async function branch(username: string, repositoryName: string, session: 
 
 export async function lastCommit(username: string, repositoryName: string, commitHash: string, session: Session | null, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -61,7 +61,7 @@ export async function lastCommit(username: string, repositoryName: string, commi
 
 export async function directory(username: string, repositoryName: string, commitHash: string, directoryPath: string, session: Session | null): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -126,7 +126,7 @@ export async function directory(username: string, repositoryName: string, commit
 
 export async function commitCount(username: string, name: string, commitHash: string, session: Session | null): Promise<ServiceResponse<{ commitCount: number } | void>>
 {
-    const repository = await RepositoryTable.select(username, name);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, name);
     if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -159,7 +159,7 @@ export async function commitCount(username: string, name: string, commitHash: st
 
 export async function fileInfo(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session | null): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
 {
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -212,7 +212,7 @@ export async function fileInfo(username: string, repositoryName: string, filePat
 
 export async function rawFile(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session | null, res: ServerResponse): Promise<void>
 {
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         res.statusCode = 404;
@@ -240,13 +240,13 @@ export async function rawFile(username: string, repositoryName: string, filePath
 
 export async function setName(username: string, repositoryName: string, newRepositoryName: string): Promise<ServiceResponse<void>>
 {
-    if ((await RepositoryTable.select(username, newRepositoryName)) !== null)
+    if ((await RepositoryTable.selectByUsernameAndName(username, newRepositoryName)) !== null)
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '仓库名已存在'));
     }
 
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository))
     {
         return new ServiceResponse<void>(404, {},
@@ -286,7 +286,7 @@ export async function setName(username: string, repositoryName: string, newRepos
 
 export async function setDescription(username: string, repositoryName: string, description: string): Promise<ServiceResponse<void>>
 {
-    const repository = await RepositoryTable.select(username, repositoryName);
+    const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository))
     {
         return new ServiceResponse<void>(404, {},

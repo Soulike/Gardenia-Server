@@ -1,4 +1,4 @@
-import {create, del, insert, select, update} from '../Account';
+import {create, deleteByUsername, insert, selectByUsername, update} from '../Account';
 import {Account, Profile} from '../../../Class';
 import faker from 'faker';
 import pool from '../../Pool';
@@ -19,7 +19,7 @@ afterAll(() =>
     client.release();
 });
 
-describe(select, () =>
+describe(selectByUsername, () =>
 {
     const nonexistentFakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
 
@@ -35,13 +35,13 @@ describe(select, () =>
 
     it('should select account', async function ()
     {
-        const account = await select(fakeAccount.username);
+        const account = await selectByUsername(fakeAccount.username);
         expect(account).toStrictEqual(fakeAccount);
     });
 
     it('should return null when account does not exists', async function ()
     {
-        const account = await select(nonexistentFakeAccount.username);
+        const account = await selectByUsername(nonexistentFakeAccount.username);
         expect(account).toBeNull();
     });
 });
@@ -87,7 +87,7 @@ describe(insert, () =>
     });
 });
 
-describe(del, () =>
+describe(deleteByUsername, () =>
 {
     beforeEach(async () =>
     {
@@ -101,7 +101,7 @@ describe(del, () =>
 
     it('should delete account', async function ()
     {
-        await del(fakeAccount.username);
+        await deleteByUsername(fakeAccount.username);
         expect(await selectFakeAccount(client, fakeAccount.username)).toBeNull();
     });
 });

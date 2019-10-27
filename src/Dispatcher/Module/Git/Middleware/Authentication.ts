@@ -33,7 +33,7 @@ const middlewareWrapper: IRouteHandler = () =>
 
         const [username, password] = usernameAndPasswordInBase64;
         const hash = AccountClass.calculateHash(username, password);
-        const account = await Account.select(username);
+        const account = await Account.selectByUsername(username);
         if (account !== null)
         {
             const {hash: expectedHash} = account;

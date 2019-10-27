@@ -12,7 +12,7 @@ export async function create(repository: RepositoryClass): Promise<ServiceRespon
 {
     const {username, name} = repository;
     // 检查是否有同名仓库
-    if ((await RepositoryTable.select(username, name)) !== null)
+    if ((await RepositoryTable.selectByUsernameAndName(username, name)) !== null)
     {
         return new ServiceResponse<void>(200, {}, new ResponseBody<void>(false, '仓库已存在'));
     }
@@ -69,7 +69,7 @@ export async function create(repository: RepositoryClass): Promise<ServiceRespon
 export async function del(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<ServiceResponse<void>>
 {
     // 检查仓库是否存在
-    if ((await RepositoryTable.select(username, name)) === null)
+    if ((await RepositoryTable.selectByUsernameAndName(username, name)) === null)
     {
         return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '仓库不存在'));
     }
@@ -97,7 +97,7 @@ export async function del(username: RepositoryClass['username'], name: Repositor
     // 文件夹移动成功，删除数据库记录
     try
     {
-        await RepositoryTable.del(username, name);
+        await RepositoryTable.deleteByUsernameAndName(username, name);
     }
     catch (e)   // 数据库记录删除失败，把仓库文件夹移动回去
     {

@@ -1,10 +1,10 @@
 import {
-    del,
+    deleteByUsernameAndName,
     insert,
-    select,
     selectByIsPublic,
     selectByIsPublicAndUsername,
     selectByUsername,
+    selectByUsernameAndName,
     update,
 } from '../Repository';
 import {deleteFakeAccount, insertFakeAccount} from './Account';
@@ -49,7 +49,7 @@ describe(insert, () =>
     });
 });
 
-describe(del, () =>
+describe(deleteByUsernameAndName, () =>
 {
     beforeEach(async () =>
     {
@@ -63,7 +63,7 @@ describe(del, () =>
 
     it('should delete repository', async function ()
     {
-        await del(fakeRepository.username, fakeRepository.name);
+        await deleteByUsernameAndName(fakeRepository.username, fakeRepository.name);
         expect(await selectFakeRepository(client, fakeRepository)).toBeNull();
     });
 });
@@ -103,7 +103,7 @@ describe(update, () =>
     });
 });
 
-describe(select, () =>
+describe(selectByUsernameAndName, () =>
 {
     beforeAll(async () =>
     {
@@ -117,7 +117,7 @@ describe(select, () =>
 
     it('should select repository', async function ()
     {
-        const repository = await select(fakeRepository.username, fakeRepository.name);
+        const repository = await selectByUsernameAndName(fakeRepository.username, fakeRepository.name);
         expect(repository).toStrictEqual(fakeRepository);
     });
 
@@ -126,7 +126,7 @@ describe(select, () =>
         const nonexistentRepository = Repository.from(fakeRepository);
         nonexistentRepository.username = faker.name.firstName();
         nonexistentRepository.name = faker.random.word();
-        const repository = await select(nonexistentRepository.username, nonexistentRepository.name);
+        const repository = await selectByUsernameAndName(nonexistentRepository.username, nonexistentRepository.name);
         expect(repository).toBeNull();
     });
 });
