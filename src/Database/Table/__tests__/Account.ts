@@ -2,8 +2,8 @@ import {create, deleteByUsername, insert, selectByUsername, update} from '../Acc
 import {Account, Profile} from '../../../Class';
 import faker from 'faker';
 import pool from '../../Pool';
-import {Client, PoolClient} from 'pg';
-import {deleteFakeProfile} from './Profile';
+import {PoolClient} from 'pg';
+import {deleteFakeAccount, deleteFakeProfile, insertFakeAccount, selectFakeAccount} from '../_TestHelper';
 
 const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
 const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
@@ -142,36 +142,3 @@ describe(create, () =>
         expect(profileRowCount).toBe(0);
     });
 });
-
-export async function insertFakeAccount(client: Client | PoolClient, account: Account)
-{
-    await client.query('START TRANSACTION');
-    await client.query(
-        'INSERT INTO accounts (username, hash) VALUES ($1, $2)',
-        [account.username, account.hash]);
-    await client.query('COMMIT');
-}
-
-export async function deleteFakeAccount(client: Client | PoolClient, username: Account['username'])
-{
-    await client.query('START TRANSACTION');
-    await client.query(
-        'DELETE FROM accounts WHERE username=$1',
-        [username]);
-    await client.query('COMMIT');
-}
-
-export async function selectFakeAccount(client: Client | PoolClient, username: Account['username']): Promise<Account | null>
-{
-    const {rows, rowCount} = await client.query(
-        'SELECT * FROM accounts WHERE username=$1',
-        [username]);
-    if (rowCount === 1)
-    {
-        return Account.from(rows[0]);
-    }
-    else
-    {
-        return null;
-    }
-}

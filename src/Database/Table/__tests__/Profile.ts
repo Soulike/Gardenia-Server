@@ -1,9 +1,15 @@
 import {Account, Profile} from '../../../Class';
 import faker from 'faker';
-import {Client, PoolClient} from 'pg';
+import {PoolClient} from 'pg';
 import pool from '../../Pool';
 import {selectByUsername, update} from '../Profile';
-import {deleteFakeAccount, insertFakeAccount} from './Account';
+import {
+    deleteFakeAccount,
+    deleteFakeProfile,
+    insertFakeAccount,
+    insertFakeProfile,
+    selectFakeProfile,
+} from '../_TestHelper';
 
 const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
 const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
@@ -67,36 +73,3 @@ describe(update, () =>
         expect(await selectFakeProfile(client, fakeProfile.username)).toStrictEqual(modifiedFakeProfile);
     });
 });
-
-export async function insertFakeProfile(client: Client | PoolClient, profile: Profile)
-{
-    await client.query('START TRANSACTION');
-    await client.query(
-        'INSERT INTO profiles VALUES ($1,$2, $3, $4)',
-        [profile.username, profile.nickname, profile.email, profile.avatar]);
-    await client.query('COMMIT');
-}
-
-export async function selectFakeProfile(client: Client | PoolClient, username: Profile['username'])
-{
-    const {rows, rowCount} = await client.query(
-        'SELECT * FROM profiles WHERE username=$1',
-        [username]);
-    if (rowCount === 1)
-    {
-        return Profile.from(rows[0]);
-    }
-    else
-    {
-        return null;
-    }
-}
-
-export async function deleteFakeProfile(client: Client | PoolClient, username: Profile['username'])
-{
-    await client.query('START TRANSACTION');
-    await client.query(
-        'DELETE FROM profiles WHERE username=$1',
-        [username]);
-    await client.query('COMMIT');
-}

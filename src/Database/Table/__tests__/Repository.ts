@@ -7,11 +7,17 @@ import {
     selectByUsernameAndName,
     update,
 } from '../Repository';
-import {deleteFakeAccount, insertFakeAccount} from './Account';
 import {Account, Repository} from '../../../Class';
 import faker from 'faker';
-import {Client, PoolClient} from 'pg';
+import {PoolClient} from 'pg';
 import pool from '../../Pool';
+import {
+    deleteFakeAccount,
+    deleteFakeRepository,
+    insertFakeAccount,
+    insertFakeRepository,
+    selectFakeRepository,
+} from '../_TestHelper';
 
 const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
 const fakeRepository = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
@@ -276,36 +282,3 @@ describe(selectByUsername, () =>
         expect(repositories1[0]).not.toEqual(repositories2[1]);
     });
 });
-
-export async function selectFakeRepository(client: Client | PoolClient, repository: Repository): Promise<Repository | null>
-{
-    const {rowCount, rows} = await client.query(
-        'SELECT * FROM repositories WHERE username=$1 AND name=$2',
-        [repository.username, repository.name]);
-    if (rowCount !== 1)
-    {
-        return null;
-    }
-    else
-    {
-        return Repository.from(rows[0]);
-    }
-}
-
-export async function insertFakeRepository(client: Client | PoolClient, repository: Repository)
-{
-    await client.query('START TRANSACTION');
-    await client.query(
-        'INSERT INTO repositories (username, name, description, "isPublic") VALUES ($1,$2,$3,$4)',
-        [repository.username, repository.name, repository.description, repository.isPublic]);
-    await client.query('COMMIT');
-}
-
-export async function deleteFakeRepository(client: Client | PoolClient, repository: Repository)
-{
-    await client.query('START TRANSACTION');
-    await client.query(
-        'DELETE FROM repositories WHERE username=$1 AND name=$2',
-        [repository.username, repository.name]);
-    await client.query('COMMIT');
-}
