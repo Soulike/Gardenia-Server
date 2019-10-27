@@ -5,3 +5,4 @@ export * from './Commit';
 export * from './Account';
 export * from './Profile';
 export * from './GitHTTPCgiServer';
+export * from './Group';
