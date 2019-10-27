@@ -12,7 +12,7 @@
     "build": "tsc",
     "prestart": "yarn build",
     "check-type": "tsc --noEmit",
-    "test": "jest",
+    "test": "jest --onlyChanged",
     "test-coverage": "jest --collectCoverage"
   },
   "husky": {
