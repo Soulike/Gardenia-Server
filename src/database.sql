@@ -1,12 +1,12 @@
 BEGIN TRANSACTION;
 
-CREATE TABLE accounts
+CREATE TABLE "accounts"
 (
     "username" VARCHAR(255) PRIMARY KEY,
     "hash"     CHAR(64) NOT NULL /*SHA256*/
 );
 
-CREATE TABLE profiles
+CREATE TABLE "profiles"
 (
     "username" VARCHAR(255) REFERENCES accounts ("username") PRIMARY KEY,
     "nickname" VARCHAR(255),
@@ -14,7 +14,7 @@ CREATE TABLE profiles
     "avatar"   VARCHAR(255)
 );
 
-CREATE TABLE repositories
+CREATE TABLE "repositories"
 (
     "username"    VARCHAR(255) REFERENCES accounts ("username")      NOT NULL,
     "name"        VARCHAR(255)                                       NOT NULL,
