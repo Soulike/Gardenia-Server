@@ -12,6 +12,17 @@ export async function insertFakeAccount(client: Client | PoolClient, account: Ac
     await client.query(`COMMIT`);
 }
 
+export async function insertFakeAccounts(client: Client | PoolClient, accounts: Account[])
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(accounts.map(account => client.query(
+            `INSERT INTO accounts (username, hash)
+             VALUES
+                 ($1, $2)`,
+        [account.username, account.hash])));
+    await client.query(`COMMIT`);
+}
+
 export async function deleteFakeAccount(client: Client | PoolClient, username: Account['username'])
 {
     await client.query(`START TRANSACTION`);
@@ -19,6 +30,16 @@ export async function deleteFakeAccount(client: Client | PoolClient, username: A
                         FROM accounts
                         WHERE username = $1`,
         [username]);
+    await client.query(`COMMIT`);
+}
+
+export async function deleteFakeAccounts(client: Client | PoolClient, usernames: Account['username'][])
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(usernames.map(username => client.query(`DELETE
+                                                              FROM accounts
+                                                              WHERE username = $1`,
+        [username])));
     await client.query(`COMMIT`);
 }
 
@@ -73,6 +94,15 @@ export async function deleteFakeGroupById(client: Client | PoolClient, id: Group
     await client.query(`COMMIT`);
 }
 
+export async function deleteFakeGroupsByIds(client: Client | PoolClient, ids: Group['id'][])
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(ids.map(id => client.query(`DELETE
+                                                  FROM groups
+                                                  WHERE id = $1`, [id])));
+    await client.query(`COMMIT`);
+}
+
 export async function selectAccountsByGroup(client: Client | PoolClient, id: Group['id']): Promise<Account[]>
 {
     const {rows} = await client.query(
@@ -101,6 +131,44 @@ export async function deleteAccountGroup(client: Client | PoolClient, username: 
                         FROM account_group
                         WHERE username = $1
                           AND group_id = $2`, [username, groupId]);
+    await client.query(`COMMIT`);
+}
+
+export async function insertAccountsGroup(client: Client | PoolClient, usernames: Account['username'][], groupId: Group['id']): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(usernames.map(username => client.query(`INSERT INTO account_group (username, group_id)
+                                                              VALUES
+                                                                  ($1, $2)`, [username, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function deleteAccountsGroup(client: Client | PoolClient, usernames: Account['username'][], groupId: Group['id']): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(usernames.map(username => client.query(`DELETE
+                                                              FROM account_group
+                                                              WHERE username = $1
+                                                                AND group_id = $2`, [username, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function insertAccountGroups(client: Client | PoolClient, username: Account['username'], groupIds: Group['id'][]): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(groupIds.map(groupId => client.query(`INSERT INTO account_group (username, group_id)
+                                                            VALUES
+                                                                ($1, $2)`, [username, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function deleteAccountGroups(client: Client | PoolClient, username: Account['username'], groupIds: Group['id'][]): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(groupIds.map(groupId => client.query(`DELETE
+                                                            FROM account_group
+                                                            WHERE username = $1
+                                                              AND group_id = $2`, [username, groupId])));
     await client.query(`COMMIT`);
 }
 
@@ -137,6 +205,48 @@ export async function deleteAdminGroup(client: Client | PoolClient, adminUsernam
     await client.query(`COMMIT`);
 }
 
+export async function insertAdminsGroup(client: Client | PoolClient, adminUsernames: Account['username'][], groupId: Group['id']): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(adminUsernames.map(adminUsername => client.query(`INSERT INTO admin_group (admin_username, group_id)
+                                                                        VALUES
+                                                                            ($1, $2)`,
+        [adminUsername, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function deleteAdminsGroup(client: Client | PoolClient, adminUsernames: Account['username'][], groupId: Group['id']): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(adminUsernames.map(adminUsername => client.query(`DELETE
+                                                                        FROM admin_group
+                                                                        WHERE admin_username = $1
+                                                                          AND group_id = $2`,
+        [adminUsername, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function insertAdminGroups(client: Client | PoolClient, adminUsername: Account['username'], groupIds: Group['id'][]): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(groupIds.map(groupId => client.query(`INSERT INTO admin_group (admin_username, group_id)
+                                                            VALUES
+                                                                ($1, $2)`,
+        [adminUsername, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function deleteAdminGroups(client: Client | PoolClient, adminUsername: Account['username'], groupIds: Group['id'][]): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(groupIds.map(groupId => client.query(`DELETE
+                                                            FROM admin_group
+                                                            WHERE admin_username = $1
+                                                              AND group_id = $2`,
+        [adminUsername, groupId])));
+    await client.query(`COMMIT`);
+}
+
 export async function selectRepositoriesByGroup(client: Client | PoolClient, id: Group['id']): Promise<Repository[]>
 {
     const {rows} = await client.query(
@@ -169,6 +279,50 @@ export async function deleteRepositoryGroup(client: Client | PoolClient, reposit
                           AND repository_name = $2
                           AND group_id = $3`,
         [repositoryUsername, repositoryName, groupId]);
+    await client.query(`COMMIT`);
+}
+
+export async function insertRepositoriesGroup(client: Client | PoolClient, repositories: Pick<Repository, 'username' | 'name'>[], groupId: Group['id']): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(repositories.map(({username, name}) => client.query(`INSERT INTO repository_group (repository_username, repository_name, group_id)
+                                                                           VALUES
+                                                                               ($1, $2, $3)`,
+        [username, name, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function deleteRepositoriesGroup(client: Client | PoolClient, repositories: Pick<Repository, 'username' | 'name'>[], groupId: Group['id']): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(repositories.map(({username, name}) => client.query(`DELETE
+                                                                           FROM repository_group
+                                                                           WHERE repository_username = $1
+                                                                             AND repository_name = $2
+                                                                             AND group_id = $3`,
+        [username, name, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function insertRepositoryGroups(client: Client | PoolClient, repository: Pick<Repository, 'username' | 'name'>, groupIds: Group['id'][]): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(groupIds.map(groupId => client.query(`INSERT INTO repository_group (repository_username, repository_name, group_id)
+                                                            VALUES
+                                                                ($1, $2, $3)`,
+        [repository.username, repository.name, groupId])));
+    await client.query(`COMMIT`);
+}
+
+export async function deleteRepositoryGroups(client: Client | PoolClient, repository: Pick<Repository, 'username' | 'name'>, groupIds: Group['id'][]): Promise<void>
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(groupIds.map(groupId => client.query(`DELETE
+                                                            FROM repository_group
+                                                            WHERE repository_username = $1
+                                                              AND repository_name = $2
+                                                              AND group_id = $3`,
+        [repository.username, repository.name, groupId])));
     await client.query(`COMMIT`);
 }
 
@@ -235,6 +389,16 @@ export async function insertFakeRepository(client: Client | PoolClient, reposito
     await client.query(`COMMIT`);
 }
 
+export async function insertFakeRepositories(client: Client | PoolClient, repositories: Repository[])
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(repositories.map(repository => client.query(`INSERT INTO repositories (username, name, description, "isPublic")
+                                                                   VALUES
+                                                                       ($1, $2, $3, $4)`,
+        [repository.username, repository.name, repository.description, repository.isPublic])));
+    await client.query(`COMMIT`);
+}
+
 export async function deleteFakeRepository(client: Client | PoolClient, repository: Repository)
 {
     await client.query(`START TRANSACTION`);
@@ -243,5 +407,16 @@ export async function deleteFakeRepository(client: Client | PoolClient, reposito
                         WHERE username = $1
                           AND name = $2`,
         [repository.username, repository.name]);
+    await client.query(`COMMIT`);
+}
+
+export async function deleteFakeRepositories(client: Client | PoolClient, repositorys: Repository[])
+{
+    await client.query(`START TRANSACTION`);
+    await Promise.all(repositorys.map(repository => client.query(`DELETE
+                                                                  FROM repositories
+                                                                  WHERE username = $1
+                                                                    AND name = $2`,
+        [repository.username, repository.name])));
     await client.query(`COMMIT`);
 }

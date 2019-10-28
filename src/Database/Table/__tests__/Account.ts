@@ -12,14 +12,16 @@ import faker from 'faker';
 import pool from '../../Pool';
 import {PoolClient} from 'pg';
 import {
-    deleteAccountGroup,
-    deleteAdminGroup,
+    deleteAccountGroups,
+    deleteAdminGroups,
     deleteFakeAccount,
-    deleteFakeGroupById,
+    deleteFakeAccounts,
+    deleteFakeGroupsByIds,
     deleteFakeProfile,
-    insertAccountGroup,
-    insertAdminGroup,
+    insertAccountGroups,
+    insertAdminGroups,
     insertFakeAccount,
+    insertFakeAccounts,
     insertFakeGroupAndReturnId,
     selectFakeAccount,
 } from '../_TestHelper';
@@ -175,25 +177,37 @@ describe(getGroupsByUsername, () =>
 
     beforeAll(async () =>
     {
-        await insertFakeAccount(client, fakeAccount1);
-        await insertFakeAccount(client, fakeAccount2);
         generateFakeGroups();
-        await insertFakeGroups();
-        await insertFakeAdminGroups();
+        await Promise.all([
+            insertFakeAccounts(client, [fakeAccount1, fakeAccount2]),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertAccountGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            insertAccountGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteFakeAdminGroups();
-        await deleteFakeGroups();
-        await deleteFakeAccount(client, fakeAccount1.username);
-        await deleteFakeAccount(client, fakeAccount2.username);
+        await Promise.all([
+            deleteAccountGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            deleteAccountGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, fakeGroupsForAccount1.map(({id}) => id)),
+            deleteFakeGroupsByIds(client, fakeGroupsForAccount2.map(({id}) => id)),
+            deleteFakeAccounts(client, [fakeAccount1.username, fakeAccount2.username]),
+        ]);
     });
 
     it('should get groups by username', async function ()
     {
-        const fakeGroupsForAccount1InDatabase = await getGroupsByUsername(fakeAccount1.username);
-        const fakeGroupsForAccount2InDatabase = await getGroupsByUsername(fakeAccount2.username);
+        const [fakeGroupsForAccount1InDatabase, fakeGroupsForAccount2InDatabase] =
+            await Promise.all([
+                getGroupsByUsername(fakeAccount1.username),
+                getGroupsByUsername(fakeAccount2.username),
+            ]);
         expect(fakeGroupsForAccount1InDatabase.length).toBe(fakeGroupsForAccount1.length);
         expect(fakeGroupsForAccount1InDatabase).toEqual(expect.arrayContaining(fakeGroupsForAccount1));
         expect(fakeGroupsForAccount2InDatabase.length).toBe(fakeGroupsForAccount2.length);
@@ -222,30 +236,6 @@ describe(getGroupsByUsername, () =>
             }),
         ]);
     }
-
-    async function deleteFakeGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForAccount1.map(group => deleteFakeGroupById(client, group.id)),
-            ...fakeGroupsForAccount2.map(group => deleteFakeGroupById(client, group.id)),
-        ]);
-    }
-
-    async function insertFakeAdminGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForAccount1.map(group => insertAccountGroup(client, fakeAccount1.username, group.id)),
-            ...fakeGroupsForAccount2.map(group => insertAccountGroup(client, fakeAccount2.username, group.id)),
-        ]);
-    }
-
-    async function deleteFakeAdminGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForAccount1.map(group => deleteAccountGroup(client, fakeAccount1.username, group.id)),
-            ...fakeGroupsForAccount2.map(group => deleteAccountGroup(client, fakeAccount2.username, group.id)),
-        ]);
-    }
 });
 
 describe(getAdministratingGroupsByUsername, () =>
@@ -257,25 +247,37 @@ describe(getAdministratingGroupsByUsername, () =>
 
     beforeAll(async () =>
     {
-        await insertFakeAccount(client, fakeAdminAccount1);
-        await insertFakeAccount(client, fakeAdminAccount2);
         generateFakeGroups();
-        await insertFakeGroups();
-        await insertFakeAdminGroups();
+        await Promise.all([
+            insertFakeAccounts(client, [fakeAdminAccount1, fakeAdminAccount2]),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertAdminGroups(client, fakeAdminAccount1.username, fakeGroupsForAdminAccount1.map(({id}) => id)),
+            insertAdminGroups(client, fakeAdminAccount2.username, fakeGroupsForAdminAccount2.map(({id}) => id)),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteFakeAdminGroups();
-        await deleteFakeGroups();
-        await deleteFakeAccount(client, fakeAdminAccount1.username);
-        await deleteFakeAccount(client, fakeAdminAccount2.username);
+        await Promise.all([
+            deleteAdminGroups(client, fakeAdminAccount1.username, fakeGroupsForAdminAccount1.map(({id}) => id)),
+            deleteAdminGroups(client, fakeAdminAccount2.username, fakeGroupsForAdminAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, fakeGroupsForAdminAccount1.map(({id}) => id)),
+            deleteFakeGroupsByIds(client, fakeGroupsForAdminAccount2.map(({id}) => id)),
+            deleteFakeAccounts(client, [fakeAdminAccount1.username, fakeAdminAccount2.username]),
+        ]);
     });
 
     it('should get administrating groups by username', async function ()
     {
-        const fakeGroupsForAccount1InDatabase = await getAdministratingGroupsByUsername(fakeAdminAccount1.username);
-        const fakeGroupsForAccount2InDatabase = await getAdministratingGroupsByUsername(fakeAdminAccount2.username);
+        const [fakeGroupsForAccount1InDatabase, fakeGroupsForAccount2InDatabase] =
+            await Promise.all([
+                getAdministratingGroupsByUsername(fakeAdminAccount1.username),
+                getAdministratingGroupsByUsername(fakeAdminAccount2.username),
+            ]);
         expect(fakeGroupsForAccount1InDatabase.length).toBe(fakeGroupsForAdminAccount1.length);
         expect(fakeGroupsForAccount1InDatabase).toEqual(expect.arrayContaining(fakeGroupsForAdminAccount1));
         expect(fakeGroupsForAccount2InDatabase.length).toBe(fakeGroupsForAdminAccount2.length);
@@ -302,30 +304,6 @@ describe(getAdministratingGroupsByUsername, () =>
             {
                 group.id = await insertFakeGroupAndReturnId(client, group);
             }),
-        ]);
-    }
-
-    async function deleteFakeGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForAdminAccount1.map(group => deleteFakeGroupById(client, group.id)),
-            ...fakeGroupsForAdminAccount2.map(group => deleteFakeGroupById(client, group.id)),
-        ]);
-    }
-
-    async function insertFakeAdminGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForAdminAccount1.map(group => insertAdminGroup(client, fakeAdminAccount1.username, group.id)),
-            ...fakeGroupsForAdminAccount2.map(group => insertAdminGroup(client, fakeAdminAccount2.username, group.id)),
-        ]);
-    }
-
-    async function deleteFakeAdminGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForAdminAccount1.map(group => deleteAdminGroup(client, fakeAdminAccount1.username, group.id)),
-            ...fakeGroupsForAdminAccount2.map(group => deleteAdminGroup(client, fakeAdminAccount2.username, group.id)),
         ]);
     }
 });

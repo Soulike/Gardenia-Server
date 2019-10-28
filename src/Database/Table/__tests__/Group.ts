@@ -15,18 +15,21 @@ import {Account, Group, Repository} from '../../../Class';
 import faker from 'faker';
 import pool from '../../Pool';
 import {
-    deleteAccountGroup,
-    deleteAdminGroup,
+    deleteAccountsGroup,
+    deleteAdminsGroup,
     deleteFakeAccount,
+    deleteFakeAccounts,
     deleteFakeGroupById,
-    deleteFakeRepository,
-    deleteRepositoryGroup,
-    insertAccountGroup,
-    insertAdminGroup,
+    deleteFakeGroupsByIds,
+    deleteFakeRepositories,
+    deleteRepositoriesGroup,
+    insertAccountsGroup,
+    insertAdminsGroup,
     insertFakeAccount,
+    insertFakeAccounts,
     insertFakeGroupAndReturnId,
-    insertFakeRepository,
-    insertRepositoryGroup,
+    insertFakeRepositories,
+    insertRepositoriesGroup,
     selectAccountsByGroup,
     selectAdminsByGroup,
     selectFakeGroupById,
@@ -145,25 +148,40 @@ describe(getAccountsById, () =>
     beforeAll(async () =>
     {
         generateFakeAccounts();
-        await insertAllFakeAccounts();
-        await insertFakeGroups();
-        await insertAccountGroups();
+        await Promise.all([
+            insertFakeAccounts(client, fakeAccountsForFakeGroup1),
+            insertFakeAccounts(client, fakeAccountsForFakeGroup2),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertAccountsGroup(client, fakeAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
+            insertAccountsGroup(client, fakeAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteAccountGroups();
-        await deleteFakeGroups();
-        await deleteAllFakeAccounts();
+        await Promise.all([
+            deleteAccountsGroup(client, fakeAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
+            deleteAccountsGroup(client, fakeAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, [fakeGroup1Id, fakeGroup2Id]),
+            deleteFakeAccounts(client, fakeAccountsForFakeGroup1.map(({username}) => username)),
+            deleteFakeAccounts(client, fakeAccountsForFakeGroup2.map(({username}) => username)),
+        ]);
     });
 
     it('should get accounts by id', async function ()
     {
-        const fakeAccountsForFakeGroup1InDatabase = await getAccountsById(fakeGroup1Id);
+        const [fakeAccountsForFakeGroup1InDatabase, fakeAccountsForFakeGroup2InDatabase] =
+            await Promise.all([
+                getAccountsById(fakeGroup1Id),
+                getAccountsById(fakeGroup2Id),
+            ]);
         expect(fakeAccountsForFakeGroup1InDatabase.length).toBe(fakeAccountsForFakeGroup1.length);
         expect(fakeAccountsForFakeGroup1InDatabase)
             .toEqual(expect.arrayContaining(fakeAccountsForFakeGroup1));
-        const fakeAccountsForFakeGroup2InDatabase = await getAccountsById(fakeGroup2Id);
         expect(fakeAccountsForFakeGroup1InDatabase.length).toBe(fakeAccountsForFakeGroup2.length);
         expect(fakeAccountsForFakeGroup2InDatabase)
             .toEqual(expect.arrayContaining(fakeAccountsForFakeGroup2));
@@ -178,51 +196,11 @@ describe(getAccountsById, () =>
         }
     }
 
-    async function insertAllFakeAccounts()
-    {
-        await Promise.all([
-            ...fakeAccountsForFakeGroup1.map(fakeAccount => insertFakeAccount(client, fakeAccount)),
-            ...fakeAccountsForFakeGroup2.map(fakeAccount => insertFakeAccount(client, fakeAccount)),
-        ]);
-    }
-
     async function insertFakeGroups()
     {
         [fakeGroup1Id, fakeGroup2Id] = await Promise.all([
             insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
             insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
-        ]);
-    }
-
-    async function insertAccountGroups()
-    {
-        await Promise.all([
-            ...fakeAccountsForFakeGroup1.map(fakeAccount => insertAccountGroup(client, fakeAccount.username, fakeGroup1Id)),
-            ...fakeAccountsForFakeGroup2.map(fakeAccount => insertAccountGroup(client, fakeAccount.username, fakeGroup2Id)),
-        ]);
-    }
-
-    async function deleteAllFakeAccounts()
-    {
-        await Promise.all([
-            ...fakeAccountsForFakeGroup1.map(fakeAccount => deleteFakeAccount(client, fakeAccount.username)),
-            ...fakeAccountsForFakeGroup2.map(fakeAccount => deleteFakeAccount(client, fakeAccount.username)),
-        ]);
-    }
-
-    async function deleteFakeGroups()
-    {
-        await Promise.all([
-            deleteFakeGroupById(client, fakeGroup1Id),
-            deleteFakeGroupById(client, fakeGroup2Id),
-        ]);
-    }
-
-    async function deleteAccountGroups()
-    {
-        await Promise.all([
-            ...fakeAccountsForFakeGroup1.map(fakeAccount => deleteAccountGroup(client, fakeAccount.username, fakeGroup1Id)),
-            ...fakeAccountsForFakeGroup2.map(fakeAccount => deleteAccountGroup(client, fakeAccount.username, fakeGroup2Id)),
         ]);
     }
 });
@@ -233,16 +211,20 @@ describe(addAccounts, () =>
     beforeAll(async () =>
     {
         generateFakeAccounts();
-        await insertAllFakeAccounts();
-        fakeGroupId = await insertFakeGroupAndReturnId(client, fakeGroup);
+        [, fakeGroupId] = await Promise.all([
+            insertFakeAccounts(client, fakeAccounts),
+            insertFakeGroupAndReturnId(client, fakeGroup),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteAllAccountGroups();
-        await deleteFakeGroupById(client, fakeGroupId);
+        await deleteAccountsGroup(client, fakeAccounts.map(({username}) => username), fakeGroupId);
+        await Promise.all([
+            deleteFakeGroupById(client, fakeGroupId),
+            deleteFakeAccounts(client, fakeAccounts.map(({username}) => username)),
+        ]);
         fakeGroupId = -1;
-        await deleteAllFakeAccounts();
     });
 
     it('should add accounts', async function ()
@@ -260,21 +242,6 @@ describe(addAccounts, () =>
             fakeAccounts.push(new Account(faker.name.firstName() + i, faker.random.alphaNumeric(64)));
         }
     }
-
-    async function insertAllFakeAccounts()
-    {
-        await Promise.all(fakeAccounts.map(fakeAccount => insertFakeAccount(client, fakeAccount)));
-    }
-
-    async function deleteAllFakeAccounts()
-    {
-        await Promise.all(fakeAccounts.map(fakeAccount => deleteFakeAccount(client, fakeAccount.username)));
-    }
-
-    async function deleteAllAccountGroups()
-    {
-        await Promise.all(fakeAccounts.map(fakeAccount => deleteAccountGroup(client, fakeAccount.username, fakeGroupId)));
-    }
 });
 
 describe(getAdminsById, () =>
@@ -287,25 +254,40 @@ describe(getAdminsById, () =>
     beforeAll(async () =>
     {
         generateFakeAccounts();
-        await insertAllFakeAdminAccounts();
-        await insertFakeGroups();
-        await insertAdminGroups();
+        await Promise.all([
+            insertFakeAccounts(client, fakeAdminAccountsForFakeGroup1),
+            insertFakeAccounts(client, fakeAdminAccountsForFakeGroup2),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertAdminsGroup(client, fakeAdminAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
+            insertAdminsGroup(client, fakeAdminAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteAdminGroups();
-        await deleteFakeGroups();
-        await deleteAllFakeAdminAccounts();
+        await Promise.all([
+            deleteAdminsGroup(client, fakeAdminAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
+            deleteAdminsGroup(client, fakeAdminAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, [fakeGroup1Id, fakeGroup2Id]),
+            deleteFakeAccounts(client, fakeAdminAccountsForFakeGroup1.map(({username}) => username)),
+            deleteFakeAccounts(client, fakeAdminAccountsForFakeGroup2.map(({username}) => username)),
+        ]);
     });
 
     it('should get admin accounts by id', async function ()
     {
-        const fakeAdminAccountsForFakeGroup1InDatabase = await getAdminsById(fakeGroup1Id);
+        const [fakeAdminAccountsForFakeGroup1InDatabase, fakeAdminAccountsForFakeGroup2InDatabase] =
+            await Promise.all([
+                getAdminsById(fakeGroup1Id),
+                getAdminsById(fakeGroup2Id),
+            ]);
         expect(fakeAdminAccountsForFakeGroup1InDatabase.length).toBe(fakeAdminAccountsForFakeGroup1.length);
         expect(fakeAdminAccountsForFakeGroup1InDatabase)
             .toEqual(expect.arrayContaining(fakeAdminAccountsForFakeGroup1));
-        const fakeAdminAccountsForFakeGroup2InDatabase = await getAdminsById(fakeGroup2Id);
         expect(fakeAdminAccountsForFakeGroup1InDatabase.length).toBe(fakeAdminAccountsForFakeGroup2.length);
         expect(fakeAdminAccountsForFakeGroup2InDatabase)
             .toEqual(expect.arrayContaining(fakeAdminAccountsForFakeGroup2));
@@ -320,51 +302,11 @@ describe(getAdminsById, () =>
         }
     }
 
-    async function insertAllFakeAdminAccounts()
-    {
-        await Promise.all([
-            ...fakeAdminAccountsForFakeGroup1.map(fakeAccount => insertFakeAccount(client, fakeAccount)),
-            ...fakeAdminAccountsForFakeGroup2.map(fakeAccount => insertFakeAccount(client, fakeAccount)),
-        ]);
-    }
-
     async function insertFakeGroups()
     {
         [fakeGroup1Id, fakeGroup2Id] = await Promise.all([
             insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
             insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
-        ]);
-    }
-
-    async function insertAdminGroups()
-    {
-        await Promise.all([
-            ...fakeAdminAccountsForFakeGroup1.map(fakeAccount => insertAdminGroup(client, fakeAccount.username, fakeGroup1Id)),
-            ...fakeAdminAccountsForFakeGroup2.map(fakeAccount => insertAdminGroup(client, fakeAccount.username, fakeGroup2Id)),
-        ]);
-    }
-
-    async function deleteAllFakeAdminAccounts()
-    {
-        await Promise.all([
-            ...fakeAdminAccountsForFakeGroup1.map(fakeAccount => deleteFakeAccount(client, fakeAccount.username)),
-            ...fakeAdminAccountsForFakeGroup2.map(fakeAccount => deleteFakeAccount(client, fakeAccount.username)),
-        ]);
-    }
-
-    async function deleteFakeGroups()
-    {
-        await Promise.all([
-            deleteFakeGroupById(client, fakeGroup1Id),
-            deleteFakeGroupById(client, fakeGroup2Id),
-        ]);
-    }
-
-    async function deleteAdminGroups()
-    {
-        await Promise.all([
-            ...fakeAdminAccountsForFakeGroup1.map(fakeAccount => deleteAdminGroup(client, fakeAccount.username, fakeGroup1Id)),
-            ...fakeAdminAccountsForFakeGroup2.map(fakeAccount => deleteAdminGroup(client, fakeAccount.username, fakeGroup2Id)),
         ]);
     }
 });
@@ -375,16 +317,20 @@ describe(addAdmins, () =>
     beforeAll(async () =>
     {
         generateFakeAdminAccounts();
-        await insertAllFakeAdminAccounts();
-        fakeGroupId = await insertFakeGroupAndReturnId(client, fakeGroup);
+        [, fakeGroupId] = await Promise.all([
+            insertFakeAccounts(client, fakeAdminAccounts),
+            insertFakeGroupAndReturnId(client, fakeGroup),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteAllAdminGroups();
-        await deleteFakeGroupById(client, fakeGroupId);
+        await deleteAdminsGroup(client, fakeAdminAccounts.map(({username}) => username), fakeGroupId);
+        await Promise.all([
+            deleteFakeGroupById(client, fakeGroupId),
+            deleteFakeAccounts(client, fakeAdminAccounts.map(({username}) => username)),
+        ]);
         fakeGroupId = -1;
-        await deleteAllFakeAccounts();
     });
 
     it('should add admin accounts', async function ()
@@ -402,21 +348,6 @@ describe(addAdmins, () =>
             fakeAdminAccounts.push(new Account(faker.name.firstName() + i, faker.random.alphaNumeric(64)));
         }
     }
-
-    async function insertAllFakeAdminAccounts()
-    {
-        await Promise.all(fakeAdminAccounts.map(fakeAccount => insertFakeAccount(client, fakeAccount)));
-    }
-
-    async function deleteAllFakeAccounts()
-    {
-        await Promise.all(fakeAdminAccounts.map(fakeAccount => deleteFakeAccount(client, fakeAccount.username)));
-    }
-
-    async function deleteAllAdminGroups()
-    {
-        await Promise.all(fakeAdminAccounts.map(fakeAccount => deleteAdminGroup(client, fakeAccount.username, fakeGroupId)));
-    }
 });
 
 describe(getRepositoriesById, () =>
@@ -429,28 +360,43 @@ describe(getRepositoriesById, () =>
 
     beforeAll(async () =>
     {
-        await insertFakeAccount(client, fakeAccount);
         generateFakeRepositories();
-        await insertAllFakeRepositories();
-        await insertFakeGroups();
-        await insertRepositoryGroups();
+        await Promise.all([
+            insertFakeAccount(client, fakeAccount),
+            insertFakeRepositories(client, fakeRepositoriesForFakeGroup1),
+            insertFakeRepositories(client, fakeRepositoriesForFakeGroup2),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertRepositoriesGroup(client, fakeRepositoriesForFakeGroup1, fakeGroup1Id),
+            insertRepositoriesGroup(client, fakeRepositoriesForFakeGroup2, fakeGroup2Id),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteAccountGroups();
-        await deleteFakeGroups();
-        await deleteAllFakeRepositories();
-        await deleteFakeAccount(client, fakeAccount.username);
+        await Promise.all([
+            deleteRepositoriesGroup(client, fakeRepositoriesForFakeGroup1, fakeGroup1Id),
+            deleteRepositoriesGroup(client, fakeRepositoriesForFakeGroup2, fakeGroup2Id),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, [fakeGroup1Id, fakeGroup2Id]),
+            deleteFakeRepositories(client, fakeRepositoriesForFakeGroup1),
+            deleteFakeRepositories(client, fakeRepositoriesForFakeGroup2),
+            deleteFakeAccount(client, fakeAccount.username),
+        ]);
     });
 
     it('should get repositories by id', async function ()
     {
-        const fakeRepositoriesForFakeGroup1InDatabase = await getRepositoriesById(fakeGroup1Id);
+        const [fakeRepositoriesForFakeGroup1InDatabase, fakeRepositoriesForFakeGroup2InDatabase] =
+            await Promise.all([
+                getRepositoriesById(fakeGroup1Id),
+                getRepositoriesById(fakeGroup2Id),
+            ]);
         expect(fakeRepositoriesForFakeGroup1InDatabase.length).toBe(fakeRepositoriesForFakeGroup1.length);
         expect(fakeRepositoriesForFakeGroup1InDatabase)
             .toEqual(expect.arrayContaining(fakeRepositoriesForFakeGroup1));
-        const fakeRepositoriesForFakeGroup2InDatabase = await getRepositoriesById(fakeGroup2Id);
         expect(fakeRepositoriesForFakeGroup2InDatabase.length).toBe(fakeRepositoriesForFakeGroup2.length);
         expect(fakeRepositoriesForFakeGroup2InDatabase)
             .toEqual(expect.arrayContaining(fakeRepositoriesForFakeGroup2));
@@ -465,51 +411,11 @@ describe(getRepositoriesById, () =>
         }
     }
 
-    async function insertAllFakeRepositories()
-    {
-        await Promise.all([
-            ...fakeRepositoriesForFakeGroup1.map(fakeRepository => insertFakeRepository(client, fakeRepository)),
-            ...fakeRepositoriesForFakeGroup2.map(fakeRepository => insertFakeRepository(client, fakeRepository)),
-        ]);
-    }
-
     async function insertFakeGroups()
     {
         [fakeGroup1Id, fakeGroup2Id] = await Promise.all([
             insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
             insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
-        ]);
-    }
-
-    async function insertRepositoryGroups()
-    {
-        await Promise.all([
-            ...fakeRepositoriesForFakeGroup1.map(fakeRepository => insertRepositoryGroup(client, fakeRepository.username, fakeRepository.name, fakeGroup1Id)),
-            ...fakeRepositoriesForFakeGroup2.map(fakeRepository => insertRepositoryGroup(client, fakeRepository.username, fakeRepository.name, fakeGroup2Id)),
-        ]);
-    }
-
-    async function deleteAllFakeRepositories()
-    {
-        await Promise.all([
-            ...fakeRepositoriesForFakeGroup1.map(fakeRepository => deleteFakeRepository(client, fakeRepository)),
-            ...fakeRepositoriesForFakeGroup2.map(fakeRepository => deleteFakeRepository(client, fakeRepository)),
-        ]);
-    }
-
-    async function deleteFakeGroups()
-    {
-        await Promise.all([
-            deleteFakeGroupById(client, fakeGroup1Id),
-            deleteFakeGroupById(client, fakeGroup2Id),
-        ]);
-    }
-
-    async function deleteAccountGroups()
-    {
-        await Promise.all([
-            ...fakeRepositoriesForFakeGroup1.map(fakeRepository => deleteRepositoryGroup(client, fakeRepository.username, fakeRepository.name, fakeGroup1Id)),
-            ...fakeRepositoriesForFakeGroup2.map(fakeRepository => deleteRepositoryGroup(client, fakeRepository.username, fakeRepository.name, fakeGroup2Id)),
         ]);
     }
 });
@@ -520,19 +426,23 @@ describe(addRepositories, () =>
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     beforeAll(async () =>
     {
-        await insertFakeAccount(client, fakeAccount);
         generateFakeRepositories();
-        await insertAllFakeRepositories();
-        fakeGroupId = await insertFakeGroupAndReturnId(client, fakeGroup);
+        [, , fakeGroupId] = await Promise.all([
+            insertFakeAccount(client, fakeAccount),
+            insertFakeRepositories(client, fakeRepositories),
+            insertFakeGroupAndReturnId(client, fakeGroup),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteAllRepositoryGroups();
-        await deleteFakeGroupById(client, fakeGroupId);
+        await deleteRepositoriesGroup(client, fakeRepositories, fakeGroupId);
+        await Promise.all([
+            deleteFakeGroupById(client, fakeGroupId),
+            deleteFakeRepositories(client, fakeRepositories),
+            deleteFakeAccount(client, fakeAccount.username),
+        ]);
         fakeGroupId = -1;
-        await deleteAllFakeRepositories();
-        await deleteFakeAccount(client, fakeAccount.username);
     });
 
     it('should add repositories', async function ()
@@ -554,24 +464,5 @@ describe(addRepositories, () =>
                     faker.lorem.sentence(),
                     faker.random.boolean()));
         }
-    }
-
-    async function insertAllFakeRepositories()
-    {
-        await Promise.all(
-            fakeRepositories.map(fakeRepository => insertFakeRepository(client, fakeRepository)));
-    }
-
-    async function deleteAllFakeRepositories()
-    {
-        await Promise.all(
-            fakeRepositories.map(fakeRepository => deleteFakeRepository(client, fakeRepository)));
-    }
-
-    async function deleteAllRepositoryGroups()
-    {
-        await Promise.all(
-            fakeRepositories.map(fakeRepository =>
-                deleteRepositoryGroup(client, fakeRepository.username, fakeRepository.name, fakeGroupId)));
     }
 });

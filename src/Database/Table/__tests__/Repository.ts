@@ -14,13 +14,15 @@ import {PoolClient} from 'pg';
 import pool from '../../Pool';
 import {
     deleteFakeAccount,
-    deleteFakeGroupById,
+    deleteFakeGroupsByIds,
+    deleteFakeRepositories,
     deleteFakeRepository,
-    deleteRepositoryGroup,
+    deleteRepositoryGroups,
     insertFakeAccount,
     insertFakeGroupAndReturnId,
+    insertFakeRepositories,
     insertFakeRepository,
-    insertRepositoryGroup,
+    insertRepositoryGroups,
     selectFakeRepository,
 } from '../_TestHelper';
 
@@ -149,22 +151,18 @@ describe(selectByIsPublic, () =>
 
     beforeAll(async () =>
     {
-        for (let i = 0; i < 5; i++)
-        {
-            fakePublicRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), true));
-            fakePrivateRepositories.push(new Repository(fakeAccount.username, (Number.MAX_SAFE_INTEGER - i).toString(), faker.lorem.sentence(), false));
-        }
+        generateRepositories();
         await Promise.all([
-            ...fakePublicRepositories.map(repository => insertFakeRepository(client, repository)),
-            ...fakePrivateRepositories.map(repository => insertFakeRepository(client, repository)),
+            insertFakeRepositories(client, fakePublicRepositories),
+            insertFakeRepositories(client, fakePrivateRepositories),
         ]);
     });
 
     afterAll(async () =>
     {
         await Promise.all([
-            ...fakePublicRepositories.map(repository => deleteFakeRepository(client, repository)),
-            ...fakePrivateRepositories.map(repository => deleteFakeRepository(client, repository)),
+            deleteFakeRepositories(client, fakePublicRepositories),
+            deleteFakeRepositories(client, fakePrivateRepositories),
         ]);
     });
 
@@ -182,13 +180,24 @@ describe(selectByIsPublic, () =>
 
     it('should select with offset and limit', async function ()
     {
-        const repositories1 = await selectByIsPublic(true, 0, 1);
-        const repositories2 = await selectByIsPublic(true, 1, 2);
+        const [repositories1, repositories2] = await Promise.all([
+            selectByIsPublic(true, 0, 1),
+            selectByIsPublic(true, 1, 2),
+        ]);
         expect(repositories1.length).toBe(1);
         expect(repositories2.length).toBe(2);
         expect(repositories1[0]).not.toEqual(repositories2[0]);
         expect(repositories1[0]).not.toEqual(repositories2[1]);
     });
+
+    function generateRepositories()
+    {
+        for (let i = 0; i < 5; i++)
+        {
+            fakePublicRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), true));
+            fakePrivateRepositories.push(new Repository(fakeAccount.username, (Number.MAX_SAFE_INTEGER - i).toString(), faker.lorem.sentence(), false));
+        }
+    }
 });
 
 describe(selectByIsPublicAndUsername, () =>
@@ -198,22 +207,18 @@ describe(selectByIsPublicAndUsername, () =>
 
     beforeAll(async () =>
     {
-        for (let i = 0; i < 5; i++)
-        {
-            fakePublicRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), true));
-            fakePrivateRepositories.push(new Repository(fakeAccount.username, (Number.MAX_SAFE_INTEGER - i).toString(), faker.lorem.sentence(), false));
-        }
+        generateRepositories();
         await Promise.all([
-            ...fakePublicRepositories.map(repository => insertFakeRepository(client, repository)),
-            ...fakePrivateRepositories.map(repository => insertFakeRepository(client, repository)),
+            insertFakeRepositories(client, fakePublicRepositories),
+            insertFakeRepositories(client, fakePrivateRepositories),
         ]);
     });
 
     afterAll(async () =>
     {
         await Promise.all([
-            ...fakePublicRepositories.map(repository => deleteFakeRepository(client, repository)),
-            ...fakePrivateRepositories.map(repository => deleteFakeRepository(client, repository)),
+            deleteFakeRepositories(client, fakePublicRepositories),
+            deleteFakeRepositories(client, fakePrivateRepositories),
         ]);
     });
 
@@ -231,22 +236,36 @@ describe(selectByIsPublicAndUsername, () =>
 
     it('should select by username', async function ()
     {
-        const publicRepositories = await selectByIsPublicAndUsername(true, faker.name.firstName());
+        const [publicRepositories, privateRepositories] =
+            await Promise.all([
+                selectByIsPublicAndUsername(true, faker.name.firstName()),
+                selectByIsPublicAndUsername(false, faker.name.firstName()),
+            ]);
         expect(publicRepositories.length).toBe(0);
-
-        const privateRepositories = await selectByIsPublicAndUsername(false, faker.name.firstName());
         expect(privateRepositories.length).toBe(0);
     });
 
     it('should select with offset and limit', async function ()
     {
-        const repositories1 = await selectByIsPublicAndUsername(true, fakeAccount.username, 0, 1);
-        const repositories2 = await selectByIsPublicAndUsername(true, fakeAccount.username, 1, 2);
+        const [repositories1, repositories2] =
+            await Promise.all([
+                selectByIsPublicAndUsername(true, fakeAccount.username, 0, 1),
+                selectByIsPublicAndUsername(true, fakeAccount.username, 1, 2),
+            ]);
         expect(repositories1.length).toBe(1);
         expect(repositories2.length).toBe(2);
         expect(repositories1[0]).not.toEqual(repositories2[0]);
         expect(repositories1[0]).not.toEqual(repositories2[1]);
     });
+
+    function generateRepositories()
+    {
+        for (let i = 0; i < 5; i++)
+        {
+            fakePublicRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), true));
+            fakePrivateRepositories.push(new Repository(fakeAccount.username, (Number.MAX_SAFE_INTEGER - i).toString(), faker.lorem.sentence(), false));
+        }
+    }
 });
 
 describe(selectByUsername, () =>
@@ -255,40 +274,50 @@ describe(selectByUsername, () =>
 
     beforeAll(async () =>
     {
-        for (let i = 0; i < 5; i++)
-        {
-            fakeRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), faker.random.boolean()));
-        }
-        await Promise.all(fakeRepositories.map(repository => insertFakeRepository(client, repository)));
+        generateRepositories();
+        await insertFakeRepositories(client, fakeRepositories);
     });
 
     afterAll(async () =>
     {
-        await Promise.all(fakeRepositories.map(repository => deleteFakeRepository(client, repository)));
+        await deleteFakeRepositories(client, fakeRepositories);
     });
 
     it('should select repositories by username', async function ()
     {
-        const repositories = await selectByUsername(fakeAccount.username);
+        const [repositories, repositoriesOfOther] =
+            await Promise.all([
+                selectByUsername(fakeAccount.username),
+                selectByUsername(faker.name.firstName()),
+            ]);
         expect(repositories.length).toBe(fakeRepositories.length);
         repositories.forEach(repository => expect(fakeRepositories).toContainEqual(repository));
-
-        const repositoriesOfOther = await selectByUsername(faker.name.firstName());
         expect(repositoriesOfOther.length).toBe(0);
     });
 
     it('should select with offset and limit', async function ()
     {
-        const repositories1 = await selectByUsername(fakeAccount.username, 0, 1);
-        const repositories2 = await selectByUsername(fakeAccount.username, 1, 2);
+        const [repositories1, repositories2] =
+            await Promise.all([
+                selectByUsername(fakeAccount.username, 0, 1),
+                selectByUsername(fakeAccount.username, 1, 2),
+            ]);
         expect(repositories1.length).toBe(1);
         expect(repositories2.length).toBe(2);
         expect(repositories1[0]).not.toEqual(repositories2[0]);
         expect(repositories1[0]).not.toEqual(repositories2[1]);
     });
+
+    function generateRepositories()
+    {
+        for (let i = 0; i < 5; i++)
+        {
+            fakeRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), faker.random.boolean()));
+        }
+    }
 });
 
-describe('getGroupsByUsernameAndName', () =>
+describe(getGroupsByUsernameAndName, () =>
 {
     const fakeRepository1 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
     const fakeRepository2 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
@@ -299,27 +328,35 @@ describe('getGroupsByUsernameAndName', () =>
     {
         generateFakeGroups();
         await Promise.all([
-            insertFakeRepository(client, fakeRepository1),
-            insertFakeRepository(client, fakeRepository2),
+            insertFakeRepositories(client, [fakeRepository1, fakeRepository2]),
             insertFakeGroups(),
         ]);
-        await insertFakeRepositoryGroups();
+        await Promise.all([
+            insertRepositoryGroups(client, fakeRepository1, fakeGroupsForRepository1.map(({id}) => id)),
+            insertRepositoryGroups(client, fakeRepository2, fakeGroupsForRepository2.map(({id}) => id)),
+        ]);
     });
 
     afterAll(async () =>
     {
-        await deleteFakeRepositoryGroups();
         await Promise.all([
-            deleteFakeRepository(client, fakeRepository1),
-            deleteFakeRepository(client, fakeRepository2),
-            deleteFakeGroups(),
+            deleteRepositoryGroups(client, fakeRepository1, fakeGroupsForRepository1.map(({id}) => id)),
+            deleteRepositoryGroups(client, fakeRepository2, fakeGroupsForRepository2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteFakeRepositories(client, [fakeRepository1, fakeRepository2]),
+            deleteFakeGroupsByIds(client, fakeGroupsForRepository1.map(({id}) => id)),
+            deleteFakeGroupsByIds(client, fakeGroupsForRepository2.map(({id}) => id)),
         ]);
     });
 
     it('should get groups', async function ()
     {
-        const fakeGroupsForRepository1InDatabase = await getGroupsByUsernameAndName(fakeRepository1);
-        const fakeGroupsForRepository2InDatabase = await getGroupsByUsernameAndName(fakeRepository2);
+        const [fakeGroupsForRepository1InDatabase, fakeGroupsForRepository2InDatabase] =
+            await Promise.all([
+                getGroupsByUsernameAndName(fakeRepository1),
+                getGroupsByUsernameAndName(fakeRepository2),
+            ]);
         expect(fakeGroupsForRepository1InDatabase.length).toBe(fakeGroupsForRepository1.length);
         expect(fakeGroupsForRepository1InDatabase).toEqual(expect.arrayContaining(fakeGroupsForRepository1));
         expect(fakeGroupsForRepository2InDatabase.length).toBe(fakeGroupsForRepository2.length);
@@ -346,30 +383,6 @@ describe('getGroupsByUsernameAndName', () =>
             {
                 group.id = await insertFakeGroupAndReturnId(client, group);
             }),
-        ]);
-    }
-
-    async function deleteFakeGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForRepository1.map(group => deleteFakeGroupById(client, group.id)),
-            ...fakeGroupsForRepository2.map(group => deleteFakeGroupById(client, group.id)),
-        ]);
-    }
-
-    async function insertFakeRepositoryGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForRepository1.map(group => insertRepositoryGroup(client, fakeRepository1.username, fakeRepository1.name, group.id)),
-            ...fakeGroupsForRepository2.map(group => insertRepositoryGroup(client, fakeRepository2.username, fakeRepository2.name, group.id)),
-        ]);
-    }
-
-    async function deleteFakeRepositoryGroups()
-    {
-        await Promise.all([
-            ...fakeGroupsForRepository1.map(group => deleteRepositoryGroup(client, fakeRepository1.username, fakeRepository1.name, group.id)),
-            ...fakeGroupsForRepository2.map(group => deleteRepositoryGroup(client, fakeRepository2.username, fakeRepository2.name, group.id)),
         ]);
     }
 });
