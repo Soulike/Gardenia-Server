@@ -169,6 +169,24 @@ export enum ObjectType
 - 响应消息：无
 - 其他说明：无
 
+#### `/getGroups`
+
+- 功能：获取账号所属小组
+- 方法：GET
+- 请求体：无
+- 响应体：`Group[]`
+- 响应消息：无
+- 其他说明：无
+
+#### `/getAdministratingGroups`
+
+- 功能：获取账号管理的小组
+- 方法：GET
+- 请求体：无
+- 响应体：`Group[]`
+- 响应消息：无
+- 其他说明：无
+
 ### Profile 模块（`/profile`）
 
 本模块负责用户资料的相关操作。
@@ -244,6 +262,27 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 - 响应消息：
   - 仓库不存在
 - 其他说明：无
+
+#### `/addToGroup`
+
+- 功能：添加仓库到小组
+- 方法：POST
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username'|'name'>,
+    group: Pick<Group, 'id'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+  - 小组不存在
+  - 添加失败：您不是仓库的所有者
+  - 添加失败：您不是小组的成员
+- 其他说明：
+  - 仅仓库所有者可以执行本操作
+  - 仅当是小组的成员是可以执行本操作
 
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
@@ -451,3 +490,149 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - 仓库不存在
 - 其他说明：无
+
+#### `/getGroups`
+
+- 功能：获取仓库所属小组
+- 方法：GET
+- 请求体：无
+- 响应体：`Group[]`
+- 响应消息：无
+- 其他说明：无
+
+### Group 模块（`/group`）
+
+#### `/info`
+
+- 功能：获取小组信息
+- 方法：GET
+- 请求体：`Pick<Group, 'id'>`
+- 响应体：`Group`
+- 响应消息：
+  - 小组不存在
+- 其他说明：无
+
+#### `/accounts`
+
+- 功能：获取小组成员信息
+- 方法：GET
+- 请求体：`Pick<Group, 'id'>`
+- 响应体：`Account[]`
+- 响应消息：
+  - 小组不存在
+- 其他说明：无
+
+#### `/addAccounts`
+
+- 功能：添加小组成员
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Pick<Group, 'id'>,
+    accounts: Pick<Account, 'username'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 小组不存在
+  - 用户${username}不存在
+  - 权限不足
+- 其他说明：
+  - 仅小组管理员添加请求有效，其他人均权限不足
+
+#### `/removeAccounts`
+
+- 功能：删除小组成员
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Pick<Group, 'id'>,
+    accounts: Pick<Account, 'username'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 小组不存在
+  - 用户${username}不存在
+  - 权限不足
+- 其他说明：
+  - 仅小组管理员删除请求有效，其他人均权限不足
+
+#### `/admins`
+
+- 功能：获取小组管理员信息
+- 方法：GET
+- 请求体：`Pick<Group, 'id'>`
+- 响应体：`Account[]`
+- 响应消息：
+  - 小组不存在
+- 其他说明：无
+
+#### `/addAdmins`
+
+- 功能：添加小组管理员
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Pick<Group, 'id'>,
+    accounts: Pick<Account, 'username'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 小组不存在
+  - 用户${username}不存在
+  - 权限不足
+- 其他说明：
+  - 仅小组管理员添加请求有效，其他人均权限不足
+
+#### `/removeAdmins`
+
+- 功能：删除小组管理员
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Pick<Group, 'id'>,
+    accounts: Pick<Account, 'username'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 小组不存在
+  - 用户${username}不存在
+  - 权限不足
+- 其他说明：
+  - 仅小组管理员删除请求有效，其他人均权限不足
+
+#### `/repositories`
+
+- 功能：获取小组仓库信息
+- 方法：GET
+- 请求体：`Pick<Group, 'id'>`
+- 响应体：`Repository[]`
+- 响应消息：
+  - 小组不存在
+- 其他说明：无
+
+#### `/removeRepositories`
+
+- 功能：删除小组仓库
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Pick<Group, 'id'>,
+    repositories: Pick<Repository, 'username' | 'name'>[],
+}
+```
+- 响应体：无
+- 响应消息：
+  - 小组不存在
+  - 仓库不存在
+  - 删除失败：您不是小组的管理员
+- 其他说明：
+  - 只有小组的管理员可以执行本操作
