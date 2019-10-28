@@ -1,6 +1,6 @@
 import {executeTransaction} from '../Function';
 import pool from '../Pool';
-import {Repository as RepositoryClass} from '../../Class';
+import {Group, Repository as RepositoryClass} from '../../Class';
 
 export async function insert(repository: RepositoryClass): Promise<void>
 {
@@ -106,4 +106,18 @@ export async function selectByUsername(username: RepositoryClass['username'], of
                                      WHERE "username" = $1 OFFSET $2
                                      LIMIT $3`, [username, offset, limit]);
     return rows.map(row => RepositoryClass.from(row));
+}
+
+export async function getGroupsByUsernameAndName(repository: Pick<RepositoryClass, 'username' | 'name'>): Promise<Group[]>
+{
+    const {rows} = await pool.query(`SELECT *
+                                     FROM repositories     r,
+                                          repository_group rg,
+                                          groups           g
+                                     WHERE r.username = rg.repository_username
+                                       AND r.name = rg.repository_name
+                                       AND rg.group_id = g.id
+                                       AND r.username = $1
+                                       AND r.name = $2`, [repository.username, repository.name]);
+    return rows.map(row => Group.from(row));
 }

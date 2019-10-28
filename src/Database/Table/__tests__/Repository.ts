@@ -1,5 +1,6 @@
 import {
     deleteByUsernameAndName,
+    getGroupsByUsernameAndName,
     insert,
     selectByIsPublic,
     selectByIsPublicAndUsername,
@@ -7,15 +8,19 @@ import {
     selectByUsernameAndName,
     update,
 } from '../Repository';
-import {Account, Repository} from '../../../Class';
+import {Account, Group, Repository} from '../../../Class';
 import faker from 'faker';
 import {PoolClient} from 'pg';
 import pool from '../../Pool';
 import {
     deleteFakeAccount,
+    deleteFakeGroupById,
     deleteFakeRepository,
+    deleteRepositoryGroup,
     insertFakeAccount,
+    insertFakeGroupAndReturnId,
     insertFakeRepository,
+    insertRepositoryGroup,
     selectFakeRepository,
 } from '../_TestHelper';
 
@@ -281,4 +286,90 @@ describe(selectByUsername, () =>
         expect(repositories1[0]).not.toEqual(repositories2[0]);
         expect(repositories1[0]).not.toEqual(repositories2[1]);
     });
+});
+
+describe('getGroupsByUsernameAndName', () =>
+{
+    const fakeRepository1 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository2 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeGroupsForRepository1: Group[] = [];
+    const fakeGroupsForRepository2: Group[] = [];
+
+    beforeAll(async () =>
+    {
+        generateFakeGroups();
+        await Promise.all([
+            insertFakeRepository(client, fakeRepository1),
+            insertFakeRepository(client, fakeRepository2),
+            insertFakeGroups(),
+        ]);
+        await insertFakeRepositoryGroups();
+    });
+
+    afterAll(async () =>
+    {
+        await deleteFakeRepositoryGroups();
+        await Promise.all([
+            deleteFakeRepository(client, fakeRepository1),
+            deleteFakeRepository(client, fakeRepository2),
+            deleteFakeGroups(),
+        ]);
+    });
+
+    it('should get groups', async function ()
+    {
+        const fakeGroupsForRepository1InDatabase = await getGroupsByUsernameAndName(fakeRepository1);
+        const fakeGroupsForRepository2InDatabase = await getGroupsByUsernameAndName(fakeRepository2);
+        expect(fakeGroupsForRepository1InDatabase.length).toBe(fakeGroupsForRepository1.length);
+        expect(fakeGroupsForRepository1InDatabase).toEqual(expect.arrayContaining(fakeGroupsForRepository1));
+        expect(fakeGroupsForRepository2InDatabase.length).toBe(fakeGroupsForRepository2.length);
+        expect(fakeGroupsForRepository2InDatabase).toEqual(expect.arrayContaining(fakeGroupsForRepository2));
+    });
+
+    function generateFakeGroups()
+    {
+        for (let i = 0; i < 10; i++)
+        {
+            fakeGroupsForRepository1.push(new Group(-1, faker.random.word()));
+            fakeGroupsForRepository2.push(new Group(-1, faker.random.word()));
+        }
+    }
+
+    async function insertFakeGroups()
+    {
+        await Promise.all([
+            ...fakeGroupsForRepository1.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+            ...fakeGroupsForRepository2.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+        ]);
+    }
+
+    async function deleteFakeGroups()
+    {
+        await Promise.all([
+            ...fakeGroupsForRepository1.map(group => deleteFakeGroupById(client, group.id)),
+            ...fakeGroupsForRepository2.map(group => deleteFakeGroupById(client, group.id)),
+        ]);
+    }
+
+    async function insertFakeRepositoryGroups()
+    {
+        await Promise.all([
+            ...fakeGroupsForRepository1.map(group => insertRepositoryGroup(client, fakeRepository1.username, fakeRepository1.name, group.id)),
+            ...fakeGroupsForRepository2.map(group => insertRepositoryGroup(client, fakeRepository2.username, fakeRepository2.name, group.id)),
+        ]);
+    }
+
+    async function deleteFakeRepositoryGroups()
+    {
+        await Promise.all([
+            ...fakeGroupsForRepository1.map(group => deleteRepositoryGroup(client, fakeRepository1.username, fakeRepository1.name, group.id)),
+            ...fakeGroupsForRepository2.map(group => deleteRepositoryGroup(client, fakeRepository2.username, fakeRepository2.name, group.id)),
+        ]);
+    }
 });
