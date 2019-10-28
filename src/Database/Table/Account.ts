@@ -1,4 +1,4 @@
-import {Account as AccountClass, Profile as ProfileClass} from '../../Class';
+import {Account as AccountClass, Group, Profile as ProfileClass} from '../../Class';
 import pool from '../Pool';
 import {executeTransaction} from '../Function';
 
@@ -93,4 +93,30 @@ export async function create(account: AccountClass, profile: ProfileClass): Prom
     {
         client.release();
     }
+}
+
+export async function getGroupsByUsername(username: AccountClass['username']): Promise<Group[]>
+{
+    const {rows} = await pool.query(`SELECT *
+                                     FROM accounts      a,
+                                          account_group ag,
+                                          groups        g
+                                     WHERE a.username = ag.username
+                                       AND ag.group_id = g.id
+                                       AND a.username = $1`,
+        [username]);
+    return rows.map(row => Group.from(row));
+}
+
+export async function getAdministratingGroupsByUsername(username: AccountClass['username']): Promise<Group[]>
+{
+    const {rows} = await pool.query(`SELECT *
+                                     FROM accounts    a,
+                                          admin_group ag,
+                                          groups      g
+                                     WHERE a.username = ag.admin_username
+                                       AND ag.group_id = g.id
+                                       AND a.username = $1`,
+        [username]);
+    return rows.map(row => Group.from(row));
 }
