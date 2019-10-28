@@ -13,7 +13,12 @@ export async function update(profile: ProfileClass): Promise<void>
         {
             assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');
             await client.query(
-                'UPDATE profiles SET "username"=$1, "nickname"=$2, "email"=$3, "avatar"=$4 WHERE "username"=$1',
+                    `UPDATE profiles
+                     SET "username"=$1,
+                         "nickname"=$2,
+                         "email"=$3,
+                         "avatar"=$4
+                     WHERE "username" = $1`,
                 [profile.username, profile.nickname, profile.email, profile.avatar]);
         });
     }
@@ -26,7 +31,9 @@ export async function update(profile: ProfileClass): Promise<void>
 export async function selectByUsername(username: ProfileClass['username']): Promise<ProfileClass | null>
 {
     const {rows, rowCount} = await pool.query(
-        'SELECT * FROM profiles WHERE "username"=$1',
+            `SELECT *
+             FROM profiles
+             WHERE "username" = $1`,
         [username]);
     if (rowCount === 0)
     {

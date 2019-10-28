@@ -136,8 +136,10 @@ describe(create, () =>
     it('should create account and profile', async function ()
     {
         await create(fakeAccount, fakeProfile);
-        const {rowCount, rows} = await client.query(
-            'SELECT * FROM accounts NATURAL JOIN profiles WHERE username=$1',
+        const {rowCount, rows} = await client.query(`SELECT *
+                                                     FROM accounts
+                                                              NATURAL JOIN profiles
+                                                     WHERE username = $1`,
             [fakeAccount.username]);
         expect(rowCount).toBe(1);
         expect(Account.from(rows[0])).toStrictEqual(fakeAccount);
@@ -150,11 +152,13 @@ describe(create, () =>
         invalidProfile.username = faker.random.word();
         await expect(create(fakeAccount, invalidProfile)).rejects.toThrow();
         const [{rowCount: accountRowCount}, {rowCount: profileRowCount}] = await Promise.all([
-            client.query(
-                'SELECT * FROM accounts WHERE username=$1',
+            client.query(`SELECT *
+                          FROM accounts
+                          WHERE username = $1`,
                 [fakeAccount.username]),
-            client.query(
-                'SELECT * FROM profiles WHERE username=$1',
+            client.query(`SELECT *
+                          FROM profiles
+                          WHERE username = $1`,
                 [invalidProfile.username]),
         ]);
         expect(accountRowCount).toBe(0);

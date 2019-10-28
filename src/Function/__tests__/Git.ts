@@ -68,14 +68,18 @@ describe(getLastCommitInfo, () =>
     it('should get commit info of a commit/branch', async function ()
     {
         const expectedCommit = await getCommitInfo(mainBranchName);
+        expectedCommit.time = '';   // 防止测试运行时间差造成失败
         const commit = await getLastCommitInfo(repositoryPath, mainBranchName);
+        commit.time = '';   // 防止测试运行时间差造成失败
         expect(commit).toStrictEqual(expectedCommit);
     });
 
     it('should get commit info of a file in a commit/branch', async function ()
     {
         const expectedCommit = await getFileCommitInfo(mainBranchName, firstCommitFileName);
+        expectedCommit.time = '';   // 防止测试运行时间差造成失败
         const commit = await getLastCommitInfo(repositoryPath, mainBranchName, firstCommitFileName);
+        commit.time = '';   // 防止测试运行时间差造成失败
         expect(commit).toStrictEqual(expectedCommit);
     });
 

@@ -5,7 +5,9 @@ import {executeTransaction} from '../Function';
 export async function selectByUsername(username: AccountClass['username']): Promise<AccountClass | null>
 {
     const {rows, rowCount} = await pool.query(
-        'SELECT * FROM accounts WHERE "username"=$1',
+            `SELECT *
+             FROM accounts
+             WHERE "username" = $1`,
         [username]);
     if (rowCount === 0)
     {
@@ -25,7 +27,10 @@ export async function update(account: AccountClass): Promise<void>
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                'UPDATE accounts SET "username"=$1, "hash"=$2 WHERE "username"=$1',
+                    `UPDATE accounts
+                     SET "username"=$1,
+                         "hash"=$2
+                     WHERE "username" = $1`,
                 [account.username, account.hash]);
         });
     }
@@ -43,7 +48,9 @@ export async function insert(account: AccountClass): Promise<void>
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                'INSERT INTO accounts("username", "hash") VALUES ($1, $2)',
+                    `INSERT INTO accounts("username", "hash")
+                     VALUES
+                         ($1, $2)`,
                 [account.username, account.hash]);
         });
     }
@@ -61,7 +68,9 @@ export async function deleteByUsername(username: AccountClass['username']): Prom
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                'DELETE FROM accounts WHERE "username"=$1',
+                    `DELETE
+                     FROM accounts
+                     WHERE "username" = $1`,
                 [username]);
         });
     }
@@ -82,10 +91,14 @@ export async function create(account: AccountClass, profile: ProfileClass): Prom
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                'INSERT INTO accounts("username", "hash") VALUES ($1, $2)',
+                    `INSERT INTO accounts("username", "hash")
+                     VALUES
+                         ($1, $2)`,
                 [account.username, account.hash]);
             await client.query(
-                'INSERT INTO profiles("username", "nickname", "email", "avatar") VALUES ($1, $2, $3, $4)',
+                    `INSERT INTO profiles("username", "nickname", "email", "avatar")
+                     VALUES
+                         ($1, $2, $3, $4)`,
                 [profile.username, profile.nickname, profile.email, profile.avatar]);
         });
     }

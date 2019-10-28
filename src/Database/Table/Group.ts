@@ -10,7 +10,10 @@ export async function insertAndReturnId(group: Omit<Group, 'id'>): Promise<Group
         const queryResult = await executeTransaction(client, async (client) =>
         {
             return await client.query(
-                'INSERT INTO "groups" ("name") VALUES ($1) RETURNING "id"',
+                    `INSERT INTO "groups" ("name")
+                     VALUES
+                         ($1)
+                     RETURNING "id"`,
                 [group.name]);
         });
         const {rows} = queryResult;
@@ -30,7 +33,9 @@ export async function deleteById(id: Group['id']): Promise<void>
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                'DELETE FROM "groups" WHERE "id"=$1',
+                    `DELETE
+                     FROM "groups"
+                     WHERE "id" = $1`,
                 [id]);
         });
     }
@@ -48,7 +53,10 @@ export async function update(group: Group): Promise<void>
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                'UPDATE "groups" SET "id"=$1, "name"=$2 WHERE "id"=$1',
+                    `UPDATE "groups"
+                     SET "id"=$1,
+                         "name"=$2
+                     WHERE "id" = $1`,
                 [group.id, group.name]);
         });
     }
@@ -61,7 +69,9 @@ export async function update(group: Group): Promise<void>
 export async function selectById(id: Group['id']): Promise<Group | null>
 {
     const {rows, rowCount} = await pool.query(
-        'SELECT * FROM "groups" WHERE "id"=$1',
+            `SELECT *
+             FROM "groups"
+             WHERE "id" = $1`,
         [id]);
     if (rowCount === 1)
     {
@@ -96,7 +106,9 @@ export async function addAccounts(id: Group['id'], usernames: Account['username'
         await executeTransaction(client, async (client) =>
         {
             await Promise.all(usernames.map(username => client.query(
-                'INSERT INTO account_group (username, group_id) VALUES ($1, $2)',
+                    `INSERT INTO account_group (username, group_id)
+                     VALUES
+                         ($1, $2)`,
                 [username, id])));
         });
     }
@@ -129,7 +141,9 @@ export async function addAdmins(id: Group['id'], usernames: Account['username'][
         await executeTransaction(client, async (client) =>
         {
             await Promise.all(usernames.map(username => client.query(
-                'INSERT INTO admin_group (admin_username, group_id) VALUES ($1, $2)',
+                    `INSERT INTO admin_group (admin_username, group_id)
+                     VALUES
+                         ($1, $2)`,
                 [username, id])));
         });
     }
