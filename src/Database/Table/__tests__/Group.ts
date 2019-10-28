@@ -260,6 +260,10 @@ describe(getAdminsById, () =>
             insertFakeGroups(),
         ]);
         await Promise.all([
+            insertAccountsGroup(client, fakeAdminAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
+            insertAccountsGroup(client, fakeAdminAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
+        ]);
+        await Promise.all([
             insertAdminsGroup(client, fakeAdminAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
             insertAdminsGroup(client, fakeAdminAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
         ]);
@@ -270,6 +274,10 @@ describe(getAdminsById, () =>
         await Promise.all([
             deleteAdminsGroup(client, fakeAdminAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
             deleteAdminsGroup(client, fakeAdminAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
+        ]);
+        await Promise.all([
+            deleteAccountsGroup(client, fakeAdminAccountsForFakeGroup1.map(({username}) => username), fakeGroup1Id),
+            deleteAccountsGroup(client, fakeAdminAccountsForFakeGroup2.map(({username}) => username), fakeGroup2Id),
         ]);
         await Promise.all([
             deleteFakeGroupsByIds(client, [fakeGroup1Id, fakeGroup2Id]),
@@ -321,12 +329,14 @@ describe(addAdmins, () =>
             insertFakeAccounts(client, fakeAdminAccounts),
             insertFakeGroupAndReturnId(client, fakeGroup),
         ]);
+        await insertAccountsGroup(client, fakeAdminAccounts.map(({username}) => username), fakeGroupId);
     });
 
     afterAll(async () =>
     {
         await deleteAdminsGroup(client, fakeAdminAccounts.map(({username}) => username), fakeGroupId);
         await Promise.all([
+            deleteAccountsGroup(client, fakeAdminAccounts.map(({username}) => username), fakeGroupId),
             deleteFakeGroupById(client, fakeGroupId),
             deleteFakeAccounts(client, fakeAdminAccounts.map(({username}) => username)),
         ]);

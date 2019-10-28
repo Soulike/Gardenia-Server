@@ -253,6 +253,10 @@ describe(getAdministratingGroupsByUsername, () =>
             insertFakeGroups(),
         ]);
         await Promise.all([
+            insertAccountGroups(client, fakeAdminAccount1.username, fakeGroupsForAdminAccount1.map(({id}) => id)),
+            insertAccountGroups(client, fakeAdminAccount2.username, fakeGroupsForAdminAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
             insertAdminGroups(client, fakeAdminAccount1.username, fakeGroupsForAdminAccount1.map(({id}) => id)),
             insertAdminGroups(client, fakeAdminAccount2.username, fakeGroupsForAdminAccount2.map(({id}) => id)),
         ]);
@@ -263,6 +267,10 @@ describe(getAdministratingGroupsByUsername, () =>
         await Promise.all([
             deleteAdminGroups(client, fakeAdminAccount1.username, fakeGroupsForAdminAccount1.map(({id}) => id)),
             deleteAdminGroups(client, fakeAdminAccount2.username, fakeGroupsForAdminAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteAccountGroups(client, fakeAdminAccount1.username, fakeGroupsForAdminAccount1.map(({id}) => id)),
+            deleteAccountGroups(client, fakeAdminAccount2.username, fakeGroupsForAdminAccount2.map(({id}) => id)),
         ]);
         await Promise.all([
             deleteFakeGroupsByIds(client, fakeGroupsForAdminAccount1.map(({id}) => id)),

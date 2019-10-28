@@ -40,7 +40,8 @@ CREATE TABLE "admin_group"
 (
     "admin_username" VARCHAR(255) REFERENCES "accounts" ("username") NOT NULL,
     "group_id"       INTEGER REFERENCES "groups" ("id")              NOT NULL,
-    UNIQUE ("admin_username", "group_id")
+    UNIQUE ("admin_username", "group_id"),
+    FOREIGN KEY ("admin_username", "group_id") REFERENCES "account_group"("username","group_id")
 );
 
 CREATE TABLE "repository_group"
