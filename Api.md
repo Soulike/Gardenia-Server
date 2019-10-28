@@ -78,6 +78,16 @@ class Profile
 }
 ```
 
+### `Group`
+
+```ts
+class Group
+{
+    public id: number;
+    public name: string;
+}
+```
+
 ---
 
 ## 常量
