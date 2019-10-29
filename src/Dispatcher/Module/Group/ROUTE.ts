@@ -12,3 +12,4 @@ export const REMOVE_ACCOUNTS = groupPrefix('/removeAccounts');
 export const ADMINS = groupPrefix('/admins');
 export const ADD_ADMINS = groupPrefix('/addAdmins');
 export const REMOVE_ADMINS = groupPrefix('/removeAdmins');
+export const REPOSITORIES = groupPrefix('/repositories');

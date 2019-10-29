@@ -31,3 +31,5 @@ export const admins = accounts;
 export const addAdmins = addAccounts;
 
 export const removeAdmins = removeAccounts;
+
+export const repositories = info;

@@ -1,4 +1,4 @@
-import {Account, Group, ResponseBody, ServiceResponse} from '../Class';
+import {Account, Group, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable, Group as GroupTable} from '../Database';
 import {Session} from 'koa-session';
 
@@ -133,6 +133,20 @@ export async function removeAdmins(group: Pick<Group, 'id'>, usernames: string[]
     await GroupTable.removeAdmins(groupId, usernames);
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
+}
+
+export async function repositories(group: Pick<Group, 'id'>): Promise<ServiceResponse<Repository[] | void>>
+{
+    const {id: groupId} = group;
+    const groupInDatabase = await GroupTable.selectById(groupId);
+    if (groupInDatabase === null)
+    {
+        return new ServiceResponse<Repository[]>(404, {},
+            new ResponseBody<Repository[]>(false, '小组不存在'));
+    }
+    const repositories = await GroupTable.getRepositoriesById(groupId);
+    return new ServiceResponse<Repository[]>(200, {},
+        new ResponseBody<Repository[]>(true, '', repositories));
 }
 
 async function isAbleToUpdateGroup(group: Pick<Group, 'id'>, session: Session | null): Promise<boolean>
