@@ -79,8 +79,8 @@ async function isAbleToUpdateGroup(group: Pick<Group, 'id'>, session: Session | 
     }
     const {username} = session;
     const {id: groupId} = group;
-    const accountsInGroup = await GroupTable.getAccountsById(groupId);
-    return accountsInGroup.map(({username}) => username).includes(username);
+    const adminsInGroup = await GroupTable.getAdminsById(groupId);
+    return adminsInGroup.map(({username}) => username).includes(username);
 }
 
 async function groupExists(group: Pick<Group, 'id'>): Promise<boolean>
