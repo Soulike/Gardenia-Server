@@ -69,3 +69,17 @@ export const groups: IParameterValidator = body =>
     const {username, name} = repository;
     return typeof username === 'string' && typeof name === 'string';
 };
+
+export const addToGroup: IParameterValidator = body =>
+{
+    const {repository, group} = body;
+    if (repository === undefined || group === undefined)
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    const {id} = group;
+    return typeof username === 'string'
+        && typeof name === 'string'
+        && typeof id === 'number';
+};

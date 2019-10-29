@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import {
+    ADD_TO_GROUP,
     BRANCH,
     COMMIT_COUNT,
     DIRECTORY,
@@ -14,6 +15,7 @@ import {
 import JSONQueryParameterParser from '../../Middleware/JSONQueryParameterParser';
 import POSTBodyParser from '../../Middleware/POSTBodyParser';
 import {
+    addToGroup,
     branch,
     commitCount,
     directory,
@@ -39,4 +41,5 @@ export default (router: Router<IState, IContext>) =>
     router.post(SET_NAME, POSTBodyParser(), setName());
     router.post(SET_DESCRIPTION, POSTBodyParser(), setDescription());
     router.get(GROUPS, JSONQueryParameterParser(), groups());
+    router.post(ADD_TO_GROUP, POSTBodyParser(), addToGroup());
 };

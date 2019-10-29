@@ -142,3 +142,16 @@ export const groups: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryInfo.groups(repository, ctx.session);
     };
 };
+
+export const addToGroup: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.addToGroup(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {repository, group} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.addToGroup(repository, group, ctx.session);
+    };
+};

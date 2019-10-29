@@ -1,6 +1,6 @@
 import {Session} from 'koa-session';
 import {Commit, Group, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
-import {Repository as RepositoryTable} from '../Database';
+import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Git, Promisify} from '../Function';
 import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
@@ -309,6 +309,39 @@ export async function groups(repository: Pick<RepositoryClass, 'username' | 'nam
     const groups = await RepositoryTable.getGroupsByUsernameAndName(repository);
     return new ServiceResponse<Group[]>(200, {},
         new ResponseBody<Group[]>(true, '', groups));
+}
+
+export async function addToGroup(repository: Pick<RepositoryClass, 'username' | 'name'>, group: Pick<Group, 'id'>, session: Session | null): Promise<ServiceResponse<void>>
+{
+    const {username: repositoryUsername, name: repositoryName} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repositoryUsername, repositoryName);
+    if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+    const {id: groupId} = group;
+    const groupInDatabase = await GroupTable.selectById(groupId);
+    if (groupInDatabase === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '小组不存在'));
+    }
+    const {username: sessionUsername} = session!;
+    if (sessionUsername !== repositoryUsername)
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '添加失败：您不是仓库的所有者'));
+    }
+    const accountsInGroup = await GroupTable.getAccountsById(groupId);
+    if (!accountsInGroup.map(account => account.username).includes(sessionUsername))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '添加失败：您不是小组的成员'));
+    }
+    await GroupTable.addRepositories(groupId, [repository]);
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true));
 }
 
 /**
