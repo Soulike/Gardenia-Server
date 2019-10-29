@@ -129,3 +129,16 @@ export const setDescription: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryInfo.setDescription(username, repositoryName, description, ctx.session);
     };
 };
+
+export const groups: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.groups(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {repository} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.groups(repository, ctx.session);
+    };
+};

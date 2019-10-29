@@ -279,27 +279,6 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
   - 仓库不存在
 - 其他说明：无
 
-#### `/addToGroup`
-
-- 功能：添加仓库到小组
-- 方法：POST
-- 请求体：
-```ts
-{
-    repository: Pick<Repository, 'username'|'name'>,
-    group: Pick<Group, 'id'>,
-}
-```
-- 响应体：无
-- 响应消息：
-  - 仓库不存在
-  - 小组不存在
-  - 添加失败：您不是仓库的所有者
-  - 添加失败：您不是小组的成员
-- 其他说明：
-  - 仅仓库所有者可以执行本操作
-  - 仅当是小组的成员是可以执行本操作
-
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息操作。
@@ -507,14 +486,43 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
-#### `/getGroups`
+#### `/groups`
 
 - 功能：获取仓库所属小组
 - 方法：GET
-- 请求体：无
+- 请求体：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username'|'name'>,
+    }
+}
+```
 - 响应体：`Group[]`
-- 响应消息：无
+- 响应消息：
+  - 仓库不存在
 - 其他说明：无
+
+#### `/addToGroup`
+
+- 功能：添加仓库到小组
+- 方法：POST
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username'|'name'>,
+    group: Pick<Group, 'id'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+  - 小组不存在
+  - 添加失败：您不是仓库的所有者
+  - 添加失败：您不是小组的成员
+- 其他说明：
+  - 仅仓库所有者可以执行本操作
+  - 仅当是小组的成员是可以执行本操作
 
 ### Group 模块（`/group`）
 

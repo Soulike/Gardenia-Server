@@ -1,5 +1,5 @@
 import {Session} from 'koa-session';
-import {Commit, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
+import {Commit, Group, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Repository as RepositoryTable} from '../Database';
 import {Git, Promisify} from '../Function';
 import path from 'path';
@@ -295,6 +295,20 @@ export async function setDescription(username: string, repositoryName: string, d
     repository!.description = description;
     await RepositoryTable.update(repository!);
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
+}
+
+export async function groups(repository: Pick<RepositoryClass, 'username' | 'name'>, session: Session | null): Promise<ServiceResponse<Group[]>>
+{
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
+    if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
+    {
+        return new ServiceResponse<Group[]>(404, {},
+            new ResponseBody<Group[]>(false, '仓库不存在'));
+    }
+    const groups = await RepositoryTable.getGroupsByUsernameAndName(repository);
+    return new ServiceResponse<Group[]>(200, {},
+        new ResponseBody<Group[]>(true, '', groups));
 }
 
 /**

@@ -58,3 +58,14 @@ export const setDescription: IParameterValidator = body =>
     return typeof repositoryName === 'string'
         && typeof description === 'string';
 };
+
+export const groups: IParameterValidator = body =>
+{
+    const {repository} = body;
+    if (repository === undefined)
+    {
+        return false;
+    }
+    const {username, name} = body;
+    return typeof username === 'string' && typeof name === 'string';
+};

@@ -4,6 +4,7 @@ import {
     COMMIT_COUNT,
     DIRECTORY,
     FILE_INFO,
+    GROUPS,
     LAST_COMMIT,
     RAW_FILE,
     REPOSITORY,
@@ -17,6 +18,7 @@ import {
     commitCount,
     directory,
     fileInfo,
+    groups,
     lastCommit,
     rawFile,
     repository,
@@ -36,4 +38,5 @@ export default (router: Router<IState, IContext>) =>
     router.get(RAW_FILE, JSONQueryParameterParser(), rawFile());
     router.post(SET_NAME, POSTBodyParser(), setName());
     router.post(SET_DESCRIPTION, POSTBodyParser(), setDescription());
+    router.get(GROUPS, JSONQueryParameterParser(), groups());
 };
