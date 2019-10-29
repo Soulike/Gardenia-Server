@@ -1,6 +1,7 @@
 import Router from '@koa/router';
 import {CHECK_SESSION, GET_ADMINISTRATING_GROUPS, GET_GROUPS, LOGIN, LOGOUT, REGISTER} from './ROUTE';
 import POSTBodyParser from '../../Middleware/POSTBodyParser';
+import JSONQueryParameterParser from '../../Middleware/JSONQueryParameterParser';
 import {checkSession, getAdministratingGroups, getGroups, login, logout, register} from './Middleware';
 import {IContext, IState} from '../../Interface';
 
@@ -10,6 +11,6 @@ export default (router: Router<IState, IContext>) =>
     router.post(REGISTER, POSTBodyParser(), register());
     router.get(CHECK_SESSION, checkSession());
     router.post(LOGOUT, logout());
-    router.post(GET_GROUPS, getGroups());
-    router.post(GET_ADMINISTRATING_GROUPS, getAdministratingGroups());
+    router.get(GET_GROUPS, JSONQueryParameterParser(), getGroups());
+    router.get(GET_ADMINISTRATING_GROUPS, JSONQueryParameterParser(), getAdministratingGroups());
 };

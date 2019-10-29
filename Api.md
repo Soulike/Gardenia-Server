@@ -176,7 +176,9 @@ export enum ObjectType
 - 请求体：
 ```ts
 {
-    username: string,
+    json: {
+        username: string,
+    }
 }
 ```
 - 响应体：`Group[]`
@@ -191,7 +193,9 @@ export enum ObjectType
 - 请求体：
 ```ts
 {
-    username: string,
+    json: {
+        username: string,
+    }
 }
 ```
 - 响应体：`Group[]`
