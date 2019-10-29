@@ -174,6 +174,27 @@ export async function addAdmins(id: Group['id'], usernames: Account['username'][
     }
 }
 
+export async function removeAdmins(id: Group['id'], usernames: Account['username'][]): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async (client) =>
+        {
+            await Promise.all(usernames.map(username => client.query(
+                    `DELETE
+                     FROM admin_group
+                     WHERE group_id = $1
+                       AND admin_username = $2`,
+                [id, username])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
 export async function getRepositoriesById(id: Group['id']): Promise<Repository[]>
 {
     const {rows} = await pool.query(
