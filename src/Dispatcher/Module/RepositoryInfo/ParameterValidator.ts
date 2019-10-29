@@ -66,6 +66,6 @@ export const groups: IParameterValidator = body =>
     {
         return false;
     }
-    const {username, name} = body;
+    const {username, name} = repository;
     return typeof username === 'string' && typeof name === 'string';
 };
