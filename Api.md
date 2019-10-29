@@ -530,7 +530,14 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取小组信息
 - 方法：GET
-- 请求体：`Pick<Group, 'id'>`
+- 请求体：
+```ts
+{
+    json: {
+        group: Pick<Group, 'id'>
+    }
+}
+```
 - 响应体：`Group`
 - 响应消息：
   - 小组不存在
