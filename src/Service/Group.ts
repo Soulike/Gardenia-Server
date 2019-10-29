@@ -71,6 +71,70 @@ export async function removeAccounts(group: Pick<Group, 'id'>, usernames: string
         new ResponseBody<void>(true));
 }
 
+export async function admins(group: Pick<Group, 'id'>): Promise<ServiceResponse<Account[] | void>>
+{
+    const {id: groupId} = group;
+    if (!(await groupExists(group)))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '小组不存在'));
+    }
+    const accounts = await GroupTable.getAdminsById(groupId);
+    return new ServiceResponse<Account[]>(200, {},
+        new ResponseBody<Account[]>(true, '', accounts));
+}
+
+export async function addAdmins(group: Pick<Group, 'id'>, usernames: string[], session: Session | null): Promise<ServiceResponse<void>>
+{
+    if (!(await isAbleToUpdateGroup(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '权限不足'));
+    }
+    const {id: groupId} = group;
+    if (!(await groupExists(group)))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '小组不存在'));
+    }
+    const accountsInDatabase =
+        await Promise.all(usernames.map(username => AccountTable.selectByUsername(username)));
+    if (accountsInDatabase.includes(null))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '用户不存在'));
+    }
+    for (const username of usernames)
+    {
+        if (!(await isGroupMember(group, username)))
+        {
+            return new ServiceResponse<void>(403, {},
+                new ResponseBody<void>(false, `用户${username}不是小组成员`));
+        }
+    }
+    await GroupTable.addAdmins(groupId, usernames);
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true));
+}
+
+export async function removeAdmins(group: Pick<Group, 'id'>, usernames: string[], session: Session | null): Promise<ServiceResponse<void>>
+{
+    if (!(await isAbleToUpdateGroup(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '权限不足'));
+    }
+    const {id: groupId} = group;
+    if (!(await groupExists(group)))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '小组不存在'));
+    }
+    await GroupTable.removeAdmins(groupId, usernames);
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true));
+}
+
 async function isAbleToUpdateGroup(group: Pick<Group, 'id'>, session: Session | null): Promise<boolean>
 {
     if (session === null)
@@ -81,6 +145,12 @@ async function isAbleToUpdateGroup(group: Pick<Group, 'id'>, session: Session | 
     const {id: groupId} = group;
     const adminsInGroup = await GroupTable.getAdminsById(groupId);
     return adminsInGroup.map(({username}) => username).includes(username);
+}
+
+async function isGroupMember(group: Pick<Group, 'id'>, username: string): Promise<boolean>
+{
+    const accountsInGroup = await GroupTable.getAccountsById(group.id);
+    return accountsInGroup.map(({username}) => username).includes(username);
 }
 
 async function groupExists(group: Pick<Group, 'id'>): Promise<boolean>

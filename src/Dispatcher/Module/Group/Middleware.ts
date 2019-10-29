@@ -54,3 +54,42 @@ export const removeAccounts: IRouteHandler = () =>
         ctx.state.serviceResponse = await GroupService.removeAccounts(group, usernames, ctx.session);
     };
 };
+
+export const admins: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.admins(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.admins(group);
+    };
+};
+
+export const addAdmins: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.addAdmins(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group, usernames} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.addAdmins(group, usernames, ctx.session);
+    };
+};
+
+export const removeAdmins: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.removeAdmins(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group, usernames} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.removeAdmins(group, usernames, ctx.session);
+    };
+};

@@ -25,3 +25,9 @@ export const addAccounts: IParameterValidator = body =>
 };
 
 export const removeAccounts = addAccounts;
+
+export const admins = accounts;
+
+export const addAdmins = addAccounts;
+
+export const removeAdmins = removeAccounts;

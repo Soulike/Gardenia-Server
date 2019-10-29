@@ -9,3 +9,6 @@ export const INFO = groupPrefix('/info');
 export const ACCOUNTS = groupPrefix('/accounts');
 export const ADD_ACCOUNTS = groupPrefix('/addAccounts');
 export const REMOVE_ACCOUNTS = groupPrefix('/removeAccounts');
+export const ADMINS = groupPrefix('/admins');
+export const ADD_ADMINS = groupPrefix('/addAdmins');
+export const REMOVE_ADMINS = groupPrefix('/removeAdmins');

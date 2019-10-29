@@ -601,7 +601,14 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取小组管理员信息
 - 方法：GET
-- 请求体：`Pick<Group, 'id'>`
+- 请求体：
+```ts
+{
+    json: {
+        group: Pick<Group, 'id'>
+    }
+}
+```
 - 响应体：`Account[]`
 - 响应消息：
   - 小组不存在
@@ -615,16 +622,18 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     group: Pick<Group, 'id'>,
-    accounts: Pick<Account, 'username'>,
+    usernames: string[],
 }
 ```
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 用户${username}不存在
+  - 用户不存在
+  - 用户${username}不是小组成员
   - 权限不足
 - 其他说明：
   - 仅小组管理员添加请求有效，其他人均权限不足
+  - 仅小组成员可以成为管理员
 
 #### `/removeAdmins`
 
@@ -634,13 +643,12 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     group: Pick<Group, 'id'>,
-    accounts: Pick<Account, 'username'>,
+    usernames: string[],
 }
 ```
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 用户${username}不存在
   - 权限不足
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足
