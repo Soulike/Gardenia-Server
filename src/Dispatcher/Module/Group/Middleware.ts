@@ -28,3 +28,16 @@ export const accounts: IRouteHandler = () =>
         ctx.state.serviceResponse = await GroupService.accounts(group);
     };
 };
+
+export const addAccounts: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.addAccounts(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group, usernames} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.addAccounts(group, usernames);
+    };
+};

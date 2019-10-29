@@ -568,7 +568,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     group: Pick<Group, 'id'>,
-    accounts: Pick<Account, 'username'>,
+    usernames: string[],
 }
 ```
 - 响应体：无

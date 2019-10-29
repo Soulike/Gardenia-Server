@@ -27,3 +27,17 @@ export async function accounts(group: Pick<Group, 'id'>): Promise<ServiceRespons
     return new ServiceResponse<Account[]>(200, {},
         new ResponseBody<Account[]>(true, '', accounts));
 }
+
+export async function addAccounts(group: Pick<Group, 'id'>, usernames: string[]): Promise<ServiceResponse<void>>
+{
+    const {id: groupId} = group;
+    const groupInDatabase = await GroupTable.selectById(groupId);
+    if (groupInDatabase === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '小组不存在'));
+    }
+    await GroupTable.addAccounts(groupId, usernames);
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true));
+}
