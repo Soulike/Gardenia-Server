@@ -49,3 +49,29 @@ export const logout: IRouteHandler = () =>
         ctx.state.serviceResponse = await AccountService.logout();
     };
 };
+
+export const getGroups: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.getGroups(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.request.body;
+        ctx.state.serviceResponse = await AccountService.getGroups(username);
+    };
+};
+
+export const getAdministratingGroups: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.getAdministratingGroups(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.request.body;
+        ctx.state.serviceResponse = await AccountService.getAdministratingGroups(username);
+    };
+};

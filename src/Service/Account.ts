@@ -1,4 +1,4 @@
-import {Account as AccountClass, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
+import {Account as AccountClass, Group, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable} from '../Database';
 import {Session} from 'koa-session';
 import {Session as SessionFunction} from '../Function';
@@ -45,4 +45,30 @@ export async function checkSession(session: Session | null): Promise<ServiceResp
 export async function logout(): Promise<ServiceResponse<void>>
 {
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true), {username: undefined});
+}
+
+export async function getGroups(username: AccountClass['username']): Promise<ServiceResponse<Group[]>>
+{
+    const user = await AccountTable.selectByUsername(username);
+    if (user === null)
+    {
+        return new ServiceResponse<Group[]>(404, {},
+            new ResponseBody<Group[]>(false, '用户不存在'));
+    }
+    const groups = await AccountTable.getGroupsByUsername(username);
+    return new ServiceResponse<Group[]>(200, {},
+        new ResponseBody<Group[]>(true, '', groups));
+}
+
+export async function getAdministratingGroups(username: AccountClass['username']): Promise<ServiceResponse<Group[]>>
+{
+    const user = await AccountTable.selectByUsername(username);
+    if (user === null)
+    {
+        return new ServiceResponse<Group[]>(404, {},
+            new ResponseBody<Group[]>(false, '用户不存在'));
+    }
+    const groups = await AccountTable.getAdministratingGroupsByUsername(username);
+    return new ServiceResponse<Group[]>(200, {},
+        new ResponseBody<Group[]>(true, '', groups));
 }

@@ -173,18 +173,30 @@ export enum ObjectType
 
 - 功能：获取账号所属小组
 - 方法：GET
-- 请求体：无
+- 请求体：
+```ts
+{
+    username: string,
+}
+```
 - 响应体：`Group[]`
-- 响应消息：无
+- 响应消息：
+  - 用户不存在
 - 其他说明：无
 
 #### `/getAdministratingGroups`
 
 - 功能：获取账号管理的小组
 - 方法：GET
-- 请求体：无
+- 请求体：
+```ts
+{
+    username: string,
+}
+```
 - 响应体：`Group[]`
-- 响应消息：无
+- 响应消息：
+  - 用户不存在
 - 其他说明：无
 
 ### Profile 模块（`/profile`）
