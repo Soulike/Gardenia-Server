@@ -15,3 +15,16 @@ export const info: IRouteHandler = () =>
         ctx.state.serviceResponse = await GroupService.info(group);
     };
 };
+
+export const accounts: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.accounts(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.accounts(group);
+    };
+};

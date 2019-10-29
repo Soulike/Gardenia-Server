@@ -6,4 +6,4 @@ function groupPrefix(url: string): string
 }
 
 export const INFO = groupPrefix('/info');
-
+export const ACCOUNTS = groupPrefix('/accounts');

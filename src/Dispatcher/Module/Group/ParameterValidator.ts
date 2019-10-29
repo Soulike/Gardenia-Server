@@ -10,3 +10,5 @@ export const info: IParameterValidator = body =>
     const {id} = group;
     return typeof id === 'number';
 };
+
+export const accounts = info;
