@@ -230,3 +230,25 @@ export async function addRepositories(id: Group['id'], repositories: Pick<Reposi
         client.release();
     }
 }
+
+export async function removeRepositories(id: Group['id'], repositories: Pick<Repository, 'username' | 'name'>[]): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async (client) =>
+        {
+            await Promise.all(repositories.map(({username, name}) => client.query(
+                    `DELETE
+                     FROM repository_group
+                     WHERE repository_username = $1
+                       AND repository_name = $2
+                       AND group_id = $3`,
+                [username, name, id])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}

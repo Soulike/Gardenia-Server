@@ -9,6 +9,7 @@ import {
     insertAndReturnId,
     removeAccounts,
     removeAdmins,
+    removeRepositories,
     selectById,
     update,
 } from '../Group';
@@ -601,6 +602,80 @@ describe(addRepositories, () =>
                 new Repository(
                     fakeAccount.username,
                     faker.random.word() + i,
+                    faker.lorem.sentence(),
+                    faker.random.boolean()));
+        }
+    }
+});
+
+describe('removeRepositories', () =>
+{
+    let fakeGroup1Id = -1;
+    let fakeGroup2Id = -1;
+    const fakeRepositoriesForGroup1: Repository[] = [];
+    const fakeRepositoriesForGroup2: Repository[] = [];
+    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    beforeAll(async () =>
+    {
+        generateFakeRepositories();
+        [fakeGroup1Id, fakeGroup2Id] = await Promise.all([
+            insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
+            insertFakeGroupAndReturnId(client, new Group(-1, faker.random.word())),
+            insertFakeAccount(client, fakeAccount),
+        ]);
+        await Promise.all([
+            insertFakeRepositories(client, fakeRepositoriesForGroup1),
+            insertFakeRepositories(client, fakeRepositoriesForGroup2),
+        ]);
+        await Promise.all([
+            await insertRepositoriesGroup(client, fakeRepositoriesForGroup1, fakeGroup1Id),
+            await insertRepositoriesGroup(client, fakeRepositoriesForGroup2, fakeGroup2Id),
+        ]);
+    });
+
+    afterAll(async () =>
+    {
+        await Promise.all([
+            await deleteRepositoriesGroup(client, fakeRepositoriesForGroup1, fakeGroup1Id),
+            await deleteRepositoriesGroup(client, fakeRepositoriesForGroup2, fakeGroup2Id),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, [fakeGroup1Id, fakeGroup2Id]),
+            deleteFakeRepositories(client, fakeRepositoriesForGroup1),
+            deleteFakeRepositories(client, fakeRepositoriesForGroup2),
+        ]);
+        await deleteFakeAccount(client, fakeAccount.username);
+    });
+
+    it('should remove repositories', async function ()
+    {
+        await removeRepositories(fakeGroup1Id, fakeRepositoriesForGroup1);
+        const fakeRepositoriesForGroup1InDatabase = await selectRepositoriesByGroup(client, fakeGroup1Id);
+        expect(fakeRepositoriesForGroup1InDatabase.length).toBe(0);
+    });
+
+    it('should remove repositories by group', async function ()
+    {
+        await removeRepositories(fakeGroup1Id, fakeRepositoriesForGroup1);
+        const fakeRepositoriesForGroup2InDatabase = await selectRepositoriesByGroup(client, fakeGroup2Id);
+        expect(fakeRepositoriesForGroup2InDatabase.length).toBe(fakeRepositoriesForGroup2.length);
+        expect(fakeRepositoriesForGroup2InDatabase).toEqual(expect.arrayContaining(fakeRepositoriesForGroup2));
+    });
+
+    function generateFakeRepositories()
+    {
+        for (let i = 0; i < 5; i++)
+        {
+            fakeRepositoriesForGroup1.push(
+                new Repository(
+                    fakeAccount.username,
+                    faker.random.word() + i,
+                    faker.lorem.sentence(),
+                    faker.random.boolean()));
+            fakeRepositoriesForGroup2.push(
+                new Repository(
+                    fakeAccount.username,
+                    i + faker.random.word(),
                     faker.lorem.sentence(),
                     faker.random.boolean()));
         }
