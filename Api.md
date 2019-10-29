@@ -574,8 +574,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 用户不存在
-  - 权限不足
+  - 用户${username}不存在
+  - 添加失败：您不是小组的管理员
 - 其他说明：
   - 仅小组管理员添加请求有效，其他人均权限不足
 
@@ -593,7 +593,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 权限不足
+  - 删除失败：您不是小组的管理员
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足
 
@@ -628,9 +628,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 用户不存在
+  - 用户${username}不存在
   - 用户${username}不是小组成员
-  - 权限不足
+  - 添加失败：您不是小组的管理员
 - 其他说明：
   - 仅小组管理员添加请求有效，其他人均权限不足
   - 仅小组成员可以成为管理员
@@ -649,7 +649,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 权限不足
+  - 删除失败：您不是小组的管理员
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足
 
