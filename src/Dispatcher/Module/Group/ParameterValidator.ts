@@ -23,3 +23,5 @@ export const addAccounts: IParameterValidator = body =>
     const {id} = group;
     return typeof id === 'number' && Array.isArray(usernames);
 };
+
+export const removeAccounts = addAccounts;

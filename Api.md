@@ -574,7 +574,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 用户${username}不存在
+  - 用户不存在
   - 权限不足
 - 其他说明：
   - 仅小组管理员添加请求有效，其他人均权限不足
@@ -587,13 +587,12 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     group: Pick<Group, 'id'>,
-    accounts: Pick<Account, 'username'>,
+    usernames: string[],
 }
 ```
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 用户${username}不存在
   - 权限不足
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足

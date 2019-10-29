@@ -38,6 +38,19 @@ export const addAccounts: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {group, usernames} = ctx.request.body;
-        ctx.state.serviceResponse = await GroupService.addAccounts(group, usernames);
+        ctx.state.serviceResponse = await GroupService.addAccounts(group, usernames, ctx.session);
+    };
+};
+
+export const removeAccounts: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.removeAccounts(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group, usernames} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.removeAccounts(group, usernames, ctx.session);
     };
 };
