@@ -33,3 +33,15 @@ export const addAdmins = addAccounts;
 export const removeAdmins = removeAccounts;
 
 export const repositories = info;
+
+export const removeRepositories: IParameterValidator = body =>
+{
+    const {group, repositories} = body;
+    if (group === undefined)
+    {
+        return false;
+    }
+    const {id} = group;
+    return typeof id === 'number'
+        && Array.isArray(repositories);
+};

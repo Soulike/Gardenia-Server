@@ -98,11 +98,24 @@ export const repositories: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!ParameterValidator.info(ctx.request.body))
+        if (!ParameterValidator.repositories(ctx.request.body))
         {
             throw new WrongParameterError();
         }
         const {group} = ctx.request.body;
         ctx.state.serviceResponse = await GroupService.repositories(group);
+    };
+};
+
+export const removeRepositories: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.removeRepositories(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group, repositories} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.removeRepositories(group, repositories, ctx.session);
     };
 };

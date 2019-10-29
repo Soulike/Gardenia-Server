@@ -684,7 +684,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 小组不存在
-  - 仓库不存在
+  - 仓库${name}不存在
   - 删除失败：您不是小组的管理员
 - 其他说明：
   - 只有小组的管理员可以执行本操作

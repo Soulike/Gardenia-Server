@@ -1,5 +1,5 @@
 import {Account, Group, Repository, ResponseBody, ServiceResponse} from '../Class';
-import {Account as AccountTable, Group as GroupTable} from '../Database';
+import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Session} from 'koa-session';
 
 export async function info(group: Pick<Group, 'id'>): Promise<ServiceResponse<Group | void>>
@@ -147,6 +147,31 @@ export async function repositories(group: Pick<Group, 'id'>): Promise<ServiceRes
     const repositories = await GroupTable.getRepositoriesById(groupId);
     return new ServiceResponse<Repository[]>(200, {},
         new ResponseBody<Repository[]>(true, '', repositories));
+}
+
+export async function removeRepositories(group: Pick<Group, 'id'>, repositories: Pick<Repository, 'username' | 'name'>[], session: Session | null): Promise<ServiceResponse<void>>
+{
+    if (!(await groupExists(group)))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '小组不存在'));
+    }
+    if (!(await isAbleToUpdateGroup(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
+    }
+    for (const {username, name} of repositories)
+    {
+        if (await RepositoryTable.selectByUsernameAndName(username, name) === null)
+        {
+            return new ServiceResponse<void>(404, {},
+                new ResponseBody<void>(false, `仓库${name}不存在`));
+        }
+    }
+    await GroupTable.removeRepositories(group.id, repositories);
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true, ''));
 }
 
 async function isAbleToUpdateGroup(group: Pick<Group, 'id'>, session: Session | null): Promise<boolean>

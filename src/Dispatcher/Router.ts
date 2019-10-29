@@ -4,6 +4,7 @@ import repositoryDispatcher from './Module/Repository';
 import repositoryInfoDispatcher from './Module/RepositoryInfo';
 import profileDispatcher from './Module/Profile';
 import gitDispatcher from './Module/Git';
+import groupDispatcher from './Module/Group';
 import http from 'http';
 import {IContext, IState} from './Interface';
 
@@ -17,5 +18,6 @@ repositoryDispatcher(router);
 repositoryInfoDispatcher(router);
 profileDispatcher(router);
 gitDispatcher(router);
+groupDispatcher(router);
 
 export default router;
