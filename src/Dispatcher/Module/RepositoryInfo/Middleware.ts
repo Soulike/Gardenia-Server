@@ -108,7 +108,7 @@ export const setName: IRouteHandler = () =>
             throw new InvalidSessionError();
         }
         const {repositoryName, newRepositoryName} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.setName(username, repositoryName, newRepositoryName);
+        ctx.state.serviceResponse = await RepositoryInfo.setName(username, repositoryName, newRepositoryName, ctx.session);
     };
 };
 
@@ -126,6 +126,6 @@ export const setDescription: IRouteHandler = () =>
             throw new InvalidSessionError();
         }
         const {repositoryName, description} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.setDescription(username, repositoryName, description);
+        ctx.state.serviceResponse = await RepositoryInfo.setDescription(username, repositoryName, description, ctx.session);
     };
 };
