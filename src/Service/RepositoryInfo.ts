@@ -238,7 +238,7 @@ export async function rawFile(username: string, repositoryName: string, filePath
     await Promisify.waitForEvent(childProcess, 'close');    // 等待传输结束
 }
 
-export async function setName(username: string, repositoryName: string, newRepositoryName: string): Promise<ServiceResponse<void>>
+export async function setName(username: string, repositoryName: string, newRepositoryName: string, session: Session | null): Promise<ServiceResponse<void>>
 {
     if ((await RepositoryTable.selectByUsernameAndName(username, newRepositoryName)) !== null)
     {
@@ -247,7 +247,7 @@ export async function setName(username: string, repositoryName: string, newRepos
     }
 
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
-    if (!repositoryIsAvailableToTheViewer(repository))
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -284,10 +284,10 @@ export async function setName(username: string, repositoryName: string, newRepos
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function setDescription(username: string, repositoryName: string, description: string): Promise<ServiceResponse<void>>
+export async function setDescription(username: string, repositoryName: string, description: string, session: Session | null): Promise<ServiceResponse<void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
-    if (!repositoryIsAvailableToTheViewer(repository))
+    if (!repositoryIsAvailableToTheViewer(repository, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -302,7 +302,7 @@ export async function setDescription(username: string, repositoryName: string, d
  * @param repository - 被访问的仓库
  * @param session - 访问者的 Session 对象，若不传入则仅检查仓库是否存在
  * */
-function repositoryIsAvailableToTheViewer(repository: RepositoryClass | null, session?: Session | null): boolean
+function repositoryIsAvailableToTheViewer(repository: RepositoryClass | null, session: Session | null): boolean
 {
     let isAvailable = false;
     if (repository === null)
@@ -316,11 +316,11 @@ function repositoryIsAvailableToTheViewer(repository: RepositoryClass | null, se
         {
             isAvailable = true;
         }
-        else if (session === null || session === undefined)    // !isPublic
+        else if (session === null)    // !isPublic
         {
             isAvailable = false;
         }
-        else    // !isPublic && session !== null && session !== undefined
+        else    // !isPublic && session !== null
         {
             const {username} = repository;
             const {username: usernameInSession} = session;
