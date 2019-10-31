@@ -537,7 +537,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     group: Omit<Group, 'id'>
 }
 ```
-- 响应体：无
+- 响应体：`Pick<Group, 'id'>`
 - 响应消息：
   - 小组名已存在
 - 其他说明：无

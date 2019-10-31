@@ -3,7 +3,7 @@ import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTa
 import {Session} from 'koa-session';
 import {InvalidSessionError} from '../Dispatcher/Class';
 
-export async function add(group: Omit<Group, 'id'>, session: Session | null): Promise<ServiceResponse<void>>
+export async function add(group: Omit<Group, 'id'>, session: Session | null): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
 {
     if (session === null)
     {
@@ -33,8 +33,8 @@ export async function add(group: Omit<Group, 'id'>, session: Session | null): Pr
         await GroupTable.deleteById(groupId);
         throw e;
     }
-    return new ServiceResponse<void>(200, {},
-        new ResponseBody<void>(true));
+    return new ServiceResponse<Pick<Group, 'id'>>(200, {},
+        new ResponseBody<Pick<Group, 'id'>>(true, '', {id: groupId}));
 }
 
 export async function dismiss(group: Pick<Group, 'id'>): Promise<ServiceResponse<void>>
