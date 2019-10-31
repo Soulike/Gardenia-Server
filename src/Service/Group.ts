@@ -1,6 +1,48 @@
 import {Account, Group, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Session} from 'koa-session';
+import {InvalidSessionError} from '../Dispatcher/Class';
+
+export async function add(group: Omit<Group, 'id'>, session: Session | null): Promise<ServiceResponse<void>>
+{
+    if (session === null)
+    {
+        throw new InvalidSessionError();
+    }
+    const {username} = session;
+    if (typeof username !== 'string')
+    {
+        throw new InvalidSessionError();
+    }
+    const groupWithTheSameUsernameAndName = await AccountTable.getGroupByUsernameAndGroupName(username, group.name);
+    if (groupWithTheSameUsernameAndName !== null)
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '小组名已存在'));
+    }
+
+    let groupId = 0;
+    try
+    {
+        groupId = await GroupTable.insertAndReturnId(group);
+        await GroupTable.addAccounts(groupId, [username]);
+        await GroupTable.addAdmins(groupId, [username]);
+    }
+    catch (e)
+    {
+        await GroupTable.deleteById(groupId);
+        throw e;
+    }
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true));
+}
+
+export async function dismiss(group: Pick<Group, 'id'>): Promise<ServiceResponse<void>>
+{
+    await GroupTable.deleteById(group.id);
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true));
+}
 
 export async function info(group: Pick<Group, 'id'>): Promise<ServiceResponse<Group | void>>
 {

@@ -1,5 +1,6 @@
 import {
     deleteByUsernameAndName,
+    getGroupByUsernameAndNameAndGroupId,
     getGroupsByUsernameAndName,
     insert,
     selectByIsPublic,
@@ -361,6 +362,80 @@ describe(getGroupsByUsernameAndName, () =>
         expect(fakeGroupsForRepository1InDatabase).toEqual(expect.arrayContaining(fakeGroupsForRepository1));
         expect(fakeGroupsForRepository2InDatabase.length).toBe(fakeGroupsForRepository2.length);
         expect(fakeGroupsForRepository2InDatabase).toEqual(expect.arrayContaining(fakeGroupsForRepository2));
+    });
+
+    function generateFakeGroups()
+    {
+        for (let i = 0; i < 10; i++)
+        {
+            fakeGroupsForRepository1.push(new Group(-1, faker.random.word()));
+            fakeGroupsForRepository2.push(new Group(-1, faker.random.word()));
+        }
+    }
+
+    async function insertFakeGroups()
+    {
+        await Promise.all([
+            ...fakeGroupsForRepository1.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+            ...fakeGroupsForRepository2.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+        ]);
+    }
+});
+
+describe(getGroupByUsernameAndNameAndGroupId, () =>
+{
+    const fakeRepository1 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository2 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeGroupsForRepository1: Group[] = [];
+    const fakeGroupsForRepository2: Group[] = [];
+
+    beforeAll(async () =>
+    {
+        generateFakeGroups();
+        await Promise.all([
+            insertFakeRepositories(client, [fakeRepository1, fakeRepository2]),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertRepositoryGroups(client, fakeRepository1, fakeGroupsForRepository1.map(({id}) => id)),
+            insertRepositoryGroups(client, fakeRepository2, fakeGroupsForRepository2.map(({id}) => id)),
+        ]);
+    });
+
+    afterAll(async () =>
+    {
+        await Promise.all([
+            deleteRepositoryGroups(client, fakeRepository1, fakeGroupsForRepository1.map(({id}) => id)),
+            deleteRepositoryGroups(client, fakeRepository2, fakeGroupsForRepository2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteFakeRepositories(client, [fakeRepository1, fakeRepository2]),
+            deleteFakeGroupsByIds(client, fakeGroupsForRepository1.map(({id}) => id)),
+            deleteFakeGroupsByIds(client, fakeGroupsForRepository2.map(({id}) => id)),
+        ]);
+    });
+
+    it('should get groups by username、name and id of group', async function ()
+    {
+        const [fakeGroup1, fakeGroup2] =
+            await Promise.all([
+                getGroupByUsernameAndNameAndGroupId(fakeRepository1, fakeGroupsForRepository1[1]),
+                getGroupByUsernameAndNameAndGroupId(fakeRepository2, fakeGroupsForRepository2[2]),
+            ]);
+        expect(fakeGroup1).toStrictEqual(fakeGroupsForRepository1[1]);
+        expect(fakeGroup2).toStrictEqual(fakeGroupsForRepository2[2]);
+    });
+
+    it('should return null when group does not exist', async function ()
+    {
+        const fakeGroup = await getGroupByUsernameAndNameAndGroupId(fakeRepository1, fakeGroupsForRepository2[1]);
+        expect(fakeGroup).toBeNull();
     });
 
     function generateFakeGroups()

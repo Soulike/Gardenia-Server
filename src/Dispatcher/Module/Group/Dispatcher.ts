@@ -2,9 +2,11 @@ import Router from '@koa/router';
 import {IContext, IState} from '../../Interface';
 import {
     ACCOUNTS,
+    ADD,
     ADD_ACCOUNTS,
     ADD_ADMINS,
     ADMINS,
+    DISMISS,
     INFO,
     REMOVE_ACCOUNTS,
     REMOVE_ADMINS,
@@ -14,9 +16,11 @@ import {
 import JSONQueryParameterParser from '../../Middleware/JSONQueryParameterParser';
 import {
     accounts,
+    add,
     addAccounts,
     addAdmins,
     admins,
+    dismiss,
     info,
     removeAccounts,
     removeAdmins,
@@ -27,6 +31,8 @@ import POSTBodyParser from '../../Middleware/POSTBodyParser';
 
 export default (router: Router<IState, IContext>) =>
 {
+    router.post(ADD, POSTBodyParser(), add());
+    router.post(DISMISS, POSTBodyParser(), dismiss());
     router.get(INFO, JSONQueryParameterParser(), info());
     router.get(ACCOUNTS, JSONQueryParameterParser(), accounts());
     router.post(ADD_ACCOUNTS, POSTBodyParser(), addAccounts());

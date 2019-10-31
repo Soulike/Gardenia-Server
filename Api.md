@@ -518,6 +518,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - 仓库不存在
   - 小组不存在
+  - 仓库已在小组中
   - 添加失败：您不是仓库的所有者
   - 添加失败：您不是小组的成员
 - 其他说明：
@@ -525,6 +526,35 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仅当是小组的成员是可以执行本操作
 
 ### Group 模块（`/group`）
+
+### `/add`
+
+- 功能：创建小组
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Omit<Group, 'id'>
+}
+```
+- 响应体：无
+- 响应消息：
+  - 小组名已存在
+- 其他说明：无
+
+### `/dismiss`
+
+- 功能：解散小组
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Omit<Group, 'id'>
+}
+```
+- 响应体：无
+- 响应消息：无
+- 其他说明：无
 
 #### `/info`
 

@@ -1,6 +1,17 @@
 import {IParameterValidator} from '../../Interface';
 
-export const info: IParameterValidator = body =>
+export const add: IParameterValidator = body =>
+{
+    const {group} = body;
+    if (group === undefined)
+    {
+        return false;
+    }
+    const {name} = group;
+    return typeof name === 'string';
+};
+
+export const dismiss: IParameterValidator = body =>
 {
     const {group} = body;
     if (group === undefined)
@@ -11,7 +22,9 @@ export const info: IParameterValidator = body =>
     return typeof id === 'number';
 };
 
-export const accounts = info;
+export const info = dismiss;
+
+export const accounts = dismiss;
 
 export const addAccounts: IParameterValidator = body =>
 {
@@ -32,7 +45,7 @@ export const addAdmins = addAccounts;
 
 export const removeAdmins = removeAccounts;
 
-export const repositories = info;
+export const repositories = dismiss;
 
 export const removeRepositories: IParameterValidator = body =>
 {

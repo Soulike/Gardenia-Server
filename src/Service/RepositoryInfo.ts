@@ -327,6 +327,11 @@ export async function addToGroup(repository: Pick<RepositoryClass, 'username' | 
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
     }
+    if ((await RepositoryTable.getGroupByUsernameAndNameAndGroupId(repository, group)) !== null)
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '仓库已在小组中'));
+    }
     const {username: sessionUsername} = session!;
     if (sessionUsername !== repositoryUsername)
     {

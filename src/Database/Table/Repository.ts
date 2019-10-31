@@ -121,3 +121,25 @@ export async function getGroupsByUsernameAndName(repository: Pick<RepositoryClas
                                        AND r.name = $2`, [repository.username, repository.name]);
     return rows.map(row => Group.from(row));
 }
+
+export async function getGroupByUsernameAndNameAndGroupId(repository: Pick<RepositoryClass, 'username' | 'name'>, group: Pick<Group, 'id'>): Promise<Group | null>
+{
+    const {rows, rowCount} = await pool.query(`SELECT *
+                                               FROM repositories     r,
+                                                    repository_group rg,
+                                                    groups           g
+                                               WHERE r.username = rg.repository_username
+                                                 AND r.name = rg.repository_name
+                                                 AND rg.group_id = g.id
+                                                 AND r.username = $1
+                                                 AND r.name = $2
+                                                 AND g.id = $3`, [repository.username, repository.name, group.id]);
+    if (rowCount !== 1)
+    {
+        return null;
+    }
+    else
+    {
+        return Group.from(rows[0]);
+    }
+}

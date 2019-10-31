@@ -1,7 +1,9 @@
 import {
     create,
     deleteByUsername,
+    getAdministratingGroupByUsernameAndGroupName,
     getAdministratingGroupsByUsername,
+    getGroupByUsernameAndGroupName,
     getGroupsByUsername,
     insert,
     selectByUsername,
@@ -309,6 +311,162 @@ describe(getAdministratingGroupsByUsername, () =>
                 group.id = await insertFakeGroupAndReturnId(client, group);
             }),
             ...fakeGroupsForAdminAccount2.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+        ]);
+    }
+});
+
+describe(getGroupByUsernameAndGroupName, () =>
+{
+    const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeGroupsForAccount1: Group[] = [];
+    const fakeGroupsForAccount2: Group[] = [];
+
+    beforeAll(async () =>
+    {
+        generateFakeGroups();
+        await Promise.all([
+            insertFakeAccounts(client, [fakeAccount1, fakeAccount2]),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertAccountGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            insertAccountGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
+    });
+
+    afterAll(async () =>
+    {
+        await Promise.all([
+            deleteAccountGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            deleteAccountGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, fakeGroupsForAccount1.map(({id}) => id)),
+            deleteFakeGroupsByIds(client, fakeGroupsForAccount2.map(({id}) => id)),
+            deleteFakeAccounts(client, [fakeAccount1.username, fakeAccount2.username]),
+        ]);
+    });
+
+    it('should get groups by username and the name of group', async function ()
+    {
+        const [fakeGroup1, fakeGroup2] =
+            await Promise.all([
+                getGroupByUsernameAndGroupName(fakeAccount1.username, fakeGroupsForAccount1[1].name),
+                getGroupByUsernameAndGroupName(fakeAccount2.username, fakeGroupsForAccount2[2].name),
+            ]);
+        expect(fakeGroup1).toStrictEqual(fakeGroupsForAccount1[1]);
+        expect(fakeGroup2).toStrictEqual(fakeGroupsForAccount2[2]);
+    });
+
+    it('should return null when group does not exist', async function ()
+    {
+        const fakeGroup = await getGroupByUsernameAndGroupName(fakeAccount1.username, fakeGroupsForAccount2[1].name);
+        expect(fakeGroup).toBeNull();
+    });
+
+    function generateFakeGroups()
+    {
+        for (let i = 0; i < 5; i++)
+        {
+            fakeGroupsForAccount1.push(new Group(-1, faker.random.word()));
+            fakeGroupsForAccount2.push(new Group(-1, faker.random.word()));
+        }
+    }
+
+    async function insertFakeGroups()
+    {
+        await Promise.all([
+            ...fakeGroupsForAccount1.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+            ...fakeGroupsForAccount2.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+        ]);
+    }
+});
+
+describe(getAdministratingGroupByUsernameAndGroupName, () =>
+{
+    const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeGroupsForAccount1: Group[] = [];
+    const fakeGroupsForAccount2: Group[] = [];
+
+    beforeAll(async () =>
+    {
+        generateFakeGroups();
+        await Promise.all([
+            insertFakeAccounts(client, [fakeAccount1, fakeAccount2]),
+            insertFakeGroups(),
+        ]);
+        await Promise.all([
+            insertAccountGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            insertAccountGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            insertAdminGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            insertAdminGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
+    });
+
+    afterAll(async () =>
+    {
+        await Promise.all([
+            deleteAdminGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            deleteAdminGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteAccountGroups(client, fakeAccount1.username, fakeGroupsForAccount1.map(({id}) => id)),
+            deleteAccountGroups(client, fakeAccount2.username, fakeGroupsForAccount2.map(({id}) => id)),
+        ]);
+        await Promise.all([
+            deleteFakeGroupsByIds(client, fakeGroupsForAccount1.map(({id}) => id)),
+            deleteFakeGroupsByIds(client, fakeGroupsForAccount2.map(({id}) => id)),
+            deleteFakeAccounts(client, [fakeAccount1.username, fakeAccount2.username]),
+        ]);
+    });
+
+    it('should get groups by username and the name of group', async function ()
+    {
+        const [fakeGroup1, fakeGroup2] =
+            await Promise.all([
+                getAdministratingGroupByUsernameAndGroupName(fakeAccount1.username, fakeGroupsForAccount1[1].name),
+                getAdministratingGroupByUsernameAndGroupName(fakeAccount2.username, fakeGroupsForAccount2[2].name),
+            ]);
+        expect(fakeGroup1).toStrictEqual(fakeGroupsForAccount1[1]);
+        expect(fakeGroup2).toStrictEqual(fakeGroupsForAccount2[2]);
+    });
+
+    it('should return null when group does not exist', async function ()
+    {
+        const fakeGroup = await getAdministratingGroupByUsernameAndGroupName(fakeAccount1.username, fakeGroupsForAccount2[1].name);
+        expect(fakeGroup).toBeNull();
+    });
+
+    function generateFakeGroups()
+    {
+        for (let i = 0; i < 5; i++)
+        {
+            fakeGroupsForAccount1.push(new Group(-1, faker.random.word()));
+            fakeGroupsForAccount2.push(new Group(-1, faker.random.word()));
+        }
+    }
+
+    async function insertFakeGroups()
+    {
+        await Promise.all([
+            ...fakeGroupsForAccount1.map(async group =>
+            {
+                group.id = await insertFakeGroupAndReturnId(client, group);
+            }),
+            ...fakeGroupsForAccount2.map(async group =>
             {
                 group.id = await insertFakeGroupAndReturnId(client, group);
             }),

@@ -3,6 +3,32 @@ import * as ParameterValidator from './ParameterValidator';
 import {WrongParameterError} from '../../Class';
 import {Group as GroupService} from '../../../Service';
 
+export const add: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.add(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.add(group, ctx.session);
+    };
+};
+
+export const dismiss: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.dismiss(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.dismiss(group);
+    };
+};
+
 export const info: IRouteHandler = () =>
 {
     return async ctx =>

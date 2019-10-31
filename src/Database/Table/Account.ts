@@ -133,3 +133,45 @@ export async function getAdministratingGroupsByUsername(username: AccountClass['
         [username]);
     return rows.map(row => Group.from(row));
 }
+
+export async function getGroupByUsernameAndGroupName(username: AccountClass['username'], groupName: Group['name']): Promise<Group | null>
+{
+    const {rows, rowCount} = await pool.query(`SELECT *
+                                               FROM accounts      a,
+                                                    account_group ag,
+                                                    groups        g
+                                               WHERE a.username = ag.username
+                                                 AND ag.group_id = g.id
+                                                 AND a.username = $1
+                                                 AND g.name = $2`,
+        [username, groupName]);
+    if (rowCount !== 1)
+    {
+        return null;
+    }
+    else
+    {
+        return Group.from(rows[0]);
+    }
+}
+
+export async function getAdministratingGroupByUsernameAndGroupName(username: AccountClass['username'], groupName: Group['name']): Promise<Group | null>
+{
+    const {rows, rowCount} = await pool.query(`SELECT *
+                                               FROM accounts    a,
+                                                    admin_group ag,
+                                                    groups      g
+                                               WHERE a.username = ag.admin_username
+                                                 AND ag.group_id = g.id
+                                                 AND a.username = $1
+                                                 AND g.name = $2`,
+        [username, groupName]);
+    if (rowCount !== 1)
+    {
+        return null;
+    }
+    else
+    {
+        return Group.from(rows[0]);
+    }
+}

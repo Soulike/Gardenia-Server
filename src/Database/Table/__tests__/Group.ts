@@ -608,7 +608,7 @@ describe(addRepositories, () =>
     }
 });
 
-describe('removeRepositories', () =>
+describe(removeRepositories, () =>
 {
     let fakeGroup1Id = -1;
     let fakeGroup2Id = -1;
