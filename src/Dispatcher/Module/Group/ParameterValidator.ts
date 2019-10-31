@@ -58,3 +58,5 @@ export const removeRepositories: IParameterValidator = body =>
     return typeof id === 'number'
         && Array.isArray(repositories);
 };
+
+export const isAdmin = dismiss;

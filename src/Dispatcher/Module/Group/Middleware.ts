@@ -145,3 +145,16 @@ export const removeRepositories: IRouteHandler = () =>
         ctx.state.serviceResponse = await GroupService.removeRepositories(group, repositories, ctx.session);
     };
 };
+
+export const isAdmin: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.isAdmin(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group} = ctx.request.body;
+        ctx.state.serviceResponse = await GroupService.isAdmin(group, ctx.session);
+    };
+};

@@ -8,6 +8,7 @@ import {
     ADMINS,
     DISMISS,
     INFO,
+    IS_ADMIN,
     REMOVE_ACCOUNTS,
     REMOVE_ADMINS,
     REMOVE_REPOSITORIES,
@@ -22,6 +23,7 @@ import {
     admins,
     dismiss,
     info,
+    isAdmin,
     removeAccounts,
     removeAdmins,
     removeRepositories,
@@ -42,4 +44,5 @@ export default (router: Router<IState, IContext>) =>
     router.post(REMOVE_ADMINS, POSTBodyParser(), removeAdmins());
     router.get(REPOSITORIES, JSONQueryParameterParser(), repositories());
     router.post(REMOVE_REPOSITORIES, POSTBodyParser(), removeRepositories());
+    router.get(IS_ADMIN, JSONQueryParameterParser(), isAdmin());
 };

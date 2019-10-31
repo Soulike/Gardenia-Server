@@ -109,6 +109,12 @@ export async function removeAccounts(group: Pick<Group, 'id'>, usernames: string
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
     }
+    const {username: usernameInSession} = session!;
+    if (usernames.includes(usernameInSession))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '不允许移除自己'));
+    }
     await GroupTable.removeAccounts(groupId, usernames);
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
@@ -213,6 +219,29 @@ export async function removeRepositories(group: Pick<Group, 'id'>, repositories:
     await GroupTable.removeRepositories(group.id, repositories);
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true, ''));
+}
+
+export async function isAdmin(group: Pick<Group, 'id'>, session: Session | null): Promise<ServiceResponse<{ isAdmin: boolean } | void>>
+{
+    if (!(await groupExists(group)))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '小组不存在'));
+    }
+    if (session === null)
+    {
+        return new ServiceResponse<{ isAdmin: boolean }>(200, {},
+            new ResponseBody<{ isAdmin: boolean }>(true, '', {isAdmin: false}));
+    }
+    const {username} = session;
+    if (typeof username !== 'string')
+    {
+        return new ServiceResponse<{ isAdmin: boolean }>(200, {},
+            new ResponseBody<{ isAdmin: boolean }>(true, '', {isAdmin: false}));
+    }
+    const groupInDatabase = await AccountTable.getAdministratingGroupByUsernameAndGroupId(username, group.id);
+    return new ServiceResponse<{ isAdmin: boolean }>(200, {},
+        new ResponseBody<{ isAdmin: boolean }>(true, '', {isAdmin: groupInDatabase !== null}));
 }
 
 async function isAbleToUpdateGroup(group: Pick<Group, 'id'>, session: Session | null): Promise<boolean>

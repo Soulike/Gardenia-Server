@@ -623,9 +623,11 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 小组不存在
+  - 不允许移除自己
   - 删除失败：您不是小组的管理员
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足
+  - 管理员不能移除自己
 
 #### `/admins`
 
@@ -682,6 +684,28 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 删除失败：您不是小组的管理员
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足
+
+#### `/isAdmin`
+
+- 功能：确定请求者是否是管理员
+- 方法：GET
+- 请求体：
+```ts
+{
+    json: {
+        group: Pick<Group, 'id'>,
+    }
+}
+```
+- 响应体：
+```ts
+{
+    isAdmin: boolean,
+}
+```
+- 响应消息：
+  - 小组不存在
+- 其他说明：无
 
 #### `/repositories`
 
