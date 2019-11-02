@@ -297,6 +297,21 @@ export async function setDescription(username: string, repositoryName: string, d
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
+export async function setIsPublic(repository: Pick<RepositoryClass, 'name' | 'isPublic'>, session: Session): Promise<ServiceResponse<void>>
+{
+    const {name, isPublic} = repository;
+    const {username} = session;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
+    if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+    repositoryInDatabase!.isPublic = isPublic;
+    await RepositoryTable.update(repositoryInDatabase!);
+    return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
+}
+
 export async function groups(repository: Pick<RepositoryClass, 'username' | 'name'>, session: Session | null): Promise<ServiceResponse<Group[]>>
 {
     const {username, name} = repository;

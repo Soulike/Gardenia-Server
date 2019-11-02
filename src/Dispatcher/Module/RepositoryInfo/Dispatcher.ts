@@ -10,6 +10,7 @@ import {
     RAW_FILE,
     REPOSITORY,
     SET_DESCRIPTION,
+    SET_IS_PUBLIC,
     SET_NAME,
 } from './ROUTE';
 import JSONQueryParameterParser from '../../Middleware/JSONQueryParameterParser';
@@ -25,6 +26,7 @@ import {
     rawFile,
     repository,
     setDescription,
+    setIsPublic,
     setName,
 } from './Middleware';
 import {IContext, IState} from '../../Interface';
@@ -40,6 +42,7 @@ export default (router: Router<IState, IContext>) =>
     router.get(RAW_FILE, JSONQueryParameterParser(), rawFile());
     router.post(SET_NAME, POSTBodyParser(), setName());
     router.post(SET_DESCRIPTION, POSTBodyParser(), setDescription());
+    router.post(SET_IS_PUBLIC, POSTBodyParser(), setIsPublic());
     router.get(GROUPS, JSONQueryParameterParser(), groups());
     router.post(ADD_TO_GROUP, POSTBodyParser(), addToGroup());
 };

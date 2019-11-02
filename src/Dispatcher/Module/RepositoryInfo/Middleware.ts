@@ -130,6 +130,24 @@ export const setDescription: IRouteHandler = () =>
     };
 };
 
+export const setIsPublic: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.setIsPublic(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        if (typeof username !== 'string')
+        {
+            throw new InvalidSessionError();
+        }
+        const {repository} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.setIsPublic(repository, ctx.session);
+    };
+};
+
 export const groups: IRouteHandler = () =>
 {
     return async (ctx) =>

@@ -505,6 +505,21 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
+#### `/setIsPublic`
+
+- 功能：修改仓库可见性
+- 方法：POST
+- 请求参数：
+```ts
+{
+    repository: Pick<Repository, 'name' | 'isPublic'>
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
 #### `/groups`
 
 - 功能：获取仓库所属小组

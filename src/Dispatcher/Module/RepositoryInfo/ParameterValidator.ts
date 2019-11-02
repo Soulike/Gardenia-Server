@@ -59,6 +59,18 @@ export const setDescription: IParameterValidator = body =>
         && typeof description === 'string';
 };
 
+export const setIsPublic: IParameterValidator = body =>
+{
+    const {repository} = body;
+    if (typeof repository === 'undefined')
+    {
+        return false;
+    }
+    const {name, isPublic} = repository;
+    return typeof name === 'string'
+        && typeof isPublic === 'boolean';
+};
+
 export const groups: IParameterValidator = body =>
 {
     const {repository} = body;
