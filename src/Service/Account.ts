@@ -72,3 +72,17 @@ export async function getAdministratingGroups(username: AccountClass['username']
     return new ServiceResponse<Group[]>(200, {},
         new ResponseBody<Group[]>(true, '', groups));
 }
+
+export async function checkPassword(account: AccountClass): Promise<ServiceResponse<{ isCorrect: boolean }>>
+{
+    const {username, hash} = account;
+    const accountInDatabase = await AccountTable.selectByUsername(username);
+    if (accountInDatabase === null)
+    {
+        return new ServiceResponse<{ isCorrect: boolean }>(200, {},
+            new ResponseBody<{ isCorrect: boolean }>(true, '', {isCorrect: false}));
+    }
+    const {hash: expectedHash} = accountInDatabase;
+    return new ServiceResponse<{ isCorrect: boolean }>(200, {},
+        new ResponseBody<{ isCorrect: boolean }>(true, '', {isCorrect: hash === expectedHash}));
+}

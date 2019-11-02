@@ -160,6 +160,25 @@ export enum ObjectType
 - 响应消息：无
 - 其他说明：无
 
+#### `/checkPassword`
+
+- 功能：检测当前会话的密码是否正确
+- 方法：GET
+- 请求体：
+```
+{
+    json : Pick<Account, 'hash'>
+}
+```
+- 响应体：
+```ts
+{
+    isCorrect: boolean,
+}
+```
+- 响应消息：无
+- 其他说明：无
+
 #### `/logout`
 
 - 功能：退出登录

@@ -1,7 +1,8 @@
 import {Account as AccountService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
 import {IRouteHandler} from '../../Interface';
-import {WrongParameterError} from '../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {Account} from '../../../Class';
 
 export const login: IRouteHandler = () =>
 {
@@ -73,5 +74,23 @@ export const getAdministratingGroups: IRouteHandler = () =>
         }
         const {username} = ctx.request.body;
         ctx.state.serviceResponse = await AccountService.getAdministratingGroups(username);
+    };
+};
+
+export const checkPassword: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (ctx.session === null || typeof ctx.session.username !== 'string')
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.checkPassword(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {hash} = ctx.request.body;
+        ctx.state.serviceResponse = await AccountService.checkPassword(new Account(username, hash));
     };
 };

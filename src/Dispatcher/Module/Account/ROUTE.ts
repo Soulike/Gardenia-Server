@@ -11,3 +11,4 @@ export const CHECK_SESSION = accountPrefix('/checkSession');
 export const LOGOUT = accountPrefix('/logout');
 export const GET_GROUPS = accountPrefix('/getGroups');
 export const GET_ADMINISTRATING_GROUPS = accountPrefix('/getAdministratingGroups');
+export const CHECK_PASSWORD = accountPrefix('/checkPassword');

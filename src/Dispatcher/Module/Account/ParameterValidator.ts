@@ -19,3 +19,9 @@ export const getGroups: IParameterValidator = body =>
 };
 
 export const getAdministratingGroups = getGroups;
+
+export const checkPassword: IParameterValidator = body =>
+{
+    const {hash} = body;
+    return typeof hash === 'string';
+};
