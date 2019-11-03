@@ -4,12 +4,12 @@ import {ServiceResponse} from '../Class';
 
 export interface IParameterValidator
 {
-    (body: any): boolean
+    (body: Readonly<any>): boolean
 }
 
 export interface IState
 {
-    serviceResponse: ServiceResponse<any> | void
+    serviceResponse: Readonly<ServiceResponse<any>> | void
 }
 
 export interface IContext

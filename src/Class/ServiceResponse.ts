@@ -6,11 +6,10 @@ import {ResponseBody} from './ResponseBody';
  * */
 export class ServiceResponse<TBody>
 {
-    public statusCode: number;
-    public headers?: { [key: string]: string };
-    public session?: { [key: string]: string | undefined };
-
-    public body?: ResponseBody<TBody>;
+    public readonly statusCode: number;
+    public readonly headers?: Readonly<{ [key: string]: string }>;
+    public readonly session?: Readonly<{ [key: string]: string | undefined }>;
+    public readonly body?: Readonly<ResponseBody<TBody>>;
 
     /**
      * @constructor
@@ -19,11 +18,12 @@ export class ServiceResponse<TBody>
      * @param body - 响应体
      * @param session - 会话对象
      * */
-    constructor(statusCode: number, headers?: { [p: string]: string }, body?: ResponseBody<TBody>, session?: { [key: string]: string | undefined })
+
+    constructor(statusCode: number, headers?: { [key: string]: string }, body?: ResponseBody<TBody>, session?: { [key: string]: string | undefined })
     {
         this.statusCode = statusCode;
-        this.headers = headers;
-        this.body = body;
-        this.session = session;
+        this.headers = Object.freeze(headers);
+        this.session = Object.freeze(session);
+        this.body = Object.freeze(body);
     }
 }

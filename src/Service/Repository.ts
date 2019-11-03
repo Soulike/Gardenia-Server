@@ -8,7 +8,7 @@ import {Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
 import fse from 'fs-extra';
 
-export async function create(repository: RepositoryClass): Promise<ServiceResponse<void>>
+export async function create(repository: Readonly<RepositoryClass>): Promise<ServiceResponse<void>>
 {
     const {username, name} = repository;
     // 检查是否有同名仓库
@@ -110,7 +110,7 @@ export async function del(username: RepositoryClass['username'], name: Repositor
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function getList(start: number, end: number, session: Session | null, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
+export async function getList(start: number, end: number, session: Readonly<Session | null>, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
 {
     let repositories: Array<RepositoryClass> = [];
     if (username)

@@ -4,7 +4,7 @@ import {Profile as ProfileClass} from '../../Class';
 import validator from 'validator';
 import {strict as assert} from 'assert';
 
-export async function update(profile: ProfileClass): Promise<void>
+export async function update(profile: Readonly<ProfileClass>): Promise<void>
 {
     const client = await pool.connect();
     try

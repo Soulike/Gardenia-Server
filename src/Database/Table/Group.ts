@@ -2,7 +2,7 @@ import {Account, Group, Repository} from '../../Class';
 import pool from '../Pool';
 import {executeTransaction} from '../Function';
 
-export async function insertAndReturnId(group: Omit<Group, 'id'>): Promise<Group['id']>
+export async function insertAndReturnId(group: Readonly<Omit<Group, 'id'>>): Promise<Group['id']>
 {
     const client = await pool.connect();
     try
@@ -45,7 +45,7 @@ export async function deleteById(id: Group['id']): Promise<void>
     }
 }
 
-export async function update(group: Group): Promise<void>
+export async function update(group: Readonly<Group>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -98,7 +98,7 @@ export async function getAccountsById(id: Group['id']): Promise<Account[]>
     return rows.map(row => Account.from(row));
 }
 
-export async function addAccounts(id: Group['id'], usernames: Account['username'][]): Promise<void>
+export async function addAccounts(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -118,7 +118,7 @@ export async function addAccounts(id: Group['id'], usernames: Account['username'
     }
 }
 
-export async function removeAccounts(id: Group['id'], usernames: Account['username'][]): Promise<void>
+export async function removeAccounts(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -154,7 +154,7 @@ export async function getAdminsById(id: Group['id']): Promise<Account[]>
     return rows.map(row => Account.from(row));
 }
 
-export async function addAdmins(id: Group['id'], usernames: Account['username'][]): Promise<void>
+export async function addAdmins(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -174,7 +174,7 @@ export async function addAdmins(id: Group['id'], usernames: Account['username'][
     }
 }
 
-export async function removeAdmins(id: Group['id'], usernames: Account['username'][]): Promise<void>
+export async function removeAdmins(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -211,7 +211,7 @@ export async function getRepositoriesById(id: Group['id']): Promise<Repository[]
     return rows.map(row => Repository.from(row));
 }
 
-export async function addRepositories(id: Group['id'], repositories: Pick<Repository, 'username' | 'name'>[]): Promise<void>
+export async function addRepositories(id: Group['id'], repositories: Readonly<Readonly<Pick<Repository, 'username' | 'name'>>[]>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -231,7 +231,7 @@ export async function addRepositories(id: Group['id'], repositories: Pick<Reposi
     }
 }
 
-export async function removeRepositories(id: Group['id'], repositories: Pick<Repository, 'username' | 'name'>[]): Promise<void>
+export async function removeRepositories(id: Group['id'], repositories: Readonly<Readonly<Pick<Repository, 'username' | 'name'>>[]>): Promise<void>
 {
     const client = await pool.connect();
     try

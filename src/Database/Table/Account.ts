@@ -19,7 +19,7 @@ export async function selectByUsername(username: AccountClass['username']): Prom
     }
 }
 
-export async function update(account: AccountClass): Promise<void>
+export async function update(account: Readonly<AccountClass>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -40,7 +40,7 @@ export async function update(account: AccountClass): Promise<void>
     }
 }
 
-export async function insert(account: AccountClass): Promise<void>
+export async function insert(account: Readonly<AccountClass>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -83,7 +83,7 @@ export async function deleteByUsername(username: AccountClass['username']): Prom
 /**
  * @description 为注册操作编写的接口，可以在一个事务内完成账号和账号资料的创建
  * */
-export async function create(account: AccountClass, profile: ProfileClass): Promise<void>
+export async function create(account: Readonly<AccountClass>, profile: Readonly<ProfileClass>): Promise<void>
 {
     const client = await pool.connect();
     try

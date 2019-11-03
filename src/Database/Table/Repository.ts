@@ -2,7 +2,7 @@ import {executeTransaction} from '../Function';
 import pool from '../Pool';
 import {Group, Repository as RepositoryClass} from '../../Class';
 
-export async function insert(repository: RepositoryClass): Promise<void>
+export async function insert(repository: Readonly<RepositoryClass>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -39,7 +39,7 @@ export async function deleteByUsernameAndName(username: RepositoryClass['usernam
     }
 }
 
-export async function update(repository: RepositoryClass, primaryKey?: Pick<RepositoryClass, 'username' | 'name'>): Promise<void>
+export async function update(repository: Readonly<RepositoryClass>, primaryKey?: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -108,7 +108,7 @@ export async function selectByUsername(username: RepositoryClass['username'], of
     return rows.map(row => RepositoryClass.from(row));
 }
 
-export async function getGroupsByUsernameAndName(repository: Pick<RepositoryClass, 'username' | 'name'>): Promise<Group[]>
+export async function getGroupsByUsernameAndName(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<Group[]>
 {
     const {rows} = await pool.query(`SELECT *
                                      FROM repositories     r,
@@ -122,7 +122,7 @@ export async function getGroupsByUsernameAndName(repository: Pick<RepositoryClas
     return rows.map(row => Group.from(row));
 }
 
-export async function getGroupByUsernameAndNameAndGroupId(repository: Pick<RepositoryClass, 'username' | 'name'>, group: Pick<Group, 'id'>): Promise<Group | null>
+export async function getGroupByUsernameAndNameAndGroupId(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, group: Readonly<Pick<Group, 'id'>>): Promise<Group | null>
 {
     const {rows, rowCount} = await pool.query(`SELECT *
                                                FROM repositories     r,

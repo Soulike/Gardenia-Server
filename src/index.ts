@@ -10,7 +10,7 @@ app.on('error', (e: Error) =>
 {
     signale.error(`未捕获的错误:\n${e.stack}`);
 });
-app.use(session(SESSION, app));
+app.use(session({...SESSION}, app));
 app.use(dispatcher());
 app.listen(SERVER.PORT, () =>
 {

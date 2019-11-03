@@ -10,7 +10,7 @@ import {spawn} from 'child_process';
 import mime from 'mime-types';
 import fse from 'fs-extra';
 
-export async function repository(username: string, repositoryName: string, session: Session | null): Promise<ServiceResponse<RepositoryClass | void>>
+export async function repository(username: string, repositoryName: string, session: Readonly<Session | null>): Promise<ServiceResponse<RepositoryClass | void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -22,7 +22,7 @@ export async function repository(username: string, repositoryName: string, sessi
         new ResponseBody<RepositoryClass>(true, '', repository!));
 }
 
-export async function branch(username: string, repositoryName: string, session: Session | null): Promise<ServiceResponse<Array<string> | void>>
+export async function branch(username: string, repositoryName: string, session: Readonly<Session | null>): Promise<ServiceResponse<Array<string> | void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -36,7 +36,7 @@ export async function branch(username: string, repositoryName: string, session: 
         new ResponseBody<Array<string>>(true, '', branches));
 }
 
-export async function lastCommit(username: string, repositoryName: string, commitHash: string, session: Session | null, filePath?: string): Promise<ServiceResponse<Commit | void>>
+export async function lastCommit(username: string, repositoryName: string, commitHash: string, session: Readonly<Session | null>, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -59,7 +59,7 @@ export async function lastCommit(username: string, repositoryName: string, commi
     }
 }
 
-export async function directory(username: string, repositoryName: string, commitHash: string, directoryPath: string, session: Session | null): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
+export async function directory(username: string, repositoryName: string, commitHash: string, directoryPath: string, session: Readonly<Session | null>): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -124,7 +124,7 @@ export async function directory(username: string, repositoryName: string, commit
     }
 }
 
-export async function commitCount(username: string, name: string, commitHash: string, session: Session | null): Promise<ServiceResponse<{ commitCount: number } | void>>
+export async function commitCount(username: string, name: string, commitHash: string, session: Readonly<Session | null>): Promise<ServiceResponse<{ commitCount: number } | void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, name);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -157,7 +157,7 @@ export async function commitCount(username: string, name: string, commitHash: st
     }
 }
 
-export async function fileInfo(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session | null): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
+export async function fileInfo(username: string, repositoryName: string, filePath: string, commitHash: string, session: Readonly<Session | null>): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -210,7 +210,7 @@ export async function fileInfo(username: string, repositoryName: string, filePat
     }
 }
 
-export async function rawFile(username: string, repositoryName: string, filePath: string, commitHash: string, session: Session | null, res: ServerResponse): Promise<void>
+export async function rawFile(username: string, repositoryName: string, filePath: string, commitHash: string, session: Readonly<Session | null>, res: ServerResponse): Promise<void>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -238,7 +238,7 @@ export async function rawFile(username: string, repositoryName: string, filePath
     await Promisify.waitForEvent(childProcess, 'close');    // 等待传输结束
 }
 
-export async function setName(username: string, repositoryName: string, newRepositoryName: string, session: Session | null): Promise<ServiceResponse<void>>
+export async function setName(username: string, repositoryName: string, newRepositoryName: string, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
 {
     if ((await RepositoryTable.selectByUsernameAndName(username, newRepositoryName)) !== null)
     {
@@ -284,7 +284,7 @@ export async function setName(username: string, repositoryName: string, newRepos
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function setDescription(username: string, repositoryName: string, description: string, session: Session | null): Promise<ServiceResponse<void>>
+export async function setDescription(username: string, repositoryName: string, description: string, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
 {
     const repository = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
     if (!repositoryIsAvailableToTheViewer(repository, session))
@@ -297,9 +297,14 @@ export async function setDescription(username: string, repositoryName: string, d
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function setIsPublic(repository: Pick<RepositoryClass, 'name' | 'isPublic'>, session: Session): Promise<ServiceResponse<void>>
+export async function setIsPublic(repository: Readonly<Pick<RepositoryClass, 'name' | 'isPublic'>>, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
 {
     const {name, isPublic} = repository;
+    if (session === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
     const {username} = session;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
@@ -312,7 +317,7 @@ export async function setIsPublic(repository: Pick<RepositoryClass, 'name' | 'is
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function groups(repository: Pick<RepositoryClass, 'username' | 'name'>, session: Session | null): Promise<ServiceResponse<Group[]>>
+export async function groups(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, session: Readonly<Session | null>): Promise<ServiceResponse<Group[]>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
@@ -326,7 +331,7 @@ export async function groups(repository: Pick<RepositoryClass, 'username' | 'nam
         new ResponseBody<Group[]>(true, '', groups));
 }
 
-export async function addToGroup(repository: Pick<RepositoryClass, 'username' | 'name'>, group: Pick<Group, 'id'>, session: Session | null): Promise<ServiceResponse<void>>
+export async function addToGroup(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
 {
     const {username: repositoryUsername, name: repositoryName} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repositoryUsername, repositoryName);
@@ -369,7 +374,7 @@ export async function addToGroup(repository: Pick<RepositoryClass, 'username' | 
  * @param repository - 被访问的仓库
  * @param session - 访问者的 Session 对象，若不传入则仅检查仓库是否存在
  * */
-function repositoryIsAvailableToTheViewer(repository: RepositoryClass | null, session: Session | null): boolean
+function repositoryIsAvailableToTheViewer(repository: Readonly<RepositoryClass | null>, session: Readonly<Session | null>): boolean
 {
     let isAvailable = false;
     if (repository === null)
