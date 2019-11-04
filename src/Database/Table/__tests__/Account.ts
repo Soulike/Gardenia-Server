@@ -85,7 +85,7 @@ describe(update, () =>
     it('should update account', async function ()
     {
         const modifiedFakeAccount = new Account(fakeAccount.username, faker.random.alphaNumeric(64));
-        await update(modifiedFakeAccount);
+        await update(modifiedFakeAccount, {username: modifiedFakeAccount.username});
         expect(await selectFakeAccount(client, fakeAccount.username)).toStrictEqual(modifiedFakeAccount);
     });
 });

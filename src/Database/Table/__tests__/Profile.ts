@@ -69,7 +69,7 @@ describe(update, () =>
     {
         const modifiedFakeProfile = Profile.from(fakeProfile);
         modifiedFakeProfile.email = faker.internet.email();
-        await update(modifiedFakeProfile);
+        await update(modifiedFakeProfile, {username: modifiedFakeProfile.username});
         expect(await selectFakeProfile(client, fakeProfile.username)).toStrictEqual(modifiedFakeProfile);
     });
 });

@@ -4,7 +4,7 @@ import {Profile as ProfileClass} from '../../Class';
 import validator from 'validator';
 import {strict as assert} from 'assert';
 
-export async function update(profile: Readonly<ProfileClass>): Promise<void>
+export async function update(profile: Readonly<ProfileClass>, primaryKey: Readonly<Pick<ProfileClass, 'username'>>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -18,8 +18,8 @@ export async function update(profile: Readonly<ProfileClass>): Promise<void>
                          "nickname"=$2,
                          "email"=$3,
                          "avatar"=$4
-                     WHERE "username" = $1`,
-                [profile.username, profile.nickname, profile.email, profile.avatar]);
+                     WHERE "username" = $5`,
+                [profile.username, profile.nickname, profile.email, profile.avatar, primaryKey.username]);
         });
     }
     finally

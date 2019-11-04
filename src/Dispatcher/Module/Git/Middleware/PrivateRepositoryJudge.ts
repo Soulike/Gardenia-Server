@@ -10,7 +10,7 @@ const middlewareWrapper: IRouteHandler = () =>
         const {params} = ctx;
         const username = params[0];
         const repositoryName = params[1];
-        const repository = await Repository.selectByUsernameAndName(username, repositoryName);
+        const repository = await Repository.selectByUsernameAndName({username, name: repositoryName});
         if (repository === null)
         {
             ctx.response.status = 404;

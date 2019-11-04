@@ -20,3 +20,18 @@ export async function executeTransaction<T extends Client | PoolClient, R>(clien
         throw e;    // 把事务中的错误再次抛出
     }
 }
+
+export function generateParameterizedStatementAndParametersArray(obj: Readonly<{ [key: string]: any }>, connection: 'AND' | ',')
+{
+    const parameters: any[] = [];
+    let parameterizedStatement = '';    // "a"=$1,"b"=$2
+    Object.keys(obj).forEach((key, index) =>
+    {
+        parameterizedStatement += `"${key}"=$${index + 1} ${connection} `;
+        parameters.push(obj[key]);
+    });
+    return {
+        parameters,
+        parameterizedStatement: parameterizedStatement.slice(0, -1 * (connection.length + 2)),    // 删除末尾连接符号
+    };
+}

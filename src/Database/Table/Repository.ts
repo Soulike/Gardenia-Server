@@ -1,4 +1,4 @@
-import {executeTransaction} from '../Function';
+import {executeTransaction, generateParameterizedStatementAndParametersArray} from '../Function';
 import pool from '../Pool';
 import {Group, Repository as RepositoryClass} from '../../Class';
 
@@ -20,11 +20,12 @@ export async function insert(repository: Readonly<RepositoryClass>): Promise<voi
     }
 }
 
-export async function deleteByUsernameAndName(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<void>
+export async function deleteByUsernameAndName(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
     try
     {
+        const {username, name} = repository;
         await executeTransaction(client, async client =>
         {
             await client.query(`DELETE
@@ -39,7 +40,7 @@ export async function deleteByUsernameAndName(username: RepositoryClass['usernam
     }
 }
 
-export async function update(repository: Readonly<RepositoryClass>, primaryKey?: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
+export async function update(repository: Readonly<RepositoryClass>, primaryKey: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -53,9 +54,7 @@ export async function update(repository: Readonly<RepositoryClass>, primaryKey?:
                                     "isPublic"=$4
                                 WHERE "username" = $5
                                   AND "name" = $6`,
-                [repository.username, repository.name, repository.description, repository.isPublic,
-                    primaryKey ? primaryKey.username : repository.username,
-                    primaryKey ? primaryKey.name : repository.name]);
+                [repository.username, repository.name, repository.description, repository.isPublic, primaryKey.username, primaryKey.name]);
         });
     }
     finally
@@ -64,8 +63,9 @@ export async function update(repository: Readonly<RepositoryClass>, primaryKey?:
     }
 }
 
-export async function selectByUsernameAndName(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<RepositoryClass | null>
+export async function selectByUsernameAndName(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<RepositoryClass | null>
 {
+    const {username, name} = repository;
     const {rows, rowCount} = await pool.query(`SELECT *
                                                FROM repositories
                                                WHERE "username" = $1
@@ -80,31 +80,13 @@ export async function selectByUsernameAndName(username: RepositoryClass['usernam
     }
 }
 
-export async function selectByIsPublic(isPublic: RepositoryClass['isPublic'], offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Array<RepositoryClass>>
+export async function select(repository: Readonly<Partial<RepositoryClass>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<RepositoryClass[]>
 {
-    const {rows} = await pool.query(`SELECT *
-                                     FROM "repositories"
-                                     WHERE "isPublic" = $1 OFFSET $2
-                                     LIMIT $3`, [isPublic, offset, limit]);
-    return rows.map(row => RepositoryClass.from(row));
-}
-
-export async function selectByIsPublicAndUsername(isPublic: RepositoryClass['isPublic'], username: RepositoryClass['username'], offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Array<RepositoryClass>>
-{
-    const {rows} = await pool.query(`SELECT *
-                                     FROM repositories
-                                     WHERE "isPublic" = $1
-                                       AND "username" = $2 OFFSET $3
-                                     LIMIT $4`, [isPublic, username, offset, limit]);
-    return rows.map(row => RepositoryClass.from(row));
-}
-
-export async function selectByUsername(username: RepositoryClass['username'], offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Array<RepositoryClass>>
-{
-    const {rows} = await pool.query(`SELECT *
-                                     FROM repositories
-                                     WHERE "username" = $1 OFFSET $2
-                                     LIMIT $3`, [username, offset, limit]);
+    const {parameterizedStatement, parameters} = generateParameterizedStatementAndParametersArray(repository, 'AND');
+    const parameterAmount = parameters.length;
+    const {rows} = await pool.query(
+        `SELECT * FROM repositories WHERE ${parameterizedStatement} OFFSET $${parameterAmount + 1} LIMIT $${parameterAmount + 2}`,
+        [...parameters, offset, limit]);
     return rows.map(row => RepositoryClass.from(row));
 }
 

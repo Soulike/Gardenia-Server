@@ -45,7 +45,7 @@ export async function deleteById(id: Group['id']): Promise<void>
     }
 }
 
-export async function update(group: Readonly<Group>): Promise<void>
+export async function update(group: Readonly<Group>, primaryKey: Readonly<Pick<Group, 'id'>>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -56,8 +56,8 @@ export async function update(group: Readonly<Group>): Promise<void>
                     `UPDATE "groups"
                      SET "id"=$1,
                          "name"=$2
-                     WHERE "id" = $1`,
-                [group.id, group.name]);
+                     WHERE "id" = $3`,
+                [group.id, group.name, primaryKey.id]);
         });
     }
     finally

@@ -13,7 +13,7 @@ export async function create(repository: Readonly<RepositoryClass>): Promise<Ser
 {
     const {username, name} = repository;
     // 检查是否有同名仓库
-    if ((await RepositoryTable.selectByUsernameAndName(username, name)) !== null)
+    if ((await RepositoryTable.selectByUsernameAndName({username, name})) !== null)
     {
         return new ServiceResponse<void>(200, {}, new ResponseBody<void>(false, '仓库已存在'));
     }
@@ -76,7 +76,7 @@ export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, s
     }
     const {name} = repository;
     // 检查仓库是否存在
-    if ((await RepositoryTable.selectByUsernameAndName(username, name)) === null)
+    if ((await RepositoryTable.selectByUsernameAndName({username, name})) === null)
     {
         return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '仓库不存在'));
     }
@@ -104,7 +104,7 @@ export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, s
     // 文件夹移动成功，删除数据库记录
     try
     {
-        await RepositoryTable.deleteByUsernameAndName(username, name);
+        await RepositoryTable.deleteByUsernameAndName({username, name});
     }
     catch (e)   // 数据库记录删除失败，把仓库文件夹移动回去
     {
@@ -124,16 +124,16 @@ export async function getRepositories(start: number, end: number, session: Reado
     {
         if (!SessionFunction.isValid(session) || !SessionFunction.isRequestedBySessionOwner(session, username))
         {
-            repositories = await RepositoryTable.selectByIsPublicAndUsername(true, username, start, end - start);
+            repositories = await RepositoryTable.select({isPublic: true, username}, start, end - start);
         }
         else
         {
-            repositories = await RepositoryTable.selectByUsername(username, start, end - start);
+            repositories = await RepositoryTable.select({username}, start, end - start);
         }
     }
     else
     {
-        repositories = await RepositoryTable.selectByIsPublic(true, start, end - start);
+        repositories = await RepositoryTable.select({isPublic: true}, start, end - start);
     }
     return new ServiceResponse<Array<RepositoryClass>>(200, {},
         new ResponseBody<Array<RepositoryClass>>(true, '', repositories));

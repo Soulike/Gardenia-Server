@@ -109,7 +109,7 @@ describe(update, () =>
         const modifiedFakeGroup = Group.from(fakeGroup);
         modifiedFakeGroup.name = faker.random.word();
         modifiedFakeGroup.id = fakeGroupId;
-        await update(modifiedFakeGroup);
+        await update(modifiedFakeGroup, {id: modifiedFakeGroup.id});
         expect(await selectFakeGroupById(client, fakeGroupId))
             .toStrictEqual(modifiedFakeGroup);
     });

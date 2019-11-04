@@ -206,7 +206,7 @@ export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, rep
     }
     for (const {username, name} of repositories)
     {
-        if (await RepositoryTable.selectByUsernameAndName(username, name) === null)
+        if (await RepositoryTable.selectByUsernameAndName({username, name}) === null)
         {
             return new ServiceResponse<void>(404, {},
                 new ResponseBody<void>(false, `仓库${name}不存在`));

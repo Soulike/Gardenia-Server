@@ -3,9 +3,7 @@ import {
     getGroupByUsernameAndNameAndGroupId,
     getGroupsByUsernameAndName,
     insert,
-    selectByIsPublic,
-    selectByIsPublicAndUsername,
-    selectByUsername,
+    select,
     selectByUsernameAndName,
     update,
 } from '../Repository';
@@ -77,7 +75,7 @@ describe(deleteByUsernameAndName, () =>
 
     it('should delete repository', async function ()
     {
-        await deleteByUsernameAndName(fakeRepository.username, fakeRepository.name);
+        await deleteByUsernameAndName(fakeRepository);
         expect(await selectFakeRepository(client, fakeRepository)).toBeNull();
     });
 });
@@ -98,7 +96,7 @@ describe(update, () =>
     {
         const modifiedFakeRepository = Repository.from(fakeRepository);
         modifiedFakeRepository.description = faker.lorem.sentence();
-        await update(modifiedFakeRepository);
+        await update(modifiedFakeRepository, modifiedFakeRepository);
         expect(await selectFakeRepository(client, modifiedFakeRepository)).toStrictEqual(modifiedFakeRepository);
         await deleteFakeRepository(client, modifiedFakeRepository);
     });
@@ -131,7 +129,7 @@ describe(selectByUsernameAndName, () =>
 
     it('should select repository', async function ()
     {
-        const repository = await selectByUsernameAndName(fakeRepository.username, fakeRepository.name);
+        const repository = await selectByUsernameAndName(fakeRepository);
         expect(repository).toStrictEqual(fakeRepository);
     });
 
@@ -140,12 +138,12 @@ describe(selectByUsernameAndName, () =>
         const nonexistentRepository = Repository.from(fakeRepository);
         nonexistentRepository.username = faker.name.firstName();
         nonexistentRepository.name = faker.random.word();
-        const repository = await selectByUsernameAndName(nonexistentRepository.username, nonexistentRepository.name);
+        const repository = await selectByUsernameAndName(nonexistentRepository);
         expect(repository).toBeNull();
     });
 });
 
-describe(selectByIsPublic, () =>
+describe(select, () =>
 {
     const fakePublicRepositories: Repository[] = [];
     const fakePrivateRepositories: Repository[] = [];
@@ -169,89 +167,35 @@ describe(selectByIsPublic, () =>
 
     it('should select public repository', async function ()
     {
-        const repositories = await selectByIsPublic(true);
+        const repositories = await select({isPublic: true, username: fakeAccount.username});
         repositories.forEach(({isPublic}) => expect(isPublic).toBe(true));
     });
 
     it('should select private repository', async function ()
     {
-        const repositories = await selectByIsPublic(false);
-        repositories.forEach(({isPublic}) => expect(isPublic).toBe(false));
-    });
-
-    it('should select with offset and limit', async function ()
-    {
-        const [repositories1, repositories2] = await Promise.all([
-            selectByIsPublic(true, 0, 1),
-            selectByIsPublic(true, 1, 2),
-        ]);
-        expect(repositories1.length).toBe(1);
-        expect(repositories2.length).toBe(2);
-        expect(repositories1[0]).not.toEqual(repositories2[0]);
-        expect(repositories1[0]).not.toEqual(repositories2[1]);
-    });
-
-    function generateRepositories()
-    {
-        for (let i = 0; i < 5; i++)
-        {
-            fakePublicRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), true));
-            fakePrivateRepositories.push(new Repository(fakeAccount.username, (Number.MAX_SAFE_INTEGER - i).toString(), faker.lorem.sentence(), false));
-        }
-    }
-});
-
-describe(selectByIsPublicAndUsername, () =>
-{
-    const fakePublicRepositories: Repository[] = [];
-    const fakePrivateRepositories: Repository[] = [];
-
-    beforeAll(async () =>
-    {
-        generateRepositories();
-        await Promise.all([
-            insertFakeRepositories(client, fakePublicRepositories),
-            insertFakeRepositories(client, fakePrivateRepositories),
-        ]);
-    });
-
-    afterAll(async () =>
-    {
-        await Promise.all([
-            deleteFakeRepositories(client, fakePublicRepositories),
-            deleteFakeRepositories(client, fakePrivateRepositories),
-        ]);
-    });
-
-    it('should select public repository', async function ()
-    {
-        const repositories = await selectByIsPublicAndUsername(true, fakeAccount.username);
-        repositories.forEach(({isPublic}) => expect(isPublic).toBe(true));
-    });
-
-    it('should select private repository', async function ()
-    {
-        const repositories = await selectByIsPublicAndUsername(false, fakeAccount.username);
+        const repositories = await select({isPublic: false, username: fakeAccount.username});
         repositories.forEach(({isPublic}) => expect(isPublic).toBe(false));
     });
 
     it('should select by username', async function ()
     {
-        const [publicRepositories, privateRepositories] =
+        const [publicRepositories, privateRepositories, repositories] =
             await Promise.all([
-                selectByIsPublicAndUsername(true, faker.name.firstName()),
-                selectByIsPublicAndUsername(false, faker.name.firstName()),
+                select({isPublic: true, username: faker.name.firstName()}),
+                select({isPublic: false, username: faker.name.firstName()}),
+                select({username: fakeAccount.username}),
             ]);
         expect(publicRepositories.length).toBe(0);
         expect(privateRepositories.length).toBe(0);
+        expect(repositories).toEqual(expect.arrayContaining([...fakePublicRepositories, ...fakePrivateRepositories]));
     });
 
     it('should select with offset and limit', async function ()
     {
         const [repositories1, repositories2] =
             await Promise.all([
-                selectByIsPublicAndUsername(true, fakeAccount.username, 0, 1),
-                selectByIsPublicAndUsername(true, fakeAccount.username, 1, 2),
+                select({isPublic: true, username: fakeAccount.username}, 0, 1),
+                select({isPublic: true, username: fakeAccount.username}, 1, 2),
             ]);
         expect(repositories1.length).toBe(1);
         expect(repositories2.length).toBe(2);
@@ -265,55 +209,6 @@ describe(selectByIsPublicAndUsername, () =>
         {
             fakePublicRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), true));
             fakePrivateRepositories.push(new Repository(fakeAccount.username, (Number.MAX_SAFE_INTEGER - i).toString(), faker.lorem.sentence(), false));
-        }
-    }
-});
-
-describe(selectByUsername, () =>
-{
-    const fakeRepositories: Repository[] = [];
-
-    beforeAll(async () =>
-    {
-        generateRepositories();
-        await insertFakeRepositories(client, fakeRepositories);
-    });
-
-    afterAll(async () =>
-    {
-        await deleteFakeRepositories(client, fakeRepositories);
-    });
-
-    it('should select repositories by username', async function ()
-    {
-        const [repositories, repositoriesOfOther] =
-            await Promise.all([
-                selectByUsername(fakeAccount.username),
-                selectByUsername(faker.name.firstName()),
-            ]);
-        expect(repositories.length).toBe(fakeRepositories.length);
-        repositories.forEach(repository => expect(fakeRepositories).toContainEqual(repository));
-        expect(repositoriesOfOther.length).toBe(0);
-    });
-
-    it('should select with offset and limit', async function ()
-    {
-        const [repositories1, repositories2] =
-            await Promise.all([
-                selectByUsername(fakeAccount.username, 0, 1),
-                selectByUsername(fakeAccount.username, 1, 2),
-            ]);
-        expect(repositories1.length).toBe(1);
-        expect(repositories2.length).toBe(2);
-        expect(repositories1[0]).not.toEqual(repositories2[0]);
-        expect(repositories1[0]).not.toEqual(repositories2[1]);
-    });
-
-    function generateRepositories()
-    {
-        for (let i = 0; i < 5; i++)
-        {
-            fakeRepositories.push(new Repository(fakeAccount.username, i.toString(), faker.lorem.sentence(), faker.random.boolean()));
         }
     }
 });

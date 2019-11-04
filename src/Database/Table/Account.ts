@@ -19,7 +19,7 @@ export async function selectByUsername(username: AccountClass['username']): Prom
     }
 }
 
-export async function update(account: Readonly<AccountClass>): Promise<void>
+export async function update(account: Readonly<AccountClass>, primaryKey: Readonly<Pick<AccountClass, 'username'>>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -30,8 +30,8 @@ export async function update(account: Readonly<AccountClass>): Promise<void>
                     `UPDATE accounts
                      SET "username"=$1,
                          "hash"=$2
-                     WHERE "username" = $1`,
-                [account.username, account.hash]);
+                     WHERE "username" = $3`,
+                [account.username, account.hash, primaryKey.username]);
         });
     }
     finally

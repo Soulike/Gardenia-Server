@@ -15,7 +15,7 @@ export async function repository(account: Readonly<Pick<Account, 'username'>>, r
 {
     const {username} = account;
     const {name} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -29,7 +29,7 @@ export async function branch(account: Readonly<Pick<Account, 'username'>>, repos
 {
     const {username} = account;
     const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -45,7 +45,7 @@ export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, r
 {
     const {username} = account;
     const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -70,7 +70,7 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
 {
     const {username} = account;
     const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -137,7 +137,7 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
 {
     const {username} = account;
     const {name} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -172,7 +172,7 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
 {
     const {username} = account;
     const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -227,7 +227,7 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
 {
     const {username} = account;
     const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         res.statusCode = 404;
@@ -262,12 +262,12 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
     {
         throw new InvalidSessionError();
     }
-    if ((await RepositoryTable.selectByUsernameAndName(username, newRepositoryName)) !== null)
+    if ((await RepositoryTable.selectByUsernameAndName({username, name: newRepositoryName})) !== null)
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '仓库名已存在'));
     }
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
@@ -313,14 +313,14 @@ export async function setDescription(repository: Readonly<Pick<RepositoryClass, 
         throw new InvalidSessionError();
     }
     const {name: repositoryName, description} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, repositoryName);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
     repositoryInDatabase!.description = description;
-    await RepositoryTable.update(repositoryInDatabase!);
+    await RepositoryTable.update(repositoryInDatabase!, {username, name: repositoryName});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
@@ -332,21 +332,21 @@ export async function setIsPublic(repository: Readonly<Pick<RepositoryClass, 'na
     {
         throw new InvalidSessionError();
     }
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
     repositoryInDatabase!.isPublic = isPublic;
-    await RepositoryTable.update(repositoryInDatabase!);
+    await RepositoryTable.update(repositoryInDatabase!, {username, name});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
 export async function groups(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Group[]>>
 {
     const {username, name} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(username, name);
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<Group[]>(404, {},
@@ -359,8 +359,8 @@ export async function groups(repository: Readonly<Pick<RepositoryClass, 'usernam
 
 export async function addToGroup(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    const {username: repositoryUsername, name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repositoryUsername, repositoryName);
+    const {username: repositoryUsername} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
