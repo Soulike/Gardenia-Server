@@ -2,7 +2,7 @@ import {IRouteHandler} from '../../Interface';
 import {ResponseBody} from '../../../Class';
 import {Repository as RepositoryService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {WrongParameterError} from '../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../Class';
 
 export const create: IRouteHandler = () =>
 {
@@ -28,7 +28,7 @@ export const del: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        if (ParameterValidator.del(ctx.request.body))
+        if (!ParameterValidator.del(ctx.request.body))
         {
             throw new WrongParameterError();
         }
@@ -36,9 +36,7 @@ export const del: IRouteHandler = () =>
         const {username} = ctx.session;
         if (typeof username !== 'string')
         {
-            ctx.response.status = 403;
-            ctx.response.body = new ResponseBody(false, '未登录操作');
-            return;
+            throw new InvalidSessionError();
         }
 
         ctx.state.serviceResponse = await RepositoryService.del(username, repositoryName);
