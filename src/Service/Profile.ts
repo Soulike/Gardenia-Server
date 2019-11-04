@@ -1,9 +1,15 @@
 import {Account, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable} from '../Database';
+import {Session} from 'koa-session';
+import {InvalidSessionError} from '../Dispatcher/Class';
 
-export async function get(account: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<ProfileClass | void>>
+export async function get(session: Session, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<ProfileClass | void>>
 {
-    const {username} = account;
+    if (typeof account === 'undefined' && typeof session.username !== 'string')
+    {
+        throw new InvalidSessionError();
+    }
+    const {username} = account || session;
     const profile = await ProfileTable.selectByUsername(username);
     if (profile === null)
     {

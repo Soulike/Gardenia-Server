@@ -7,16 +7,11 @@ export const get: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        const {username: usernameInSession} = ctx.session;
-        if (!ParameterValidator.get(ctx.request.body) && typeof usernameInSession !== 'string')
+        if (!ParameterValidator.get(ctx.request.body))
         {
             throw new WrongParameterError();
         }
-        let {username} = ctx.request.body;
-        if (typeof username === 'undefined')
-        {
-            username = ctx.session.username;
-        }
-        ctx.state.serviceResponse = await Profile.get({username});
+        const {account} = ctx.request.body;
+        ctx.state.serviceResponse = await Profile.get(ctx.session, account);
     };
 };

@@ -1,7 +1,7 @@
 import {IRouteHandler} from '../../Interface';
 import {RepositoryInfo} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {WrongParameterError} from '../../Class';
 
 export const repository: IRouteHandler = () =>
 {
@@ -127,11 +127,6 @@ export const setIsPublic: IRouteHandler = () =>
         if (!ParameterValidator.setIsPublic(ctx.request.body))
         {
             throw new WrongParameterError();
-        }
-        const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
         }
         const {repository} = ctx.request.body;
         ctx.state.serviceResponse = await RepositoryInfo.setIsPublic(repository, ctx.session);

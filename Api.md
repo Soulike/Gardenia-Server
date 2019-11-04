@@ -229,7 +229,9 @@ export enum ObjectType
 - 请求体：
 ```ts
 {
-    json: Pick<Account, 'username'>,
+    json: {
+        account?: Pick<Account, 'username'>,
+    },
 }
 ```
 - 响应体：`Profile` 类实例
