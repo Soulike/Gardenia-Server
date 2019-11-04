@@ -122,7 +122,7 @@ export enum ObjectType
 
 - 功能：登录
 - 方法：POST
-- 请求体：`Account` 类的实例
+- 请求体：`Account`
 - 响应体：无
 - 响应消息：
   - 用户名或密码错误
@@ -195,9 +195,7 @@ export enum ObjectType
 - 请求体：
 ```ts
 {
-    json: {
-        username: string,
-    }
+    json: Pick<Account, 'username'>,
 }
 ```
 - 响应体：`Group[]`
@@ -212,9 +210,7 @@ export enum ObjectType
 - 请求体：
 ```ts
 {
-    json: {
-        username: string,
-    }
+    json: Pick<Account, 'username'>,
 }
 ```
 - 响应体：`Group[]`
@@ -233,9 +229,7 @@ export enum ObjectType
 - 请求体：
 ```ts
 {
-    json: {
-        username?: string,
-    }
+    json: Pick<Account, 'username'>,
 }
 ```
 - 响应体：`Profile` 类实例
@@ -252,7 +246,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 
 本模块负责执行 Git 仓库的相关操作。
 
-#### `/getList`
+#### `/getRepositories`
 
 - 功能：获得仓库列表
 - 方法：GET
@@ -266,7 +260,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
     }
 }
 ```
-- 响应体：`Array<Repository>`
+- 响应体：`Repository[]`
 - 响应消息：无
 - 其他说明：
   - 如果登录人与仓库所有者不是同一个人，只返回公有仓库
@@ -277,7 +271,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 
 - 功能：创建新的仓库
 - 方法：POST
-- 请求体：`Repository` 类的实例
+- 请求体：`Repository`
 - 响应体：无
 - 响应消息：
   - 仓库已存在
@@ -287,12 +281,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 
 - 功能：删除仓库
 - 方法：POST
-- 请求体：
-```ts
-{
-    repositoryName: string,   // 仓库的名字
-}
-```
+- 请求体：`Pick<Repository, 'name'>`
 - 响应体：无
 - 响应消息：
   - 仓库不存在
@@ -310,12 +299,12 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 ```ts
 {
     json: {
-        username: string,   // 仓库所有者的名字
-        repositoryName: string,       // 仓库的名字
+        account: Pick<Account, 'username'>,
+        repository: Pick<Repository, 'name'>,
     }
 }
 ```
-- 响应体：`Repository` 类的实例
+- 响应体：`Repository`
 - 响应消息：
   - 仓库不存在
 - 其他说明：
@@ -329,8 +318,8 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 ```ts
 {
     json: {
-        username: string,   // 仓库所有者的名字
-        repositoryName: string,       // 仓库的名字
+        account: Pick<Account, 'username'>,
+        repository: Pick<Repository, 'name'>,
     }
 }
 ```
@@ -348,8 +337,8 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 ```ts
 {
     json: {
-        username: string,   // 仓库所有者的名字
-        repositoryName: string,       // 仓库的名字
+        account: Pick<Account, 'username'>,
+        repository: Pick<Repository, 'name'>,
         commitHash: string,
         filePath?: string,      // 文件，相对路径
     }
@@ -370,8 +359,8 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 ```ts
 {
     json: {
-        username: string,   // 仓库所有者的名字
-        repositoryName: string,       // 仓库的名字
+        account: Pick<Account, 'username'>,
+        repository: Pick<Repository, 'name'>,
         commitHash: string,
         directoryPath: string,       // 文件/目录的路径
     }
@@ -397,8 +386,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     json: {
-        username: string,   // 仓库所有者的名字
-        repositoryName: string,       // 仓库的名字
+        account: Pick<Account, 'username'>,
+        repository: Pick<Repository, 'name'>,
         commitHash: string,
     }
 }
@@ -425,8 +414,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     json: {
-        username: string,           // 仓库所有者名字
-        repositoryName: string,     // 仓库名字
+        account: Pick<Account, 'username'>,
+        repository: Pick<Repository, 'name'>,
         filePath: string,           // 文件相对仓库目录的路径
         commitHash: string,         // commit hash 值
     }
@@ -455,8 +444,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     json: {
-        username: string,           // 仓库所有者名字
-        repositoryName: string,     // 仓库名字
+        account: Pick<Account, 'username'>,
+        repository: Pick<Repository, 'name'>,
         filePath: string,           // 文件相对仓库目录的路径
         commitHash: string,         // commit hash 值
     }
@@ -478,8 +467,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求参数：
 ```ts
 {
-    repositoryName: string,     // 仓库名字
-    newRepositoryName: string,
+    repository: Pick<Repository, 'name'>,
+    newRepository: Pick<Repository, 'name'>,
 }
 ```
 - 响应体：无
@@ -495,9 +484,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求参数：
 ```ts
 {
-    repositoryName: string,     // 仓库名字
-    description: string,
-
+    repository: Pick<Repository, 'name' | 'description'>,
 }
 ```
 - 响应体：无

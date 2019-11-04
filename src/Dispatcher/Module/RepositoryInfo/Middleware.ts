@@ -11,8 +11,8 @@ export const repository: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.repository(username, repositoryName, ctx.session);
+        const {account, repository} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.repository(account, repository, ctx.session);
     };
 };
 
@@ -24,8 +24,8 @@ export const branch: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.branch(username, repositoryName, ctx.session);
+        const {account, repository} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.branch(account, repository, ctx.session);
     };
 };
 
@@ -37,8 +37,8 @@ export const lastCommit: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, commitHash, filePath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(username, repositoryName, commitHash, ctx.session, filePath);
+        const {account, repository, commitHash, filePath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(account, repository, commitHash, ctx.session, filePath);
     };
 };
 
@@ -50,8 +50,8 @@ export const directory: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, commitHash, directoryPath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.directory(username, repositoryName, commitHash, directoryPath, ctx.session);
+        const {account, repository, commitHash, directoryPath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.directory(account, repository, commitHash, directoryPath, ctx.session);
     };
 };
 
@@ -63,8 +63,8 @@ export const commitCount: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, commitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.commitCount(username, repositoryName, commitHash, ctx.session);
+        const {account, repository, commitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitCount(account, repository, commitHash, ctx.session);
     };
 };
 
@@ -76,8 +76,8 @@ export const fileInfo: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, filePath, commitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.fileInfo(username, repositoryName, filePath, commitHash, ctx.session);
+        const {account, repository, filePath, commitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileInfo(account, repository, filePath, commitHash, ctx.session);
     };
 };
 
@@ -89,8 +89,8 @@ export const rawFile: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, repositoryName, filePath, commitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.rawFile(username, repositoryName, filePath, commitHash, ctx.session, ctx.res);
+        const {account, repository, filePath, commitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.rawFile(account, repository, filePath, commitHash, ctx.session, ctx.res);
     };
 };
 
@@ -102,13 +102,8 @@ export const setName: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
-        }
-        const {repositoryName, newRepositoryName} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.setName(username, repositoryName, newRepositoryName, ctx.session);
+        const {repository, newRepository} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.setName(repository, newRepository, ctx.session);
     };
 };
 
@@ -120,13 +115,8 @@ export const setDescription: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
-        }
-        const {repositoryName, description} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.setDescription(username, repositoryName, description, ctx.session);
+        const {repository} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.setDescription(repository, ctx.session);
     };
 };
 

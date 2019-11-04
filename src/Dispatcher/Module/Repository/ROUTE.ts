@@ -7,4 +7,4 @@ function repositoryPrefix(url: string): string
 
 export const CREATE = repositoryPrefix('/create');
 export const DEL = repositoryPrefix('/del');
-export const GET_LIST = repositoryPrefix('/getList');
+export const GET_REPOSITORIES = repositoryPrefix('/getRepositories');

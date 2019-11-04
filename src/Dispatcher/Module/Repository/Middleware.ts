@@ -2,7 +2,7 @@ import {IRouteHandler} from '../../Interface';
 import {ResponseBody} from '../../../Class';
 import {Repository as RepositoryService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {WrongParameterError} from '../../Class';
 
 export const create: IRouteHandler = () =>
 {
@@ -32,26 +32,20 @@ export const del: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {repositoryName} = ctx.request.body;
-        const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
-        }
-
-        ctx.state.serviceResponse = await RepositoryService.del(username, repositoryName);
+        const {name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryService.del({name}, ctx.session);
     };
 };
 
-export const getList: IRouteHandler = () =>
+export const getRepositories: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        if (!ParameterValidator.getList(ctx.request.body))
+        if (!ParameterValidator.getRepositories(ctx.request.body))
         {
             throw new WrongParameterError();
         }
         const {start, end, username} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryService.getList(start, end, ctx.session, username);
+        ctx.state.serviceResponse = await RepositoryService.getRepositories(start, end, ctx.session, username);
     };
 };

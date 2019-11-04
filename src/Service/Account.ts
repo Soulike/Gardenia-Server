@@ -36,7 +36,7 @@ export async function register(account: Readonly<AccountClass>, profile: Readonl
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function checkSession(session: Readonly<Session | null>): Promise<ServiceResponse<{ isValid: boolean }>>
+export async function checkSession(session: Readonly<Session>): Promise<ServiceResponse<{ isValid: boolean }>>
 {
     return new ServiceResponse<{ isValid: boolean }>(200, {},
         new ResponseBody(true, '', {isValid: SessionFunction.isValid(session)}));
@@ -47,10 +47,11 @@ export async function logout(): Promise<ServiceResponse<void>>
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true), {username: undefined});
 }
 
-export async function getGroups(username: AccountClass['username']): Promise<ServiceResponse<Group[]>>
+export async function getGroups(account: Readonly<Pick<AccountClass, 'username'>>): Promise<ServiceResponse<Group[]>>
 {
-    const user = await AccountTable.selectByUsername(username);
-    if (user === null)
+    const {username} = account;
+    const accountInDatabase = await AccountTable.selectByUsername(username);
+    if (accountInDatabase === null)
     {
         return new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '用户不存在'));
@@ -60,10 +61,11 @@ export async function getGroups(username: AccountClass['username']): Promise<Ser
         new ResponseBody<Group[]>(true, '', groups));
 }
 
-export async function getAdministratingGroups(username: AccountClass['username']): Promise<ServiceResponse<Group[]>>
+export async function getAdministratingGroups(account: Readonly<Pick<AccountClass, 'username'>>): Promise<ServiceResponse<Group[]>>
 {
-    const user = await AccountTable.selectByUsername(username);
-    if (user === null)
+    const {username} = account;
+    const accountInDatabase = await AccountTable.selectByUsername(username);
+    if (accountInDatabase === null)
     {
         return new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '用户不存在'));

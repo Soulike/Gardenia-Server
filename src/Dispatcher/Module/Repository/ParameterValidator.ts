@@ -8,11 +8,11 @@ export const create: IParameterValidator = body =>
 
 export const del: IParameterValidator = body =>
 {
-    const {repositoryName} = body;
-    return typeof repositoryName === 'string';
+    const {name} = body;
+    return typeof name === 'string';
 };
 
-export const getList: IParameterValidator = body =>
+export const getRepositories: IParameterValidator = body =>
 {
     const {start, end, username} = body;
     return typeof start === 'number'

@@ -34,11 +34,6 @@ describe(isValid, () =>
         session.username = 2;
         expect(isValid(session)).toBe(false);
     });
-
-    it('should be invalid when session is null', function ()
-    {
-        expect(isValid(null)).toBe(false);
-    });
 });
 
 describe(isRequestedBySessionOwner, () =>
@@ -75,10 +70,5 @@ describe(isRequestedBySessionOwner, () =>
     it('should return false when "username" key does not exists on session', function ()
     {
         expect(isRequestedBySessionOwner(session, username)).toBe(false);
-    });
-
-    it('should return false when session is null', function ()
-    {
-        expect(isRequestedBySessionOwner(null, username)).toBe(false);
     });
 });

@@ -60,7 +60,7 @@ export const getGroups: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.request.body;
-        ctx.state.serviceResponse = await AccountService.getGroups(username);
+        ctx.state.serviceResponse = await AccountService.getGroups({username});
     };
 };
 
@@ -73,7 +73,7 @@ export const getAdministratingGroups: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.request.body;
-        ctx.state.serviceResponse = await AccountService.getAdministratingGroups(username);
+        ctx.state.serviceResponse = await AccountService.getAdministratingGroups({username});
     };
 };
 

@@ -17,6 +17,6 @@ export const get: IRouteHandler = () =>
         {
             username = ctx.session.username;
         }
-        ctx.state.serviceResponse = await Profile.get(username);
+        ctx.state.serviceResponse = await Profile.get({username});
     };
 };

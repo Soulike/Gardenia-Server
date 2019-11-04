@@ -3,12 +3,8 @@ import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTa
 import {Session} from 'koa-session';
 import {InvalidSessionError} from '../Dispatcher/Class';
 
-export async function add(group: Readonly<Omit<Group, 'id'>>, session: Readonly<Session | null>): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
+export async function add(group: Readonly<Omit<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
 {
-    if (session === null)
-    {
-        throw new InvalidSessionError();
-    }
     const {username} = session;
     if (typeof username !== 'string')
     {

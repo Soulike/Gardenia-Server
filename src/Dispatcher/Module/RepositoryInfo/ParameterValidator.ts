@@ -2,43 +2,77 @@ import {IParameterValidator} from '../../Interface';
 
 export const repository: IParameterValidator = body =>
 {
-    const {username, repositoryName} = body;
-    return typeof username === 'string' || typeof repositoryName === 'string';
+    const {account, repository} = body;
+    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    {
+        return false;
+    }
+    else
+    {
+        const {username} = account;
+        const {name} = repository;
+        return typeof username === 'string'
+            || typeof name === 'string';
+    }
 };
 
 export const branch = repository;
 
 export const lastCommit: IParameterValidator = body =>
 {
-    const {username, repositoryName, commitHash, filePath} = body;
+    const {account, repository, commitHash, filePath} = body;
+    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    {
+        return false;
+    }
+    const {username} = account;
+    const {name} = repository;
     return typeof username === 'string'
-        && typeof repositoryName === 'string'
+        && typeof name === 'string'
         && typeof commitHash === 'string'
         && (typeof filePath === 'undefined' || typeof filePath === 'string');
 };
 
 export const directory: IParameterValidator = body =>
 {
-    const {username, repositoryName, commitHash, directoryPath} = body;
+    const {account, repository, commitHash, directoryPath} = body;
+    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    {
+        return false;
+    }
+    const {username} = account;
+    const {name} = repository;
     return typeof username === 'string'
-        && typeof repositoryName === 'string'
+        && typeof name === 'string'
         && typeof commitHash === 'string'
         && typeof directoryPath === 'string';
 };
 
 export const commitCount: IParameterValidator = body =>
 {
-    const {username, repositoryName, commitHash} = body;
+    const {account, repository, commitHash} = body;
+    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    {
+        return false;
+    }
+    const {username} = account;
+    const {name} = repository;
     return typeof username === 'string'
-        && typeof repositoryName === 'string'
+        && typeof name === 'string'
         && typeof commitHash === 'string';
 };
 
 export const fileInfo: IParameterValidator = body =>
 {
-    const {username, repositoryName, filePath, commitHash} = body;
+    const {account, repository, filePath, commitHash} = body;
+    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    {
+        return false;
+    }
+    const {username} = account;
+    const {name} = repository;
     return typeof username === 'string'
-        && typeof repositoryName === 'string'
+        && typeof name === 'string'
         && typeof filePath === 'string'
         && typeof commitHash === 'string';
 };
@@ -47,15 +81,26 @@ export const rawFile = fileInfo;
 
 export const setName: IParameterValidator = body =>
 {
-    const {repositoryName, newRepositoryName} = body;
-    return typeof repositoryName === 'string'
-        && typeof newRepositoryName === 'string';
+    const {repository, newRepository} = body;
+    if (typeof repository === 'undefined' || typeof newRepository === 'undefined')
+    {
+        return false;
+    }
+    const {name} = repository;
+    const {name: newName} = newRepository;
+    return typeof name === 'string'
+        && typeof newName === 'string';
 };
 
 export const setDescription: IParameterValidator = body =>
 {
-    const {repositoryName, description} = body;
-    return typeof repositoryName === 'string'
+    const {repository} = body;
+    if (typeof repository === 'undefined')
+    {
+        return false;
+    }
+    const {name, description} = repository;
+    return typeof name === 'string'
         && typeof description === 'string';
 };
 

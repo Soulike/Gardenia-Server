@@ -7,6 +7,7 @@ import {spawn} from 'child_process';
 import {Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
 import fse from 'fs-extra';
+import {InvalidSessionError} from '../Dispatcher/Class';
 
 export async function create(repository: Readonly<RepositoryClass>): Promise<ServiceResponse<void>>
 {
@@ -66,8 +67,14 @@ export async function create(repository: Readonly<RepositoryClass>): Promise<Ser
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function del(username: RepositoryClass['username'], name: RepositoryClass['name']): Promise<ServiceResponse<void>>
+export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Session): Promise<ServiceResponse<void>>
 {
+    const {username} = session;
+    if (typeof username !== 'string')
+    {
+        throw new InvalidSessionError();
+    }
+    const {name} = repository;
     // 检查仓库是否存在
     if ((await RepositoryTable.selectByUsernameAndName(username, name)) === null)
     {
@@ -110,7 +117,7 @@ export async function del(username: RepositoryClass['username'], name: Repositor
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function getList(start: number, end: number, session: Readonly<Session | null>, username?: RepositoryClass['username']): Promise<ServiceResponse<Array<RepositoryClass>>>
+export async function getRepositories(start: number, end: number, session: Readonly<Session>, username?: RepositoryClass['username']): Promise<ServiceResponse<RepositoryClass[]>>
 {
     let repositories: Array<RepositoryClass> = [];
     if (username)
