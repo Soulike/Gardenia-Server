@@ -11,11 +11,11 @@
  * @class
  * @description HTTP 响应体的标准格式对象
  * */
-class ResponseBody<TBody>
+class ResponseBody<TBody = void>
 {
-    public isSuccessful: boolean;
-    public message?: string;
-    public data?: TBody;
+    public readonly isSuccessful: boolean;
+    public readonly message?: string;
+    public readonly data?: Readonly<TBody>;
 }
 ```
 
