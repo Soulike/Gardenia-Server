@@ -1,5 +1,5 @@
 import {Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
-import {Repository as RepositoryTable} from '../Database/Table';
+import {Repository as RepositoryTable} from '../Database';
 import path from 'path';
 import {GIT, SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
