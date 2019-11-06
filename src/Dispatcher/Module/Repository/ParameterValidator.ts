@@ -1,11 +1,9 @@
 import {IParameterValidator} from '../../Interface';
+import {Repository} from '../../../Class';
 
 export const create: IParameterValidator = body =>
 {
-    const {name, description, isPublic} = body;
-    return typeof name === 'string'
-        && typeof description === 'string'
-        && typeof isPublic === 'boolean';
+    return Repository.validate(body);
 };
 
 export const del: IParameterValidator = body =>

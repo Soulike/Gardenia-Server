@@ -1,4 +1,5 @@
 import {IRouteHandler} from '../../Interface';
+import {ResponseBody} from '../../../Class';
 import {Repository as RepositoryService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
 import {WrongParameterError} from '../../Class';
@@ -11,12 +12,15 @@ export const create: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {name, description, isPublic} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryService.create({
-            name,
-            description,
-            isPublic,
-        }, ctx.session);
+        const {username: usernameInSession} = ctx.session;
+        const {username, name, description, isPublic} = ctx.request.body;
+        if (username !== usernameInSession)
+        {
+            ctx.response.status = 403;
+            ctx.response.body = new ResponseBody(false, '不允许创建在其他人名下的仓库');
+            return;
+        }
+        ctx.state.serviceResponse = await RepositoryService.create({username, name, description, isPublic});
     };
 };
 
