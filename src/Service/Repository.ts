@@ -9,9 +9,14 @@ import {Session} from 'koa-session';
 import fse from 'fs-extra';
 import {InvalidSessionError} from '../Dispatcher/Class';
 
-export async function create(repository: Readonly<RepositoryClass>): Promise<ServiceResponse<void>>
+export async function create(repository: Readonly<Omit<RepositoryClass, 'username'>>, session: Session): Promise<ServiceResponse<void>>
 {
-    const {username, name} = repository;
+    const {name} = repository;
+    const {username} = session;
+    if (typeof username !== 'string')
+    {
+        throw new InvalidSessionError();
+    }
     // 检查是否有同名仓库
     if ((await RepositoryTable.selectByUsernameAndName({username, name})) !== null)
     {
@@ -44,7 +49,7 @@ export async function create(repository: Readonly<RepositoryClass>): Promise<Ser
             });
         })();
         // 如果文件创建步骤出错，数据库操作不会执行。如果数据库操作出错，数据库会自己回滚并抛出错误，文件也会被删除。因此总是安全的
-        await RepositoryTable.insert(repository);
+        await RepositoryTable.insert({...repository, username});
     }
     catch (e)   // 如果发生错误，删除文件夹及以下一切内容
     {

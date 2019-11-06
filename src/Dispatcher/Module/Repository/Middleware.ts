@@ -20,7 +20,7 @@ export const create: IRouteHandler = () =>
             ctx.response.body = new ResponseBody(false, '不允许创建在其他人名下的仓库');
             return;
         }
-        ctx.state.serviceResponse = await RepositoryService.create({username, name, description, isPublic});
+        ctx.state.serviceResponse = await RepositoryService.create({name, description, isPublic}, ctx.session);
     };
 };
 
