@@ -273,7 +273,7 @@ Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server
 
 - 功能：创建新的仓库
 - 方法：POST
-- 请求体：`Repository`
+- 请求体：`Omit<RepositoryClass, 'username'>`
 - 响应体：无
 - 响应消息：
   - 仓库已存在
