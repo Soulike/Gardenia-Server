@@ -1,25 +1,20 @@
-import {executeTransaction} from '../Function';
+import {executeTransaction, generateParameterizedStatementAndParametersArray} from '../Function';
 import pool from '../Pool';
 import {Profile as ProfileClass} from '../../Class';
-import validator from 'validator';
-import {strict as assert} from 'assert';
 
-export async function update(profile: Readonly<ProfileClass>, primaryKey: Readonly<Pick<ProfileClass, 'username'>>): Promise<void>
+export async function update(profile: Readonly<Partial<ProfileClass>>, primaryKey: Readonly<Pick<ProfileClass, 'username'>>): Promise<void>
 {
     const client = await pool.connect();
     try
     {
+        const {parameterizedStatement, parameters} = generateParameterizedStatementAndParametersArray(profile, ',');
         await executeTransaction(client, async client =>
         {
-            assert.ok(validator.isEmail(profile.email), 'Property "email" of a profile should be an email address');
             await client.query(
                     `UPDATE profiles
-                     SET "username"=$1,
-                         "nickname"=$2,
-                         "email"=$3,
-                         "avatar"=$4
-                     WHERE "username" = $5`,
-                [profile.username, profile.nickname, profile.email, profile.avatar, primaryKey.username]);
+                     SET ${parameterizedStatement}
+                     WHERE "username" = $${parameters.length + 1}`,
+                [...parameters, primaryKey.username]);
         });
     }
     finally
