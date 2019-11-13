@@ -80,38 +80,21 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
     try
     {
         const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, commitHash, directoryPath);
-        if (fileCommitInfoList.length === 0)  // 信息列表是空的，一定是文件不存在
-        {
-            return new ServiceResponse<void>(404, {},
-                new ResponseBody<void>(false, '文件不存在'));
-        }
 
         // 对获取的数组进行排序，类型为 TREE 的在前，BLOB 的在后
-        fileCommitInfoList.sort((fileCommitInfoA, fileCommitInfoB) =>
+        fileCommitInfoList.sort((a, b) =>
         {
-            const {type: AType, path: APath} = fileCommitInfoA;
-            const {type: BType, path: BPath} = fileCommitInfoB;
-            if (AType === ObjectType.TREE)
+            if (a.type === ObjectType.TREE && b.type === ObjectType.BLOB)
             {
-                if (BType === ObjectType.TREE)   // 类型相同，就按照名称排序
-                {
-                    return path.basename(APath) > path.basename(BPath) ? 1 : 0;
-                }
-                else // BType === ObjectType.BLOB
-                {
-                    return -1;
-                }
+                return -1;
             }
-            else    // AType === ObjectType.BLOB
+            else if (a.type === ObjectType.BLOB && b.type === ObjectType.TREE)
             {
-                if (BType === ObjectType.TREE)
-                {
-                    return 1;
-                }
-                else // BType === ObjectType.BLOB 类型相同，就按照名称排序
-                {
-                    return path.basename(APath) > path.basename(BPath) ? 1 : 0;
-                }
+                return 1;
+            }
+            else
+            {
+                return 0;
             }
         });
 
@@ -125,11 +108,11 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
             ),
         );
     }
-    catch (e)   // 如果出错，那么一定是分支不存在
+    catch (e)
     {
         SERVER.WARN_LOGGER(e);
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '分支不存在'));
+            new ResponseBody<void>(false, '文件不存在'));
     }
 }
 

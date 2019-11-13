@@ -1,9 +1,10 @@
-import {branch, lastCommit, repository} from '../RepositoryInfo';
+import {branch, directory, lastCommit, repository} from '../RepositoryInfo';
 import {Account, Commit, Repository, ResponseBody, ServiceResponse} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
 import path from 'path';
 import {GIT} from '../../CONFIG';
+import {ObjectType} from '../../CONSTANT';
 
 describe(repository, () =>
 {
@@ -524,5 +525,439 @@ describe(lastCommit, () =>
             name: fakeRepository.name,
         });
         expect(gitFunctionMockObject.Git.getLastCommitInfo.mock.calls.length).toBe(0);
+    });
+});
+
+describe(directory, () =>
+{
+    beforeEach(() =>
+    {
+        jest.resetModules();
+    });
+
+    it('everyone can get the directory info of a public repository', async function ()
+    {
+        const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        const fakeCommitInfo = [
+            {
+                type: ObjectType.BLOB,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+        ];
+        const fakeCommitHash = faker.random.alphaNumeric(64);
+        const fakeDirectoryPath = faker.random.word();
+        const fakeRepositoryPath = path.join(GIT.ROOT, fakeAccount.username, `${fakeRepository.name}.git`);
+
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
+            },
+        };
+        const FunctionMock = {
+            Git: {
+                getFileCommitInfoList: jest.fn().mockResolvedValue(fakeCommitInfo),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => FunctionMock);
+        const {directory} = await import('../RepositoryInfo');
+        expect(
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
+        ).toEqual(new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+            200,
+            {},
+            new ResponseBody<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+                true,
+                '',
+                fakeCommitInfo,
+            ),
+        ));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+            fakeDirectoryPath,
+        ]);
+
+        expect(
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+            200,
+            {},
+            new ResponseBody<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+                true,
+                '',
+                fakeCommitInfo,
+            ),
+        ));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(2);
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls[1]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+            fakeDirectoryPath,
+        ]);
+    });
+
+    it('only owner can get the directory info of a private repository', async function ()
+    {
+        const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            false,
+        );
+        const fakeCommitInfo = [
+            {
+                type: ObjectType.BLOB,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+        ];
+        const fakeCommitHash = faker.random.alphaNumeric(64);
+        const fakeDirectoryPath = faker.random.word();
+        const fakeRepositoryPath = path.join(GIT.ROOT, fakeAccount.username, `${fakeRepository.name}.git`);
+
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
+            },
+        };
+        const FunctionMock = {
+            Git: {
+                getFileCommitInfoList: jest.fn().mockResolvedValue(fakeCommitInfo),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => FunctionMock);
+        const {directory} = await import('../RepositoryInfo');
+        expect(
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(
+            404,
+            {},
+            new ResponseBody<void>(
+                false,
+                '仓库不存在',
+            ),
+        ));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(0);
+
+        expect(
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+            200,
+            {},
+            new ResponseBody<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+                true,
+                '',
+                fakeCommitInfo,
+            ),
+        ));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+            fakeDirectoryPath,
+        ]);
+    });
+
+    it('should check repository existence', async function ()
+    {
+        const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            false,
+        );
+        const fakeCommitInfo = [
+            {
+                type: ObjectType.BLOB,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+        ];
+        const fakeCommitHash = faker.random.alphaNumeric(64);
+        const fakeDirectoryPath = faker.random.word();
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
+            },
+        };
+        const FunctionMock = {
+            Git: {
+                getFileCommitInfoList: jest.fn().mockResolvedValue(fakeCommitInfo),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => FunctionMock);
+        const {directory} = await import('../RepositoryInfo');
+        expect(
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(
+            404,
+            {},
+            new ResponseBody<void>(
+                false,
+                '仓库不存在',
+            ),
+        ));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(0);
+    });
+
+    it('should check directory path existence', async function ()
+    {
+        const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        const fakeCommitHash = faker.random.alphaNumeric(64);
+        const fakeDirectoryPath = faker.random.word();
+        const fakeRepositoryPath = path.join(GIT.ROOT, fakeAccount.username, `${fakeRepository.name}.git`);
+        const fakeError = new Error(faker.lorem.sentence());
+
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
+            },
+        };
+        const FunctionMock = {
+            Git: {
+                getFileCommitInfoList: jest.fn().mockRejectedValue(fakeError),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => FunctionMock);
+        const {directory} = await import('../RepositoryInfo');
+        expect(
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(
+            404,
+            {},
+            new ResponseBody<void>(
+                false,
+                '文件不存在',
+            ),
+        ));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+            fakeDirectoryPath,
+        ]);
+    });
+
+    it('should sort directory content array', async function ()
+    {
+        const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        const fakeCommitInfo = [
+            {
+                type: ObjectType.BLOB,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+            {
+                type: ObjectType.BLOB,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+            {
+                type: ObjectType.TREE,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+            {
+                type: ObjectType.TREE,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+            {
+                type: ObjectType.BLOB,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+            {
+                type: ObjectType.TREE,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+            {
+                type: ObjectType.TREE,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+            {
+                type: ObjectType.BLOB,
+                path: '/',
+                commit: new Commit(
+                    faker.random.alphaNumeric(64),
+                    faker.name.firstName(),
+                    faker.internet.email(),
+                    faker.date.recent().toString(),
+                    faker.lorem.sentence(),
+                ),
+            },
+        ];
+        const fakeCommitHash = faker.random.alphaNumeric(64);
+        const fakeDirectoryPath = faker.random.word();
+        const fakeRepositoryPath = path.join(GIT.ROOT, fakeAccount.username, `${fakeRepository.name}.git`);
+
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
+            },
+        };
+        const FunctionMock = {
+            Git: {
+                getFileCommitInfoList: jest.fn().mockResolvedValue(fakeCommitInfo),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => FunctionMock);
+        const {directory} = await import('../RepositoryInfo');
+        fakeCommitInfo.sort((a, b) =>
+        {
+            if (a.type === ObjectType.TREE && b.type === ObjectType.BLOB)
+            {
+                return -1;
+            }
+            else if (a.type === ObjectType.BLOB && b.type === ObjectType.TREE)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        });
+        expect(
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
+        ).toEqual(new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+            200,
+            {},
+            new ResponseBody<Array<{ type: ObjectType, path: string, commit: Commit }>>(
+                true,
+                '',
+                fakeCommitInfo,
+            ),
+        ));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
+        expect(FunctionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+            fakeDirectoryPath,
+        ]);
     });
 });
