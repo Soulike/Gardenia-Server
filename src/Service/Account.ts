@@ -76,7 +76,7 @@ export async function getAdministratingGroups(account: Readonly<Pick<AccountClas
         new ResponseBody<Group[]>(true, '', groups));
 }
 
-export async function checkPassword(account: Readonly<Pick<AccountClass, 'hash'>>, session: Session): Promise<ServiceResponse<{ isCorrect: boolean }>>
+export async function checkPassword(account: Readonly<Pick<AccountClass, 'hash'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isCorrect: boolean }>>
 {
     const {username} = session;
     if (typeof username !== 'string')

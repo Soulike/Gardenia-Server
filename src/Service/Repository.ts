@@ -9,7 +9,7 @@ import {Session} from 'koa-session';
 import fse from 'fs-extra';
 import {InvalidSessionError} from '../Dispatcher/Class';
 
-export async function create(repository: Readonly<Omit<RepositoryClass, 'username'>>, session: Session): Promise<ServiceResponse<void>>
+export async function create(repository: Readonly<Omit<RepositoryClass, 'username'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {name} = repository;
     const {username} = session;
@@ -72,7 +72,7 @@ export async function create(repository: Readonly<Omit<RepositoryClass, 'usernam
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Session): Promise<ServiceResponse<void>>
+export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
     if (typeof username !== 'string')

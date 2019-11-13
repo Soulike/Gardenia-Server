@@ -240,6 +240,25 @@ export enum ObjectType
 - 其他说明：
   - 如果未提供 `username`，就根据 session 获取
 
+#### `/set`
+
+- 功能：修改用户资料
+- 方法：POST
+- 请求体：`Partial<Omit<Profile, 'avatar' | 'username'>>`
+- 响应体：无
+- 响应消息：无
+- 其他说明：
+  - 修改 Session 对应的账号资料
+
+#### `/uploadAvatar`
+
+- 功能：上传头像
+- 方法：POST
+- 请求体：`FormData`，头像数据保存在 `avatar` 键中
+- 响应消息：无
+- 其他说明：
+  - 修改 Session 对应的账号头像
+
 ### Git 模块
 
 Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server` 官方 CGI 脚本。
