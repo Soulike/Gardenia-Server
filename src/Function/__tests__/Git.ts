@@ -1,4 +1,5 @@
 import {
+    generateRepositoryPath,
     getAllBranches,
     getFileCommitInfoList,
     getLastCommitInfo,
@@ -12,9 +13,11 @@ import {exec} from 'child_process';
 import {promisify} from 'util';
 import fse from 'fs-extra';
 import path from 'path';
-import {Commit} from '../../Class';
+import {Commit, Repository} from '../../Class';
 import {ObjectType} from '../../CONSTANT';
 import os from 'os';
+import faker from 'faker';
+import {GIT} from '../../CONFIG';
 
 let repositoryPath = '';
 let bareRepositoryPath = '';
@@ -268,6 +271,16 @@ describe(getObjectType, () =>
         await expect(getObjectType('wadawdawdawdaw', firstCommitFileName, mainBranchName)).rejects.toThrow();
         await expect(getObjectType(repositoryPath, 'awdawdawdawfgswgdsr', mainBranchName)).rejects.toThrow();
         await expect(getObjectType(repositoryPath, firstCommitFileName, 'ghdhjedghdrh')).rejects.toThrow();
+    });
+});
+
+describe(generateRepositoryPath, () =>
+{
+    it('should generate repository path', function ()
+    {
+        const fakeRepository = new Repository(faker.name.firstName(), faker.random.word(), faker.lorem.sentence(), true);
+        expect(generateRepositoryPath(fakeRepository))
+            .toBe(path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`));
     });
 });
 
