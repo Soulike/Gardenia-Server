@@ -36,9 +36,9 @@ export async function branch(account: Readonly<Pick<Account, 'username'>>, repos
             new ResponseBody<void>(false, '仓库不存在'));
     }
     const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
-    const branches = await Git.getBranches(repoPath);
+    const branches = await Git.getAllBranches(repoPath);
     return new ServiceResponse<Array<string>>(200, {},
-        new ResponseBody<Array<string>>(true, '', branches));
+        new ResponseBody<Array<string>>(true, '', Git.putMasterBranchToFront(branches)));
 }
 
 export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, commitHash: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>

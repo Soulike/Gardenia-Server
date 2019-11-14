@@ -1,31 +1,42 @@
 import {exec} from 'child_process';
-import {Commit} from '../Class';
+import {Commit, Repository} from '../Class';
 import {execPromise} from './Promisify';
 import {ObjectType} from '../CONSTANT';
 import {promisify} from 'util';
+import path from 'path';
+import {GIT} from '../CONFIG';
 
-/**
- * @description 获取仓库的所有分支，主分支放在首个
- */
-export async function getBranches(repositoryPath: string): Promise<Array<string>>
+export async function getAllBranches(repositoryPath: string): Promise<string[]>
 {
     return new Promise((resolve, reject) =>
     {
-        exec('git branch', {cwd: repositoryPath}, (error, stdout) =>
+        exec(`git branch --format='%(refname:short)'`, {cwd: repositoryPath}, (error, stdout, stderr) =>
         {
+            if (stderr)
+            {
+                return reject(new Error(stderr));
+            }
             if (error)
             {
                 return reject(error);
             }
-            const splitResult = stdout.split(/\s+/).filter(branch => branch.length !== 0);
-            const masterPosition = splitResult.indexOf('*') + 1;
-
-            return resolve(([] as Array<string>).concat(
-                splitResult.slice(masterPosition, masterPosition + 1),
-                splitResult.slice(0, masterPosition - 1),
-                splitResult.slice(masterPosition + 1)));
+            return resolve(stdout.split('\n'));
         });
     });
+}
+
+export function putMasterBranchToFront(branches: Readonly<string[]>, masterBranchName: string = 'master'): string[]
+{
+    const index = branches.indexOf(masterBranchName);
+    if (index === -1)
+    {
+        throw new TypeError(`No master branch "${masterBranchName}" in "branches" array`);
+    }
+    return [
+        branches[index],
+        ...branches.slice(0, index),
+        ...branches.slice(index + 1),
+    ];
 }
 
 /**
@@ -131,4 +142,10 @@ export async function getObjectType(repositoryPath: string, filePath: string, co
     {
         return lsTreeOut.split(/\s+/)[1] === 'tree' ? ObjectType.TREE : ObjectType.BLOB;
     }
+}
+
+export function generateRepositoryPath(repository: Readonly<Pick<Repository, 'username' | 'name'>>): string
+{
+    const {username, name} = repository;
+    return path.join(GIT.ROOT, username, `${name}.git`);
 }

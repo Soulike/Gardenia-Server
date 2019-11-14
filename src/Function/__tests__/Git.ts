@@ -1,10 +1,11 @@
 import {
-    getBranches,
+    getAllBranches,
     getFileCommitInfoList,
     getLastCommitInfo,
     getObjectHash,
     getObjectType,
     isEmptyRepository,
+    putMasterBranchToFront,
 } from '../Git';
 import fs from 'fs';
 import {exec} from 'child_process';
@@ -17,14 +18,14 @@ import os from 'os';
 
 let repositoryPath = '';
 let bareRepositoryPath = '';
-const branches = ['test1', 'test2', 'test3'];
 const mainBranchName = 'main';
+const branches = ['test1', 'test2', 'test3'];
 const firstCommitFileName = 'testFile';
 const firstCommitFolderName = 'testFolder';
 const firstCommitFileInFolderPath = path.join(firstCommitFolderName, firstCommitFileName);
 const firstCommitMessage = 'test';
 
-describe(getBranches, () =>
+describe(getAllBranches, () =>
 {
     beforeAll(async () =>
     {
@@ -39,15 +40,38 @@ describe(getBranches, () =>
         await destroyRepository();
     });
 
-    it('should get all branches and put main branch at first', async function ()
+    it('should get all branches', async function ()
     {
-        const ret = await getBranches(repositoryPath);
-        expect(ret).toStrictEqual([mainBranchName, ...branches]);
+        const ret = await getAllBranches(repositoryPath);
+        expect(ret).toEqual(expect.arrayContaining([mainBranchName, ...branches]));
     });
 
     it('should reject when something is wrong', async function ()
     {
-        await expect(getBranches('dadawdaw')).rejects.toThrow();
+        await expect(getAllBranches('dadawdaw')).rejects.toThrow();
+        await expect(getAllBranches(os.tmpdir())).rejects.toThrow();
+    });
+});
+
+describe(putMasterBranchToFront, () =>
+{
+    it('should put master branch to front', function ()
+    {
+        const expectedBranches = [
+            mainBranchName,
+            ...branches,
+        ];
+        expect(putMasterBranchToFront([...branches, mainBranchName], mainBranchName))
+            .toEqual(expectedBranches);
+        expect(putMasterBranchToFront([mainBranchName, ...branches], mainBranchName))
+            .toEqual(expectedBranches);
+        expect(putMasterBranchToFront([...branches.slice(0, 1), mainBranchName, ...branches.slice(1)], mainBranchName))
+            .toEqual(expectedBranches);
+    });
+
+    it('should throw error when the master branch name is not included in the branches', function ()
+    {
+        expect(() => putMasterBranchToFront(branches, mainBranchName)).toThrow(TypeError);
     });
 });
 
