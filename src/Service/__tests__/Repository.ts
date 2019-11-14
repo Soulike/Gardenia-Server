@@ -4,7 +4,6 @@ import faker from 'faker';
 import {Session} from 'koa-session';
 import {EventEmitter} from 'events';
 import path from 'path';
-import {GIT} from '../../CONFIG';
 import {InvalidSessionError} from '../../Dispatcher/Class';
 
 describe(getRepositories, () =>
@@ -101,6 +100,7 @@ describe(create, () =>
 {
     const fakeRepository = new RepositoryClass(faker.random.word(), faker.name.firstName(), faker.lorem.sentence(), true);
     const fakeSession = {username: fakeRepository.username} as unknown as Session;
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
 
     beforeEach(() =>
     {
@@ -134,15 +134,21 @@ describe(create, () =>
                 return event;
             }),
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
         jest.mock('child_process', () => cpMock);
         const {create} = await import('../Repository');
         const response = await create(fakeRepository, fakeSession);
-        const repoPath = path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`);
 
-        expect(response).toEqual(new ServiceResponse<void>(200, {}, new ResponseBody<void>(true)));
+        expect(response).toEqual(new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(true)));
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -150,15 +156,21 @@ describe(create, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdir.mock.calls.length).toBe(1);
-        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(repoPath);
+        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(fakeRepositoryPath);
         expect(fsMock.promises.mkdir.mock.calls[0][1]).toEqual({recursive: true});
 
         expect(cpMock.spawn.mock.calls.length).toBe(1);
         expect(cpMock.spawn.mock.calls[0][0]).toBe('git init --bare && cp hooks/post-update.sample hooks/post-update && git update-server-info && git config http.receivepack true');
         expect(cpMock.spawn.mock.calls[0][1]).toEqual({
             shell: true,
-            cwd: repoPath,
+            cwd: fakeRepositoryPath,
         });
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(1);
@@ -194,6 +206,12 @@ describe(create, () =>
                 return event;
             }),
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -210,6 +228,8 @@ describe(create, () =>
         });
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(0);
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
 
         expect(fsMock.promises.mkdir.mock.calls.length).toBe(0);
 
@@ -245,6 +265,12 @@ describe(create, () =>
                 return event;
             }),
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -255,6 +281,8 @@ describe(create, () =>
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(0);
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(0);
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
 
         expect(fsMock.promises.mkdir.mock.calls.length).toBe(0);
 
@@ -291,6 +319,12 @@ describe(create, () =>
                 return event;
             }),
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -298,7 +332,6 @@ describe(create, () =>
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(mkdirError);
-        const repoPath = path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`);
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -306,14 +339,20 @@ describe(create, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdir.mock.calls.length).toBe(1);
-        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(repoPath);
+        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(fakeRepositoryPath);
         expect(fsMock.promises.mkdir.mock.calls[0][1]).toEqual({recursive: true});
 
         expect(cpMock.spawn.mock.calls.length).toBe(0);
 
         expect(fseMock.remove.mock.calls.length).toBe(1);
-        expect(fseMock.remove.mock.calls[0][0]).toEqual(repoPath);
+        expect(fseMock.remove.mock.calls[0][0]).toEqual(fakeRepositoryPath);
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(0);
     });
@@ -346,6 +385,12 @@ describe(create, () =>
                 return event;
             }),
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -353,7 +398,6 @@ describe(create, () =>
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(commandError);
-        const repoPath = path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`);
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -361,19 +405,25 @@ describe(create, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdir.mock.calls.length).toBe(1);
-        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(repoPath);
+        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(fakeRepositoryPath);
         expect(fsMock.promises.mkdir.mock.calls[0][1]).toEqual({recursive: true});
 
         expect(cpMock.spawn.mock.calls.length).toBe(1);
         expect(cpMock.spawn.mock.calls[0][0]).toBe('git init --bare && cp hooks/post-update.sample hooks/post-update && git update-server-info && git config http.receivepack true');
         expect(cpMock.spawn.mock.calls[0][1]).toEqual({
             shell: true,
-            cwd: repoPath,
+            cwd: fakeRepositoryPath,
         });
 
         expect(fseMock.remove.mock.calls.length).toBe(1);
-        expect(fseMock.remove.mock.calls[0][0]).toEqual(repoPath);
+        expect(fseMock.remove.mock.calls[0][0]).toEqual(fakeRepositoryPath);
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(0);
     });
@@ -406,6 +456,12 @@ describe(create, () =>
                 return event;
             }),
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -413,7 +469,6 @@ describe(create, () =>
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(insertError);
-        const repoPath = path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`);
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -421,19 +476,25 @@ describe(create, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdir.mock.calls.length).toBe(1);
-        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(repoPath);
+        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(fakeRepositoryPath);
         expect(fsMock.promises.mkdir.mock.calls[0][1]).toEqual({recursive: true});
 
         expect(cpMock.spawn.mock.calls.length).toBe(1);
         expect(cpMock.spawn.mock.calls[0][0]).toBe('git init --bare && cp hooks/post-update.sample hooks/post-update && git update-server-info && git config http.receivepack true');
         expect(cpMock.spawn.mock.calls[0][1]).toEqual({
             shell: true,
-            cwd: repoPath,
+            cwd: fakeRepositoryPath,
         });
 
         expect(fseMock.remove.mock.calls.length).toBe(1);
-        expect(fseMock.remove.mock.calls[0][0]).toEqual(repoPath);
+        expect(fseMock.remove.mock.calls[0][0]).toEqual(fakeRepositoryPath);
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.insert.mock.calls[0][0]).toEqual(fakeRepository);
@@ -468,6 +529,12 @@ describe(create, () =>
                 return event;
             }),
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -475,7 +542,6 @@ describe(create, () =>
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(mkdirError);
-        const repoPath = path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`);
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -483,14 +549,20 @@ describe(create, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdir.mock.calls.length).toBe(1);
-        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(repoPath);
+        expect(fsMock.promises.mkdir.mock.calls[0][0]).toEqual(fakeRepositoryPath);
         expect(fsMock.promises.mkdir.mock.calls[0][1]).toEqual({recursive: true});
 
         expect(cpMock.spawn.mock.calls.length).toBe(0);
 
         expect(fseMock.remove.mock.calls.length).toBe(1);
-        expect(fseMock.remove.mock.calls[0][0]).toEqual(repoPath);
+        expect(fseMock.remove.mock.calls[0][0]).toEqual(fakeRepositoryPath);
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(0);
     });
@@ -500,8 +572,8 @@ describe(del, () =>
 {
     const fakeRepository = new RepositoryClass(faker.random.word(), faker.name.firstName(), faker.lorem.sentence(), true);
     const fakeSession = {username: fakeRepository.username} as unknown as Session;
-    const tempPath = faker.random.word();
-    const repoPath = path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`);
+    const tempPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     beforeEach(() =>
     {
         jest.resetModules();
@@ -524,13 +596,20 @@ describe(del, () =>
                 mkdtemp: jest.fn().mockResolvedValue(tempPath),
             },
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
         const {del} = await import('../Repository');
         const response = await del(fakeRepository, fakeSession);
 
-        expect(response).toEqual(new ServiceResponse<void>(200, {}, new ResponseBody<void>(true)));
+        expect(response).toEqual(new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(true)));
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -538,10 +617,16 @@ describe(del, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdtemp.mock.calls.length).toBe(1);
 
         expect(fsMock.promises.rename.mock.calls.length).toBe(1);
-        expect(fsMock.promises.rename.mock.calls[0][0]).toBe(repoPath);
+        expect(fsMock.promises.rename.mock.calls[0][0]).toBe(fakeRepositoryPath);
         expect(fsMock.promises.rename.mock.calls[0][1]).toBe(tempPath);
 
         expect(databaseMock.Repository.deleteByUsernameAndName.mock.calls.length).toBe(1);
@@ -571,6 +656,12 @@ describe(del, () =>
                 mkdtemp: jest.fn().mockResolvedValue(tempPath),
             },
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -579,6 +670,8 @@ describe(del, () =>
         await expect(del(fakeRepository, {} as unknown as Session)).rejects.toEqual(new InvalidSessionError());
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(0);
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
 
         expect(fsMock.promises.mkdtemp.mock.calls.length).toBe(0);
 
@@ -606,6 +699,12 @@ describe(del, () =>
                 mkdtemp: jest.fn().mockResolvedValue(tempPath),
             },
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -619,6 +718,8 @@ describe(del, () =>
             username: fakeSession.username,
             name: fakeRepository.name,
         });
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
 
         expect(fsMock.promises.mkdtemp.mock.calls.length).toBe(0);
 
@@ -647,6 +748,12 @@ describe(del, () =>
                 mkdtemp: jest.fn().mockResolvedValue(tempPath),
             },
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -660,10 +767,16 @@ describe(del, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdtemp.mock.calls.length).toBe(1);
 
         expect(fsMock.promises.rename.mock.calls.length).toBe(1);
-        expect(fsMock.promises.rename.mock.calls[0][0]).toBe(repoPath);
+        expect(fsMock.promises.rename.mock.calls[0][0]).toBe(fakeRepositoryPath);
         expect(fsMock.promises.rename.mock.calls[0][1]).toBe(tempPath);
 
         expect(databaseMock.Repository.deleteByUsernameAndName.mock.calls.length).toBe(0);
@@ -689,6 +802,12 @@ describe(del, () =>
                 mkdtemp: jest.fn().mockResolvedValue(tempPath),
             },
         };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+            },
+        };
+        jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
@@ -702,13 +821,19 @@ describe(del, () =>
             name: fakeRepository.name,
         });
 
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeRepository.username,
+            name: fakeRepository.name,
+        });
+
         expect(fsMock.promises.mkdtemp.mock.calls.length).toBe(1);
 
         expect(fsMock.promises.rename.mock.calls.length).toBe(2);
-        expect(fsMock.promises.rename.mock.calls[0][0]).toBe(repoPath);
+        expect(fsMock.promises.rename.mock.calls[0][0]).toBe(fakeRepositoryPath);
         expect(fsMock.promises.rename.mock.calls[0][1]).toBe(tempPath);
         expect(fsMock.promises.rename.mock.calls[1][0]).toBe(tempPath);
-        expect(fsMock.promises.rename.mock.calls[1][1]).toBe(repoPath);
+        expect(fsMock.promises.rename.mock.calls[1][1]).toBe(fakeRepositoryPath);
 
         expect(databaseMock.Repository.deleteByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.deleteByUsernameAndName.mock.calls[0][0]).toEqual({

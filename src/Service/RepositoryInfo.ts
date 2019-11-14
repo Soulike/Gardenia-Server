@@ -2,8 +2,7 @@ import {Session} from 'koa-session';
 import {Account, Commit, Group, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Git, Promisify} from '../Function';
-import path from 'path';
-import {GIT, SERVER} from '../CONFIG';
+import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
 import {ServerResponse} from 'http';
 import {spawn} from 'child_process';
@@ -28,15 +27,15 @@ export async function repository(account: Readonly<Pick<Account, 'username'>>, r
 export async function branch(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Array<string> | void>>
 {
     const {username} = account;
-    const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
+    const {name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
-    const branches = await Git.getAllBranches(repoPath);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const branches = await Git.getAllBranches(repositoryPath);
     return new ServiceResponse<Array<string>>(200, {},
         new ResponseBody<Array<string>>(true, '', Git.putMasterBranchToFront(branches)));
 }
@@ -44,17 +43,17 @@ export async function branch(account: Readonly<Pick<Account, 'username'>>, repos
 export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, commitHash: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
     const {username} = account;
-    const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
+    const {name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
     try
     {
-        const commit = await Git.getLastCommitInfo(repoPath, commitHash, filePath);
+        const commit = await Git.getLastCommitInfo(repositoryPath, commitHash, filePath);
         return new ServiceResponse<Commit>(200, {},
             new ResponseBody<Commit>(true, '', commit));
     }
@@ -69,17 +68,17 @@ export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, r
 export async function directory(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, commitHash: string, directoryPath: string, session: Readonly<Session>): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
     const {username} = account;
-    const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
+    const {name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
     try
     {
-        const fileCommitInfoList = await Git.getFileCommitInfoList(repoPath, commitHash, directoryPath);
+        const fileCommitInfoList = await Git.getFileCommitInfoList(repositoryPath, commitHash, directoryPath);
 
         // 对获取的数组进行排序，类型为 TREE 的在前，BLOB 的在后
         fileCommitInfoList.sort((a, b) =>
@@ -126,11 +125,11 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
     try
     {
         const commitCountString = await Promisify.execPromise(`git rev-list ${commitHash} --count`, {
-            cwd: repoPath,
+            cwd: repositoryPath,
         }) as string;
         return new ServiceResponse<{ commitCount: number }>(200, {},
             new ResponseBody<{ commitCount: number }>(true, '', {
@@ -154,22 +153,22 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
 export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
 {
     const {username} = account;
-    const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
+    const {name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
     let objectHash: string | null = null;
     let objectType: ObjectType | null = null;
     try
     {
         // 获取对象哈希和类型
         const result = await Promise.all([
-            Git.getObjectHash(repoPath, filePath, commitHash),
-            Git.getObjectType(repoPath, filePath, commitHash),
+            Git.getObjectHash(repositoryPath, filePath, commitHash),
+            Git.getObjectType(repositoryPath, filePath, commitHash),
         ]);
         objectHash = result[0];
         objectType = result[1];
@@ -182,11 +181,11 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
 
     // 把文件内容送给 file 命令行工具查看类型
     const fileOut = (await Promisify.execPromise(`git cat-file -p ${objectHash} | file -`,
-        {cwd: repoPath}) as string).toLowerCase();
+        {cwd: repositoryPath}) as string).toLowerCase();
     if (fileOut.includes('text') || fileOut.includes('json')) // 当 file 工具的输出包含 "text" 或 "json" 时，是文本文件
     {
         // 获取文件大小
-        const sizeString = await Promisify.execPromise(`git cat-file -s ${objectHash}`, {cwd: repoPath}) as string;
+        const sizeString = await Promisify.execPromise(`git cat-file -s ${objectHash}`, {cwd: repositoryPath}) as string;
         const size = Number.parseInt(sizeString);
         return new ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(200, {},
             new ResponseBody<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(
@@ -209,19 +208,19 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
 export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>, res: ServerResponse): Promise<void>
 {
     const {username} = account;
-    const {name: repositoryName} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
+    const {name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         res.statusCode = 404;
         return;
     }
-    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
     let objectHash: string | null = null;
     try
     {
         // 获取对象哈希
-        objectHash = await Git.getObjectHash(repoPath, filePath, commitHash);
+        objectHash = await Git.getObjectHash(repositoryPath, filePath, commitHash);
     }
     catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
     {
@@ -229,7 +228,7 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
         return;
     }
     // 执行命令获取文件内容
-    const childProcess = spawn(`git cat-file -p ${objectHash}`, {cwd: repoPath, shell: true});
+    const childProcess = spawn(`git cat-file -p ${objectHash}`, {cwd: repositoryPath, shell: true});
     res.statusCode = 200;
     res.setHeader('Content-Type', mime.contentType(filePath) || 'application/octet-stream');
     childProcess.stdout.pipe(res);  // 用流的形式发出文件内容
@@ -257,11 +256,11 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
             new ResponseBody<void>(false, '仓库不存在'));
     }
 
-    const repoPath = path.join(GIT.ROOT, username, `${repositoryName}.git`);
-    const newRepoPath = path.join(GIT.ROOT, username, `${newRepositoryName}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name: repositoryName});
+    const newRepoPath = Git.generateRepositoryPath({username, name: newRepositoryName});
     try
     {
-        await fse.copy(repoPath, newRepoPath, {
+        await fse.copy(repositoryPath, newRepoPath, {
             overwrite: false,
             errorOnExist: true,
             preserveTimestamps: true,
@@ -284,7 +283,7 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
         await fse.remove(newRepoPath);
         throw e;
     }
-    await fse.remove(repoPath);
+    await fse.remove(repositoryPath);
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 

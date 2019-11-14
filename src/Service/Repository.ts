@@ -1,10 +1,9 @@
 import {Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Repository as RepositoryTable} from '../Database';
-import path from 'path';
-import {GIT, SERVER} from '../CONFIG';
+import {SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
-import {Session as SessionFunction} from '../Function';
+import {Git, Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
 import fse from 'fs-extra';
 import {InvalidSessionError} from '../Dispatcher/Class';
@@ -22,19 +21,19 @@ export async function create(repository: Readonly<Omit<RepositoryClass, 'usernam
     {
         return new ServiceResponse<void>(200, {}, new ResponseBody<void>(false, '仓库已存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
 
     // 尝试创建文件夹及 git 裸仓库，并创建数据库记录
     try
     {
-        await fsPromise.mkdir(repoPath, {recursive: true});
+        await fsPromise.mkdir(repositoryPath, {recursive: true});
         await (async () =>
         {
             return new Promise((resolve, reject) =>
             {
                 const childProcess = spawn('git init --bare && cp hooks/post-update.sample hooks/post-update && git update-server-info && git config http.receivepack true', {
                     shell: true,
-                    cwd: repoPath,
+                    cwd: repositoryPath,
                 });
 
                 childProcess.on('exit', () =>
@@ -57,7 +56,7 @@ export async function create(repository: Readonly<Omit<RepositoryClass, 'usernam
         {
             try
             {
-                await fse.remove(repoPath);
+                await fse.remove(repositoryPath);
             }
             catch (e)
             {
@@ -85,7 +84,7 @@ export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, s
     {
         return new ServiceResponse<void>(404, {}, new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repoPath = path.join(GIT.ROOT, username, `${name}.git`);
+    const repositoryPath = Git.generateRepositoryPath({username, name});
     /*
     * 删除采用以下步骤：
     * 1. 创建一个临时文件夹
@@ -99,7 +98,7 @@ export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, s
     const tempPath = await fsPromise.mkdtemp('repo-');
     try
     {
-        await fsPromise.rename(repoPath, tempPath);
+        await fsPromise.rename(repositoryPath, tempPath);
     }
     catch (e)   // 如果这一步就失败了，就直接放弃操作
     {
@@ -113,7 +112,7 @@ export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, s
     }
     catch (e)   // 数据库记录删除失败，把仓库文件夹移动回去
     {
-        await fsPromise.rename(tempPath, repoPath);
+        await fsPromise.rename(tempPath, repositoryPath);
         throw e;
     }
     // 数据库记录删除成功，删除临时文件夹
