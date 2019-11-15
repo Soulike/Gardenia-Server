@@ -128,13 +128,9 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
     const repositoryPath = Git.generateRepositoryPath({username, name});
     try
     {
-        const commitCountString = await Promisify.execPromise(`git rev-list ${commitHash} --count`, {
-            cwd: repositoryPath,
-        }) as string;
+        const commitCount = await Git.getCommitCount(repositoryPath, commitHash);
         return new ServiceResponse<{ commitCount: number }>(200, {},
-            new ResponseBody<{ commitCount: number }>(true, '', {
-                commitCount: Number.parseInt(commitCountString),
-            }));
+            new ResponseBody<{ commitCount: number }>(true, '', {commitCount}));
     }
     catch (e)
     {

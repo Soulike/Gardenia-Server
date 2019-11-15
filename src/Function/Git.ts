@@ -150,6 +150,7 @@ export function generateRepositoryPath(repository: Readonly<Pick<Repository, 'us
     return path.join(GIT.ROOT, username, `${name}.git`);
 }
 
+// 注意在没有进行过提交的时候将抛出错误
 export async function getCommitCount(repositoryPath: string, commitHash: string): Promise<number>
 {
     return new Promise((resolve, reject) =>
