@@ -5,6 +5,7 @@ import {
     getFileCommitInfoList,
     getLastCommitInfo,
     getObjectHash,
+    getObjectSize,
     getObjectType,
     isBinaryObject,
     objectExists,
@@ -30,6 +31,7 @@ const firstCommitFolderName = 'testFolder';
 const firstCommitFileInFolderPath = path.join(firstCommitFolderName, firstCommitFileName);
 const firstCommitMessage = 'test';
 const binaryFileName = 'binaryFile';
+const binaryFileSize = 101;
 
 describe(getAllBranches, () =>
 {
@@ -348,9 +350,45 @@ describe(isBinaryObject, () =>
 
     it('should check binary object', async function ()
     {
-        expect(await isBinaryObject(repositoryPath, firstCommitFileName, mainBranchName)).toBe(false);
-        expect(await isBinaryObject(repositoryPath, firstCommitFileInFolderPath, mainBranchName)).toBe(false);
-        expect(await isBinaryObject(repositoryPath, binaryFileName, mainBranchName)).toBe(true);
+        expect(
+            await isBinaryObject(
+                repositoryPath,
+                await getObjectHash(repositoryPath, firstCommitFileName, mainBranchName)),
+        ).toBe(false);
+        expect(
+            await isBinaryObject(
+                repositoryPath,
+                await getObjectHash(repositoryPath, firstCommitFileInFolderPath, mainBranchName)),
+        ).toBe(false);
+        expect(
+            await isBinaryObject(
+                repositoryPath,
+                await getObjectHash(repositoryPath, binaryFileName, mainBranchName)),
+        ).toBe(true);
+    });
+});
+
+describe(getObjectSize, () =>
+{
+    beforeAll(async () =>
+    {
+        await createRepository();
+        await doBinaryCommit();
+        await changeMainBranchName();
+    });
+
+    afterAll(async () =>
+    {
+        await destroyRepository();
+    });
+
+    it('should get object size', async function ()
+    {
+        expect(
+            await getObjectSize(
+                repositoryPath,
+                await getObjectHash(repositoryPath, binaryFileName, mainBranchName)),
+        ).toBe(binaryFileSize);
     });
 });
 
@@ -401,7 +439,7 @@ async function doFirstCommit()
 async function doBinaryCommit()
 {
     const binary = [];
-    for (let i = 0; i < 100; i++)
+    for (let i = 0; i < binaryFileSize; i++)
     {
         binary.push(faker.random.number(255));
     }

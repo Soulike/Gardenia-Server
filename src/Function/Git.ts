@@ -3,6 +3,7 @@ import {execPromise} from './Promisify';
 import {ObjectType} from '../CONSTANT';
 import path from 'path';
 import {GIT} from '../CONFIG';
+import {Promisify} from './index';
 
 export async function getAllBranches(repositoryPath: string): Promise<string[]>
 {
@@ -145,9 +146,15 @@ export async function objectExists(repositoryPath: string, filePath: string, com
     return stdout.length !== 0;
 }
 
-export async function isBinaryObject(repositoryPath: string, filePath: string, commitHash: string): Promise<boolean>
+export async function isBinaryObject(repositoryPath: string, objectHash: string): Promise<boolean>
 {
-    const objectHash = await getObjectHash(repositoryPath, filePath, commitHash);
     const stdout = (await execPromise(`git cat-file -p ${objectHash} | file -`, {cwd: repositoryPath})).toLowerCase();
     return !(stdout.includes('text') || stdout.includes('json') || stdout.includes('svg'));
+}
+
+export async function getObjectSize(repositoryPath: string, objectHash: string): Promise<number>
+{
+    return Number.parseInt(
+        await Promisify.execPromise(`git cat-file -s ${objectHash}`,
+            {cwd: repositoryPath}));
 }
