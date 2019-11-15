@@ -1,6 +1,7 @@
 import {
     generateRepositoryPath,
     getAllBranches,
+    getCommitCount,
     getFileCommitInfoList,
     getLastCommitInfo,
     getObjectHash,
@@ -281,6 +282,34 @@ describe(generateRepositoryPath, () =>
         const fakeRepository = new Repository(faker.name.firstName(), faker.random.word(), faker.lorem.sentence(), true);
         expect(generateRepositoryPath(fakeRepository))
             .toBe(path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`));
+    });
+});
+
+describe(getCommitCount, () =>
+{
+    beforeAll(async () =>
+    {
+        await createRepository();
+        await doFirstCommit();
+        await changeMainBranchName();
+    });
+
+    afterAll(async () =>
+    {
+        await destroyRepository();
+    });
+
+    it('should get commit count', async function ()
+    {
+        expect(await getCommitCount(repositoryPath, mainBranchName)).toBe(1);
+    });
+
+    it('should process error', async function ()
+    {
+        await Promise.all([
+            expect(getCommitCount('afaefeaf', mainBranchName)).rejects.toThrow(),
+            expect(getCommitCount(repositoryPath, 'dawdfgesafg')).rejects.toThrow(),
+        ]);
     });
 });
 

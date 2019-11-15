@@ -149,3 +149,22 @@ export function generateRepositoryPath(repository: Readonly<Pick<Repository, 'us
     const {username, name} = repository;
     return path.join(GIT.ROOT, username, `${name}.git`);
 }
+
+export async function getCommitCount(repositoryPath: string, commitHash: string): Promise<number>
+{
+    return new Promise((resolve, reject) =>
+    {
+        exec(`git rev-list ${commitHash} --count`, {cwd: repositoryPath}, (error, stdout, stderr) =>
+        {
+            if (stderr)
+            {
+                return reject(new Error(stderr));
+            }
+            if (error)
+            {
+                return reject(error);
+            }
+            return resolve(Number.parseInt(stdout));
+        });
+    });
+}
