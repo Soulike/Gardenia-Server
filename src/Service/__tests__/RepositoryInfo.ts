@@ -1,4 +1,4 @@
-import {branch, directory, lastCommit, repository} from '../RepositoryInfo';
+import {branch, commitCount, directory, lastCommit, repository} from '../RepositoryInfo';
 import {Account, Commit, Repository, ResponseBody, ServiceResponse} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
@@ -919,5 +919,211 @@ describe(directory, () =>
             fakeCommitHash,
             fakeDirectoryPath,
         ]);
+    });
+});
+
+describe(commitCount, () =>
+{
+    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeCommitCount = faker.random.number();
+    const fakeCommitHash = faker.random.alphaNumeric(64);
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+    });
+
+    it('everyone can get the commit count of a public repository', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
+            },
+        };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+                getCommitCount: jest.fn().mockResolvedValue(fakeCommitCount),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        const {commitCount} = await import('../RepositoryInfo');
+        expect(
+            await commitCount(
+                {username: fakeAccount.username},
+                {name: fakeRepository.name},
+                fakeCommitHash,
+                {username: faker.random.word()} as unknown as Session),
+        ).toEqual(new ServiceResponse<{ commitCount: number }>(200, {},
+            new ResponseBody<{ commitCount: number }>(true, '', {commitCount: fakeCommitCount})));
+
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+
+        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(1);
+        expect(functionMock.Git.getCommitCount.mock.calls[0]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+        ]);
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+    });
+
+    it('only owner can get the commit count of a private repository', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            false,
+        );
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
+            },
+        };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+                getCommitCount: jest.fn().mockResolvedValue(fakeCommitCount),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        const {commitCount} = await import('../RepositoryInfo');
+        expect(
+            await commitCount(fakeAccount, fakeRepository, fakeCommitHash, {username: faker.random.word()} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在')));
+
+        expect(
+            await commitCount(fakeAccount, fakeRepository, fakeCommitHash, {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(new ServiceResponse<{ commitCount: number }>(200, {},
+            new ResponseBody<{ commitCount: number }>(true, '', {commitCount: fakeCommitCount})));
+
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+
+        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(1);
+        expect(functionMock.Git.getCommitCount.mock.calls[0]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+        ]);
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+    });
+
+    it('should check repository existence', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
+            },
+        };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+                getCommitCount: jest.fn().mockResolvedValue(fakeCommitCount),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        const {commitCount} = await import('../RepositoryInfo');
+        expect(
+            await commitCount(fakeAccount, fakeRepository, fakeCommitHash, {username: faker.random.word()} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+
+        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(0);
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
+    });
+
+    it('should check commit hash existence', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        const databaseMock = {
+            Repository: {
+                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
+            },
+        };
+        const functionMock = {
+            Git: {
+                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
+                getCommitCount: jest.fn().mockRejectedValue(new Error()),
+            },
+        };
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        const {commitCount} = await import('../RepositoryInfo');
+        expect(
+            await commitCount(
+                {username: fakeAccount.username},
+                {name: fakeRepository.name},
+                fakeCommitHash,
+                {username: faker.random.word()} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '分支或提交不存在')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
+
+        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(1);
+        expect(functionMock.Git.getCommitCount.mock.calls[0]).toEqual([
+            fakeRepositoryPath,
+            fakeCommitHash,
+        ]);
+
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        });
     });
 });
