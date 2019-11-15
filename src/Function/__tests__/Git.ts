@@ -7,6 +7,7 @@ import {
     getObjectHash,
     getObjectType,
     isEmptyRepository,
+    objectExists,
     putMasterBranchToFront,
 } from '../Git';
 import fs from 'fs';
@@ -323,6 +324,38 @@ describe(getCommitCount, () =>
             expect(getCommitCount('/afaefeaf', mainBranchName)).rejects.toThrow(),
             expect(getCommitCount(os.tmpdir(), mainBranchName)).rejects.toThrow(),
             expect(getCommitCount(repositoryPath, 'dawdfgesafg')).rejects.toThrow(),
+        ]);
+    });
+});
+
+describe(objectExists, () =>
+{
+    beforeAll(async () =>
+    {
+        await createRepository();
+        await doFirstCommit();
+        await changeMainBranchName();
+    });
+
+    afterAll(async () =>
+    {
+        await destroyRepository();
+    });
+
+    it('should check object existence', async function ()
+    {
+        await Promise.all([
+            expect(objectExists(repositoryPath, firstCommitFolderName, mainBranchName)).resolves.toBe(true),
+            expect(objectExists(repositoryPath, firstCommitFileName, mainBranchName)).resolves.toBe(true),
+            expect(objectExists(repositoryPath, path.join(faker.random.word(), faker.random.word()), mainBranchName)).resolves.toBe(false),
+        ]);
+    });
+
+    it('should reject when repository or commit hash does not exist', async function ()
+    {
+        await Promise.all([
+            expect(objectExists(path.join(faker.random.word(), faker.random.word()), firstCommitFolderName, mainBranchName)).rejects.toThrow(),
+            expect(objectExists(repositoryPath, firstCommitFileName, faker.random.alphaNumeric(64))).rejects.toThrow(),
         ]);
     });
 });

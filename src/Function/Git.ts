@@ -175,3 +175,22 @@ export async function getCommitCount(repositoryPath: string, commitHash: string)
         });
     });
 }
+
+export async function objectExists(repositoryPath: string, filePath: string, commitHash: string): Promise<boolean>
+{
+    return new Promise((resolve, reject) =>
+    {
+        exec(`git ls-tree ${commitHash} -- ${filePath}`, {cwd: repositoryPath}, (error, stdout, stderr) =>
+        {
+            if (stderr)
+            {
+                return reject(new Error(stderr));
+            }
+            if (error)
+            {
+                return reject(error);
+            }
+            return resolve(stdout.length !== 0);
+        });
+    });
+}
