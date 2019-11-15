@@ -33,7 +33,10 @@ describe(getAllBranches, () =>
 {
     beforeAll(async () =>
     {
-        await createRepository();
+        await Promise.all([
+            createRepository(),
+            createBareRepository(),
+        ]);
         await doFirstCommit();
         await createBranches();
         await changeMainBranchName();
@@ -46,8 +49,14 @@ describe(getAllBranches, () =>
 
     it('should get all branches', async function ()
     {
-        const ret = await getAllBranches(repositoryPath);
-        expect(ret).toEqual(expect.arrayContaining([mainBranchName, ...branches]));
+        expect(await getAllBranches(repositoryPath))
+            .toEqual(expect.arrayContaining([mainBranchName, ...branches]));
+    });
+
+    it('should handle empty repository', async function ()
+    {
+        expect(await getAllBranches(bareRepositoryPath))
+            .toEqual([]);
     });
 
     it('should reject when something is wrong', async function ()
@@ -289,7 +298,10 @@ describe(getCommitCount, () =>
 {
     beforeAll(async () =>
     {
-        await createRepository();
+        await Promise.all([
+            createBareRepository(),
+            createRepository(),
+        ]);
         await doFirstCommit();
         await changeMainBranchName();
     });
@@ -301,13 +313,15 @@ describe(getCommitCount, () =>
 
     it('should get commit count', async function ()
     {
+        expect(await getCommitCount(bareRepositoryPath, mainBranchName)).toBe(0);
         expect(await getCommitCount(repositoryPath, mainBranchName)).toBe(1);
     });
 
     it('should process error', async function ()
     {
         await Promise.all([
-            expect(getCommitCount('afaefeaf', mainBranchName)).rejects.toThrow(),
+            expect(getCommitCount('/afaefeaf', mainBranchName)).rejects.toThrow(),
+            expect(getCommitCount(os.tmpdir(), mainBranchName)).rejects.toThrow(),
             expect(getCommitCount(repositoryPath, 'dawdfgesafg')).rejects.toThrow(),
         ]);
     });

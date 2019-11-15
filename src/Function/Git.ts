@@ -20,7 +20,7 @@ export async function getAllBranches(repositoryPath: string): Promise<string[]>
             {
                 return reject(error);
             }
-            return resolve(stdout.split('\n'));
+            return resolve(stdout.split('\n').filter(value => value.length > 0));
         });
     });
 }
@@ -150,9 +150,15 @@ export function generateRepositoryPath(repository: Readonly<Pick<Repository, 'us
     return path.join(GIT.ROOT, username, `${name}.git`);
 }
 
-// 注意在没有进行过提交的时候将抛出错误
 export async function getCommitCount(repositoryPath: string, commitHash: string): Promise<number>
 {
+    // 首先判断是否存在 master 分支，如果没有进行过任何提交是没有 master 分支的
+    const branches = await getAllBranches(repositoryPath);
+    if (branches.length === 0)
+    {
+        return 0;
+    }
+    // 以下命令会因为不存在 master 分支报错
     return new Promise((resolve, reject) =>
     {
         exec(`git rev-list ${commitHash} --count`, {cwd: repositoryPath}, (error, stdout, stderr) =>

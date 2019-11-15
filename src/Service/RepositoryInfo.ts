@@ -134,15 +134,8 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
     }
     catch (e)
     {
-        if (commitHash.trim() === 'HEAD')
-        {
-            return new ServiceResponse<{ commitCount: number }>(200, {},
-                new ResponseBody<{ commitCount: number }>(true, '', {
-                    commitCount: 0,
-                }));
-        }
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '分支不存在'));
+            new ResponseBody<void>(false, '分支或提交不存在'));
     }
 }
 
