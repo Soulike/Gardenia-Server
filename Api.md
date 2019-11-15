@@ -451,6 +451,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 仓库不存在
+  - 分支或提交不存在
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 在文件不存在时，不返回 404

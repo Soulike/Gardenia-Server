@@ -150,34 +150,30 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
             new ResponseBody<void>(false, '仓库不存在'));
     }
     const repositoryPath = Git.generateRepositoryPath({username, name});
-    let objectHash: string | null = null;
-    let objectType: ObjectType | null = null;
     try
     {
-        // 获取对象哈希和类型
-        const result = await Promise.all([
-            Git.getObjectHash(repositoryPath, filePath, commitHash),
-            Git.getObjectType(repositoryPath, filePath, commitHash),
-        ]);
-        objectHash = result[0];
-        objectType = result[1];
+        if (!(await Git.objectExists(repositoryPath, filePath, commitHash)))
+        {
+            return new ServiceResponse(200, {},
+                new ResponseBody(true, '', {exists: false}));
+        }
     }
     catch (e)
     {
-        return new ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(200, {},
-            new ResponseBody<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(true, '', {exists: false}));
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, '分支或提交不存在'));
     }
 
-    // 把文件内容送给 file 命令行工具查看类型
-    const fileOut = (await Promisify.execPromise(`git cat-file -p ${objectHash} | file -`,
-        {cwd: repositoryPath})).toLowerCase();
-    if (fileOut.includes('text') || fileOut.includes('json')) // 当 file 工具的输出包含 "text" 或 "json" 时，是文本文件
+    const [objectHash, objectType] = await Promise.all([
+        Git.getObjectHash(repositoryPath, filePath, commitHash),
+        Git.getObjectType(repositoryPath, filePath, commitHash),
+    ]);
+
+    if (!(await Git.isBinaryObject(repositoryPath, objectHash)))
     {
-        // 获取文件大小
-        const sizeString = await Promisify.execPromise(`git cat-file -s ${objectHash}`, {cwd: repositoryPath});
-        const size = Number.parseInt(sizeString);
-        return new ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(200, {},
-            new ResponseBody<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(
+        const size = await Git.getObjectSize(repositoryPath, objectHash);
+        return new ServiceResponse(200, {},
+            new ResponseBody(
                 true, '', {
                     exists: true, isBinary: false, type: objectType, size,
                 },
@@ -185,8 +181,8 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     }
     else    // 是二进制文件
     {
-        return new ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(200, {},
-            new ResponseBody<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(
+        return new ServiceResponse(200, {},
+            new ResponseBody(
                 true, '', {
                     exists: true, isBinary: true,
                 },

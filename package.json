@@ -12,12 +12,12 @@
     "build": "tsc",
     "prestart": "yarn build",
     "check-type": "tsc --noEmit",
-    "test": "jest --onlyChanged",
+    "test": "jest",
     "test-coverage": "jest --collectCoverage"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn check-type && yarn test"
+      "pre-commit": "yarn check-type"
     }
   },
   "dependencies": {
