@@ -6,7 +6,6 @@ import {
     getLastCommitInfo,
     getObjectHash,
     getObjectType,
-    isEmptyRepository,
     objectExists,
     putMasterBranchToFront,
 } from '../Git';
@@ -126,36 +125,6 @@ describe(getLastCommitInfo, () =>
         await expect(getLastCommitInfo('addwadawd', mainBranchName, firstCommitFileName)).rejects.toThrow();
         await expect(getLastCommitInfo(repositoryPath, 'dawdawdawdfsf', firstCommitFileName)).rejects.toThrow();
         await expect(getLastCommitInfo(repositoryPath, mainBranchName, 'gergergergerg')).rejects.toThrow();
-    });
-});
-
-describe(isEmptyRepository, () =>
-{
-    beforeAll(async () =>
-    {
-        await createBareRepository();
-        await createRepository();
-    });
-
-    afterAll(async () =>
-    {
-        await destroyRepository();
-    });
-
-    it('should return true when repository is empty', async function ()
-    {
-        expect(await isEmptyRepository(bareRepositoryPath)).toBe(true);
-    });
-
-    it('should return false when repository is not empty', async function ()
-    {
-        await doFirstCommit();
-        expect(await isEmptyRepository(repositoryPath)).toBe(false);
-    });
-
-    it('should reject when repository does not exist', async function ()
-    {
-        await expect(isEmptyRepository('dfafafeasfseg')).rejects.toThrow();
     });
 });
 

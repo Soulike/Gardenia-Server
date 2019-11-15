@@ -1,24 +1,21 @@
 import {exec, ExecOptions} from 'child_process';
 import EventEmitter from 'events';
 
-export async function execPromise(command: string, options?: ExecOptions): Promise<string | Buffer>
+export async function execPromise(command: string, options?: ExecOptions): Promise<string>
 {
-    return new Promise<string | Buffer>((resolve, reject) =>
+    return new Promise<string>((resolve, reject) =>
     {
-        exec(command, options, (error, stdout, stderr) =>
+        exec(command, {...options, encoding: 'utf-8'}, (error, stdout, stderr) =>
         {
+            if (stderr)
+            {
+                return reject(new Error(stderr));
+            }
             if (error)
             {
-                reject(error);
+                return reject(error);
             }
-            else if (stderr)
-            {
-                reject(new Error(stderr as string));
-            }
-            else
-            {
-                return resolve(stdout);
-            }
+            return resolve(stdout);
         });
     });
 }

@@ -37,7 +37,7 @@ export async function branch(account: Readonly<Pick<Account, 'username'>>, repos
     const repositoryPath = Git.generateRepositoryPath({username, name});
     const branches = await Git.getAllBranches(repositoryPath);
     return new ServiceResponse<Array<string>>(200, {},
-        new ResponseBody<Array<string>>(true, '', Git.putMasterBranchToFront(branches)));
+        new ResponseBody<Array<string>>(true, '', Git.putMasterBranchToFront(branches, 'master')));
 }
 
 export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, commitHash: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>
@@ -170,11 +170,11 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
 
     // 把文件内容送给 file 命令行工具查看类型
     const fileOut = (await Promisify.execPromise(`git cat-file -p ${objectHash} | file -`,
-        {cwd: repositoryPath}) as string).toLowerCase();
+        {cwd: repositoryPath})).toLowerCase();
     if (fileOut.includes('text') || fileOut.includes('json')) // 当 file 工具的输出包含 "text" 或 "json" 时，是文本文件
     {
         // 获取文件大小
-        const sizeString = await Promisify.execPromise(`git cat-file -s ${objectHash}`, {cwd: repositoryPath}) as string;
+        const sizeString = await Promisify.execPromise(`git cat-file -s ${objectHash}`, {cwd: repositoryPath});
         const size = Number.parseInt(sizeString);
         return new ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(200, {},
             new ResponseBody<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean }>(
