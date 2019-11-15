@@ -144,3 +144,10 @@ export async function objectExists(repositoryPath: string, filePath: string, com
     const stdout = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`, {cwd: repositoryPath});
     return stdout.length !== 0;
 }
+
+export async function isBinaryObject(repositoryPath: string, filePath: string, commitHash: string): Promise<boolean>
+{
+    const objectHash = await getObjectHash(repositoryPath, filePath, commitHash);
+    const stdout = (await execPromise(`git cat-file -p ${objectHash} | file -`, {cwd: repositoryPath})).toLowerCase();
+    return !(stdout.includes('text') || stdout.includes('json') || stdout.includes('svg'));
+}
