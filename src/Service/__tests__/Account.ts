@@ -25,6 +25,7 @@ describe(login, () =>
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
     });
 
@@ -64,6 +65,7 @@ describe(register, () =>
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
     });
 
@@ -138,6 +140,7 @@ describe(getGroups, () =>
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
     });
 
@@ -171,6 +174,7 @@ describe(getAdministratingGroups, () =>
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
     });
 
@@ -204,6 +208,7 @@ describe(checkPassword, () =>
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
     });
 
