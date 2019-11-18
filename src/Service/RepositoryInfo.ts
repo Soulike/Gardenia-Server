@@ -1,10 +1,9 @@
 import {Session} from 'koa-session';
 import {Account, Commit, Group, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
-import {Git, Promisify} from '../Function';
+import {Git} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
-import {ServerResponse} from 'http';
 import {spawn} from 'child_process';
 import mime from 'mime-types';
 import fse from 'fs-extra';
@@ -190,15 +189,14 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     }
 }
 
-export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>, res: ServerResponse): Promise<void>
+export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>): Promise<ServiceResponse>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
-        res.statusCode = 404;
-        return;
+        return new ServiceResponse<void>(404, {});
     }
     const repositoryPath = Git.generateRepositoryPath({username, name});
     let objectHash: string | null = null;
@@ -209,15 +207,13 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
     }
     catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
     {
-        res.statusCode = 404;
-        return;
+        return new ServiceResponse<void>(404, {});
     }
     // 执行命令获取文件内容
     const childProcess = spawn(`git cat-file -p ${objectHash}`, {cwd: repositoryPath, shell: true});
-    res.statusCode = 200;
-    res.setHeader('Content-Type', mime.contentType(filePath) || 'application/octet-stream');
-    childProcess.stdout.pipe(res);  // 用流的形式发出文件内容
-    await Promisify.waitForEvent(childProcess, 'close');    // 等待传输结束
+    return new ServiceResponse<void>(200,
+        {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
+        childProcess.stdout);
 }
 
 export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>>, newRepository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>

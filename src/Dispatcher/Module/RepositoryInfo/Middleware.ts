@@ -90,7 +90,7 @@ export const rawFile: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account, repository, filePath, commitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.rawFile(account, repository, filePath, commitHash, ctx.session, ctx.res);
+        ctx.state.serviceResponse = await RepositoryInfo.rawFile(account, repository, filePath, commitHash, ctx.session);
     };
 };
 
