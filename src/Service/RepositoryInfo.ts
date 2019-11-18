@@ -4,7 +4,6 @@ import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Git} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
-import {spawn} from 'child_process';
 import mime from 'mime-types';
 import fse from 'fs-extra';
 import {InvalidSessionError} from '../Dispatcher/Class';
@@ -199,21 +198,18 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
         return new ServiceResponse<void>(404, {});
     }
     const repositoryPath = Git.generateRepositoryPath({username, name});
-    let objectHash: string | null = null;
     try
     {
         // 获取对象哈希
-        objectHash = await Git.getObjectHash(repositoryPath, filePath, commitHash);
+        const objectHash = await Git.getObjectHash(repositoryPath, filePath, commitHash);
+        return new ServiceResponse<void>(200,
+            {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
+            Git.getObjectReadStream(repositoryPath, objectHash));
     }
     catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
     {
         return new ServiceResponse<void>(404, {});
     }
-    // 执行命令获取文件内容
-    const childProcess = spawn(`git cat-file -p ${objectHash}`, {cwd: repositoryPath, shell: true});
-    return new ServiceResponse<void>(200,
-        {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
-        childProcess.stdout);
 }
 
 export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>>, newRepository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>

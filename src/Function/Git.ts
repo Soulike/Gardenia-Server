@@ -4,6 +4,8 @@ import {ObjectType} from '../CONSTANT';
 import path from 'path';
 import {GIT} from '../CONFIG';
 import {Promisify} from './index';
+import {Readable} from 'stream';
+import {spawn} from 'child_process';
 
 export async function getAllBranches(repositoryPath: string): Promise<string[]>
 {
@@ -157,4 +159,14 @@ export async function getObjectSize(repositoryPath: string, objectHash: string):
     return Number.parseInt(
         await Promisify.execPromise(`git cat-file -s ${objectHash}`,
             {cwd: repositoryPath}));
+}
+
+export function getObjectReadStream(repositoryPath: string, objectHash: string): Readable
+{
+    const {stdout} = spawn(`git cat-file -p ${objectHash}`,
+        {
+            cwd: repositoryPath,
+            shell: true,
+        });
+    return stdout;
 }

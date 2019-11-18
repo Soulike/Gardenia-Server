@@ -5,6 +5,7 @@ import {
     getFileCommitInfoList,
     getLastCommitInfo,
     getObjectHash,
+    getObjectReadStream,
     getObjectSize,
     getObjectType,
     isBinaryObject,
@@ -27,6 +28,24 @@ let bareRepositoryPath = '';
 const mainBranchName = 'main';
 const branches = ['test1', 'test2', 'test3'];
 const firstCommitFileName = 'testFile';
+const firstCommitFileContent = `
+    <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+        "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg t="1573473234481" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3945"
+     width="200" height="200">
+    <defs>
+        <style type="text/css"></style>
+    </defs>
+    <path d="M91 475s105-12 222 67 180 261 180 261-73-71-177-139c-93.4-61.1-149-6-194-69S91 475 91 475zM971.9 485s-105-12-222 67-180 261-180 261 73-71 177-139c93.4-61.1 149-6 194-69s31-120 31-120z"
+          fill="#FFF5CC" p-id="3946"></path>
+    <path d="M261 213s171.5 162.5 195.5 287.5S492 864 492 864s-41.2-192.1-124.9-257.3-101.6-77.2-129.6-167.2S261 213 261 213zM807.2 213S635.7 375.5 611.7 500.5 576.2 864 576.2 864 617.4 671.9 701 606.7s101.6-77.2 129.6-167.2S807.2 213 807.2 213z"
+          fill="#FFFCEB" p-id="3947"></path>
+    <path d="M518 106S296 210 358 410s175 428 175 428 135.6-262.3 170.8-444.2S518 106 518 106z" fill="#FFFCEB"
+          p-id="3948"></path>
+    <path d="M445.6 785.7c-9-24.5 25.3-47.7 88.4-48.2 63.1-0.5 96.6 21.4 96.6 44.5s-82 117.8-135.1 137.4C442.4 939 419.3 939 393.9 939c-25.4 0-27.7-45 19.6-62.3 47.4-17.4 41.1-66.5 32.1-91z"
+          fill="#2C4432" p-id="3949"></path>
+</svg>
+    `;
 const firstCommitFolderName = 'testFolder';
 const firstCommitFileInFolderPath = path.join(firstCommitFolderName, firstCommitFileName);
 const firstCommitMessage = 'test';
@@ -392,6 +411,33 @@ describe(getObjectSize, () =>
     });
 });
 
+describe(getObjectReadStream, () =>
+{
+    beforeAll(async () =>
+    {
+        await createRepository();
+        await doFirstCommit();
+        await changeMainBranchName();
+    });
+
+    afterAll(async () =>
+    {
+        await destroyRepository();
+    });
+
+    it('should get object read stream', async function ()
+    {
+        const objectHash = await getObjectHash(repositoryPath, firstCommitFileName, mainBranchName);
+        const readStream = getObjectReadStream(repositoryPath, objectHash);
+        let content = '';
+        for await(const data of readStream)
+        {
+            content += data;
+        }
+        expect(content).toBe(firstCommitFileContent);
+    });
+});
+
 async function createRepository()
 {
     repositoryPath = await fs.promises.mkdtemp(path.join(os.tmpdir(), '__test'));
@@ -406,24 +452,7 @@ async function createBareRepository()
 
 async function doFirstCommit()
 {
-    await fs.promises.writeFile(path.join(repositoryPath, firstCommitFileName), `
-    <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-        "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg t="1573473234481" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3945"
-     width="200" height="200">
-    <defs>
-        <style type="text/css"></style>
-    </defs>
-    <path d="M91 475s105-12 222 67 180 261 180 261-73-71-177-139c-93.4-61.1-149-6-194-69S91 475 91 475zM971.9 485s-105-12-222 67-180 261-180 261 73-71 177-139c93.4-61.1 149-6 194-69s31-120 31-120z"
-          fill="#FFF5CC" p-id="3946"></path>
-    <path d="M261 213s171.5 162.5 195.5 287.5S492 864 492 864s-41.2-192.1-124.9-257.3-101.6-77.2-129.6-167.2S261 213 261 213zM807.2 213S635.7 375.5 611.7 500.5 576.2 864 576.2 864 617.4 671.9 701 606.7s101.6-77.2 129.6-167.2S807.2 213 807.2 213z"
-          fill="#FFFCEB" p-id="3947"></path>
-    <path d="M518 106S296 210 358 410s175 428 175 428 135.6-262.3 170.8-444.2S518 106 518 106z" fill="#FFFCEB"
-          p-id="3948"></path>
-    <path d="M445.6 785.7c-9-24.5 25.3-47.7 88.4-48.2 63.1-0.5 96.6 21.4 96.6 44.5s-82 117.8-135.1 137.4C442.4 939 419.3 939 393.9 939c-25.4 0-27.7-45 19.6-62.3 47.4-17.4 41.1-66.5 32.1-91z"
-          fill="#2C4432" p-id="3949"></path>
-</svg>
-    `);
+    await fs.promises.writeFile(path.join(repositoryPath, firstCommitFileName), firstCommitFileContent);
     await fs.promises.mkdir(path.join(repositoryPath, firstCommitFolderName));
     await fs.promises.writeFile(path.join(repositoryPath, firstCommitFileInFolderPath), `
 {
