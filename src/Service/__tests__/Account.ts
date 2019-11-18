@@ -7,15 +7,21 @@ import {Account as AccountTable} from '../../Database';
 
 const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
 
+const databaseMock = {
+    Account: {
+        selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
+            Parameters<typeof AccountTable.selectByUsername>>(),
+        create: jest.fn<ReturnType<typeof AccountTable.create>,
+            Parameters<typeof AccountTable.create>>(),
+        getGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getGroupsByUsername>,
+            Parameters<typeof AccountTable.getGroupsByUsername>>(),
+        getAdministratingGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getAdministratingGroupsByUsername>,
+            Parameters<typeof AccountTable.getAdministratingGroupsByUsername>>(),
+    },
+};
+
 describe(login, () =>
 {
-    const databaseMock = {
-        Account: {
-            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
-                Parameters<typeof AccountTable.selectByUsername>>(),
-        },
-    };
-
     beforeEach(() =>
     {
         jest.resetModules();
@@ -55,15 +61,6 @@ describe(login, () =>
 
 describe(register, () =>
 {
-    const databaseMock = {
-        Account: {
-            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
-                Parameters<typeof AccountTable.selectByUsername>>(),
-            create: jest.fn<ReturnType<typeof AccountTable.create>,
-                Parameters<typeof AccountTable.create>>(),
-        },
-    };
-
     beforeEach(() =>
     {
         jest.resetModules();
@@ -138,15 +135,6 @@ describe(logout, () =>
 
 describe(getGroups, () =>
 {
-    const databaseMock = {
-        Account: {
-            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
-                Parameters<typeof AccountTable.selectByUsername>>(),
-            getGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getGroupsByUsername>,
-                Parameters<typeof AccountTable.getGroupsByUsername>>(),
-        },
-    };
-
     beforeEach(() =>
     {
         jest.resetModules();
@@ -180,15 +168,6 @@ describe(getGroups, () =>
 
 describe(getAdministratingGroups, () =>
 {
-    const databaseMock = {
-        Account: {
-            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
-                Parameters<typeof AccountTable.selectByUsername>>(),
-            getAdministratingGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getAdministratingGroupsByUsername>,
-                Parameters<typeof AccountTable.getAdministratingGroupsByUsername>>(),
-        },
-    };
-
     beforeEach(() =>
     {
         jest.resetModules();
@@ -222,13 +201,6 @@ describe(getAdministratingGroups, () =>
 
 describe(checkPassword, () =>
 {
-    const databaseMock = {
-        Account: {
-            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
-                Parameters<typeof AccountTable.selectByUsername>>(),
-        },
-    };
-
     beforeEach(() =>
     {
         jest.resetModules();
