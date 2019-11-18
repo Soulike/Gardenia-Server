@@ -3,101 +3,91 @@ import faker from 'faker';
 import {checkPassword, checkSession, getAdministratingGroups, getGroups, login, logout, register} from '../Account';
 import {Session} from 'koa-session';
 import {InvalidSessionError} from '../../Dispatcher/Class';
+import {Account as AccountTable} from '../../Database';
 
 const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
 
 describe(login, () =>
 {
+    const databaseMock = {
+        Account: {
+            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
+                Parameters<typeof AccountTable.selectByUsername>>(),
+        },
+    };
+
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.mock('../../Database', () => databaseMock);
     });
 
     it('should check account existence', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(null),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(null);
         const {login} = await import('../Account');
         const response = await login(fakeAccount);
         expect(response).toEqual(new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名或密码错误')));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 
     it('should login and set session', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(fakeAccount),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {login} = await import('../Account');
         const response = await login(fakeAccount);
         expect(response).toEqual(new ServiceResponse<void>(200, {},
             new ResponseBody<void>(true), {username: fakeAccount.username}));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 
     it('should check password', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(fakeAccount),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {login} = await import('../Account');
         const response = await login({...fakeAccount, hash: faker.random.alphaNumeric(64)});
         expect(response).toEqual(new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名或密码错误')));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 });
 
 describe(register, () =>
 {
+    const databaseMock = {
+        Account: {
+            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
+                Parameters<typeof AccountTable.selectByUsername>>(),
+            create: jest.fn<ReturnType<typeof AccountTable.create>,
+                Parameters<typeof AccountTable.create>>(),
+        },
+    };
+
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.mock('../../Database', () => databaseMock);
     });
 
     it('should check account existence', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(fakeAccount),
-                create: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
+        databaseMock.Account.create.mockResolvedValue(undefined);
         const {register} = await import('../Account');
         const response = await register(fakeAccount,
             new Profile('', faker.name.firstName(), faker.internet.email(), ''));
         expect(response).toEqual(new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名已存在')));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
-        expect(mockObject.Account.create.mock.calls.length).toBe(0);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
+        expect(databaseMock.Account.create.mock.calls.length).toBe(0);
     });
 
     it('should create account and profile', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(null),
-                create: jest.fn().mockResolvedValue(undefined),
-            },
-        };
+        databaseMock.Account.selectByUsername.mockResolvedValue(null);
+        databaseMock.Account.create.mockResolvedValue(undefined);
         const fakeProfile = new Profile(fakeAccount.username, faker.random.word(), faker.internet.email(), '');
-        jest.mock('../../Database', () => mockObject);
         const {register} = await import('../Account');
         const response = await register(fakeAccount,
             {
@@ -106,11 +96,8 @@ describe(register, () =>
                 email: fakeProfile.email,
             });
         expect(response).toEqual(new ServiceResponse<void>(200, {}, new ResponseBody<void>(true)));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
-        expect(mockObject.Account.create.mock.calls.length).toBe(1);
-        expect(mockObject.Account.create.mock.calls[0][0]).toEqual(fakeAccount);
-        expect(mockObject.Account.create.mock.calls[0][1]).toEqual(fakeProfile);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
+        expect(databaseMock.Account.create.mock.calls.pop()).toEqual([fakeAccount, fakeProfile]);
     });
 });
 
@@ -151,163 +138,145 @@ describe(logout, () =>
 
 describe(getGroups, () =>
 {
+    const databaseMock = {
+        Account: {
+            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
+                Parameters<typeof AccountTable.selectByUsername>>(),
+            getGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getGroupsByUsername>,
+                Parameters<typeof AccountTable.getGroupsByUsername>>(),
+        },
+    };
+
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.mock('../../Database', () => databaseMock);
     });
 
     it('should check account existence', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(null),
-                getGroupsByUsername: jest.fn().mockResolvedValue([]),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(null);
+        databaseMock.Account.getGroupsByUsername.mockResolvedValue([]);
         const {getGroups} = await import('../Account');
         const result = await getGroups(fakeAccount);
         expect(result).toEqual(new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '用户不存在')));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
-        expect(mockObject.Account.getGroupsByUsername.mock.calls.length).toBe(0);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
+        expect(databaseMock.Account.getGroupsByUsername.mock.calls.length).toBe(0);
     });
 
     it('should get groups', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(fakeAccount),
-                getGroupsByUsername: jest.fn().mockResolvedValue([]),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
+        databaseMock.Account.getGroupsByUsername.mockResolvedValue([]);
         const {getGroups} = await import('../Account');
         const result = await getGroups(fakeAccount);
         expect(result).toEqual(new ServiceResponse<Group[]>(200, {},
             new ResponseBody<Group[]>(true, '', [])));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
-        expect(mockObject.Account.getGroupsByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.getGroupsByUsername.mock.calls[0][0]).toEqual(fakeAccount.username);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
+        expect(databaseMock.Account.getGroupsByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 });
 
 describe(getAdministratingGroups, () =>
 {
+    const databaseMock = {
+        Account: {
+            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
+                Parameters<typeof AccountTable.selectByUsername>>(),
+            getAdministratingGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getAdministratingGroupsByUsername>,
+                Parameters<typeof AccountTable.getAdministratingGroupsByUsername>>(),
+        },
+    };
+
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.mock('../../Database', () => databaseMock);
     });
 
     it('should check account existence', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(null),
-                getAdministratingGroupsByUsername: jest.fn().mockResolvedValue([]),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(null);
+        databaseMock.Account.getAdministratingGroupsByUsername.mockResolvedValue([]);
         const {getAdministratingGroups} = await import('../Account');
         const result = await getAdministratingGroups(fakeAccount);
         expect(result).toEqual(new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '用户不存在')));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
-        expect(mockObject.Account.getAdministratingGroupsByUsername.mock.calls.length).toBe(0);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
+        expect(databaseMock.Account.getAdministratingGroupsByUsername.mock.calls.length).toBe(0);
     });
 
     it('should get administrating groups', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(fakeAccount),
-                getAdministratingGroupsByUsername: jest.fn().mockResolvedValue([]),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
+        databaseMock.Account.getAdministratingGroupsByUsername.mockResolvedValue([]);
         const {getAdministratingGroups} = await import('../Account');
         const result = await getAdministratingGroups(fakeAccount);
         expect(result).toEqual(new ServiceResponse<Group[]>(200, {},
             new ResponseBody<Group[]>(true, '', [])));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toBe(fakeAccount.username);
-        expect(mockObject.Account.getAdministratingGroupsByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.getAdministratingGroupsByUsername.mock.calls[0][0]).toEqual(fakeAccount.username);
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
+        expect(databaseMock.Account.getAdministratingGroupsByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 });
 
 describe(checkPassword, () =>
 {
+    const databaseMock = {
+        Account: {
+            selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
+                Parameters<typeof AccountTable.selectByUsername>>(),
+        },
+    };
+
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.mock('../../Database', () => databaseMock);
     });
 
     it('should throw error when session is invalid', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(null),
-            },
-        };
-        await expect(checkPassword(fakeAccount, {} as unknown as Session)).rejects.toBeInstanceOf(InvalidSessionError);
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(0);
+        databaseMock.Account.selectByUsername.mockResolvedValue(null);
+        await expect(
+            checkPassword(fakeAccount, {} as unknown as Session))
+            .rejects.toBeInstanceOf(InvalidSessionError);
+        expect(databaseMock.Account.selectByUsername.mock.calls.length).toBe(0);
     });
 
     it('should work when account does not exist', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(null),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(null);
         const {checkPassword} = await import('../Account');
         const result = await checkPassword(
             {hash: fakeAccount.hash},
             {username: fakeAccount.username} as unknown as Session);
-        expect(result).toEqual(new ServiceResponse<{ isCorrect: boolean }>(200, {},
-            new ResponseBody<{ isCorrect: boolean }>(true, '', {isCorrect: false})));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toEqual(fakeAccount.username);
+        expect(result).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(true, '', {isCorrect: false})));
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 
     it('should work when password is correct', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(fakeAccount),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {checkPassword} = await import('../Account');
         const result = await checkPassword(
             {hash: fakeAccount.hash},
             {username: fakeAccount.username} as unknown as Session);
-        expect(result).toEqual(new ServiceResponse<{ isCorrect: boolean }>(200, {},
-            new ResponseBody<{ isCorrect: boolean }>(true, '', {isCorrect: true})));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toEqual(fakeAccount.username);
+        expect(result).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(true, '', {isCorrect: true})));
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 
     it('should work when password is wrong', async function ()
     {
-        const mockObject = {
-            Account: {
-                selectByUsername: jest.fn().mockResolvedValue(fakeAccount),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {checkPassword} = await import('../Account');
         const result = await checkPassword(
             {hash: faker.random.alphaNumeric(64)},
             {username: fakeAccount.username} as unknown as Session);
-        expect(result).toEqual(new ServiceResponse<{ isCorrect: boolean }>(200, {},
-            new ResponseBody<{ isCorrect: boolean }>(true, '', {isCorrect: false})));
-        expect(mockObject.Account.selectByUsername.mock.calls.length).toBe(1);
-        expect(mockObject.Account.selectByUsername.mock.calls[0][0]).toEqual(fakeAccount.username);
+        expect(result).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(true, '', {isCorrect: false})));
+        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
     });
 });
