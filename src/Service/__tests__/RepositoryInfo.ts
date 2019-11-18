@@ -1,9 +1,11 @@
-import {branch, commitCount, directory, lastCommit, repository} from '../RepositoryInfo';
+import {branch, commitCount, directory, fileInfo, lastCommit, repository} from '../RepositoryInfo';
 import {Account, Commit, Repository, ResponseBody, ServiceResponse} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
 import path from 'path';
 import {ObjectType} from '../../CONSTANT';
+import {Repository as RepositoryTable} from '../../Database';
+import {Git} from '../../Function';
 
 describe(repository, () =>
 {
@@ -1125,5 +1127,351 @@ describe(commitCount, () =>
             username: fakeAccount.username,
             name: fakeRepository.name,
         });
+    });
+});
+
+describe(fileInfo, () =>
+{
+    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeObjectHash = faker.random.alphaNumeric(64);
+    const fakeObjectType = ObjectType.BLOB;
+    const fakeObjectSize = faker.random.number();
+    const fakeFilePath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeCommitHash = faker.random.alphaNumeric(64);
+
+    const databaseMock = {
+        Repository: {
+            selectByUsernameAndName: jest.fn<ReturnType<typeof RepositoryTable.selectByUsernameAndName>,
+                Parameters<typeof RepositoryTable.selectByUsernameAndName>>(),
+        },
+    };
+    const functionMock = {
+        Git: {
+            generateRepositoryPath: jest.fn<ReturnType<typeof Git.generateRepositoryPath>,
+                Parameters<typeof Git.generateRepositoryPath>>(),
+            objectExists: jest.fn<ReturnType<typeof Git.objectExists>,
+                Parameters<typeof Git.objectExists>>(),
+            getObjectHash: jest.fn<ReturnType<typeof Git.getObjectHash>,
+                Parameters<typeof Git.getObjectHash>>(),
+            getObjectType: jest.fn<ReturnType<typeof Git.getObjectType>,
+                Parameters<typeof Git.getObjectType>>(),
+            isBinaryObject: jest.fn<ReturnType<typeof Git.isBinaryObject>,
+                Parameters<typeof Git.isBinaryObject>>(),
+            getObjectSize: jest.fn<ReturnType<typeof Git.getObjectSize>,
+                Parameters<typeof Git.getObjectSize>>(),
+        },
+    };
+
+    beforeEach(async () =>
+    {
+        jest.resetModules();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+    });
+
+    it('everyone can get the file info of a public repository', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        functionMock.Git.objectExists.mockResolvedValue(true);
+        functionMock.Git.getObjectHash.mockResolvedValue(fakeObjectHash);
+        functionMock.Git.getObjectType.mockResolvedValue(fakeObjectType);
+        functionMock.Git.isBinaryObject.mockResolvedValue(false);
+        functionMock.Git.getObjectSize.mockResolvedValue(fakeObjectSize);
+
+        const {fileInfo} = await import('../RepositoryInfo');
+        expect(
+            await fileInfo(
+                fakeAccount,
+                fakeRepository,
+                fakeFilePath,
+                fakeCommitHash,
+                {username: faker.random.word()} as unknown as Session),
+        ).toEqual(
+            new ServiceResponse(200, {},
+                new ResponseBody(
+                    true, '', {
+                        exists: true, isBinary: false, type: fakeObjectType, size: fakeObjectSize,
+                    },
+                )));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.isBinaryObject.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeObjectHash,
+        ]);
+        expect(functionMock.Git.getObjectSize.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeObjectHash,
+        ]);
+    });
+
+    it('only owner can get the file info of a private repository', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            false,
+        );
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        functionMock.Git.objectExists.mockResolvedValue(true);
+        functionMock.Git.getObjectHash.mockResolvedValue(fakeObjectHash);
+        functionMock.Git.getObjectType.mockResolvedValue(fakeObjectType);
+        functionMock.Git.isBinaryObject.mockResolvedValue(false);
+        functionMock.Git.getObjectSize.mockResolvedValue(fakeObjectSize);
+
+        const {fileInfo} = await import('../RepositoryInfo');
+        expect(
+            await fileInfo(
+                fakeAccount,
+                fakeRepository,
+                fakeFilePath,
+                fakeCommitHash,
+                {username: faker.random.word()} as unknown as Session),
+        ).toEqual(
+            new ServiceResponse<void>(404, {},
+                new ResponseBody<void>(false, '仓库不存在')));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
+        expect(functionMock.Git.objectExists.mock.calls.length).toBe(0);
+        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
+        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
+        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+
+        expect(
+            await fileInfo(
+                fakeAccount,
+                fakeRepository,
+                fakeFilePath,
+                fakeCommitHash,
+                {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(
+            new ServiceResponse(200, {},
+                new ResponseBody(
+                    true, '', {
+                        exists: true, isBinary: false, type: fakeObjectType, size: fakeObjectSize,
+                    },
+                )));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.isBinaryObject.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeObjectHash,
+        ]);
+        expect(functionMock.Git.getObjectSize.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeObjectHash,
+        ]);
+    });
+
+    it('should check repository existence', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        functionMock.Git.objectExists.mockResolvedValue(true);
+        functionMock.Git.getObjectHash.mockResolvedValue(fakeObjectHash);
+        functionMock.Git.getObjectType.mockResolvedValue(fakeObjectType);
+        functionMock.Git.isBinaryObject.mockResolvedValue(false);
+        functionMock.Git.getObjectSize.mockResolvedValue(fakeObjectSize);
+
+        const {fileInfo} = await import('../RepositoryInfo');
+        expect(
+            await fileInfo(
+                fakeAccount,
+                fakeRepository,
+                fakeFilePath,
+                fakeCommitHash,
+                {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(
+            new ServiceResponse<void>(404, {},
+                new ResponseBody<void>(false, '仓库不存在')));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
+        expect(functionMock.Git.objectExists.mock.calls.length).toBe(0);
+        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
+        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
+        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+    });
+
+    it('should check object existence', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        functionMock.Git.objectExists.mockResolvedValue(false);
+        functionMock.Git.getObjectHash.mockResolvedValue(fakeObjectHash);
+        functionMock.Git.getObjectType.mockResolvedValue(fakeObjectType);
+        functionMock.Git.isBinaryObject.mockResolvedValue(false);
+        functionMock.Git.getObjectSize.mockResolvedValue(fakeObjectSize);
+
+        const {fileInfo} = await import('../RepositoryInfo');
+        expect(
+            await fileInfo(
+                fakeAccount,
+                fakeRepository,
+                fakeFilePath,
+                fakeCommitHash,
+                {username: faker.random.word()} as unknown as Session),
+        ).toEqual(
+            new ServiceResponse(200, {},
+                new ResponseBody(
+                    true, '', {
+                        exists: false,
+                    },
+                )));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
+        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
+        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+    });
+
+    it('should check commit hash existence', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        functionMock.Git.objectExists.mockRejectedValue(new Error());
+        functionMock.Git.getObjectHash.mockResolvedValue(fakeObjectHash);
+        functionMock.Git.getObjectType.mockResolvedValue(fakeObjectType);
+        functionMock.Git.isBinaryObject.mockResolvedValue(false);
+        functionMock.Git.getObjectSize.mockResolvedValue(fakeObjectSize);
+
+        const {fileInfo} = await import('../RepositoryInfo');
+        expect(
+            await fileInfo(
+                fakeAccount,
+                fakeRepository,
+                fakeFilePath,
+                fakeCommitHash,
+                {username: faker.random.word()} as unknown as Session),
+        ).toEqual(
+            new ServiceResponse(404, {},
+                new ResponseBody(false, '分支或提交不存在')));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
+        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
+        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+    });
+
+    it('should check whether file is binary', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            faker.random.word(),
+            faker.lorem.sentence(),
+            true,
+        );
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        functionMock.Git.objectExists.mockResolvedValue(true);
+        functionMock.Git.getObjectHash.mockResolvedValue(fakeObjectHash);
+        functionMock.Git.getObjectType.mockResolvedValue(fakeObjectType);
+        functionMock.Git.isBinaryObject.mockResolvedValue(true);
+        functionMock.Git.getObjectSize.mockResolvedValue(fakeObjectSize);
+
+        const {fileInfo} = await import('../RepositoryInfo');
+        expect(
+            await fileInfo(
+                fakeAccount,
+                fakeRepository,
+                fakeFilePath,
+                fakeCommitHash,
+                {username: faker.random.word()} as unknown as Session),
+        ).toEqual(
+            new ServiceResponse(200, {},
+                new ResponseBody(
+                    true, '', {
+                        exists: true, isBinary: true,
+                    },
+                )));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            name: fakeRepository.name,
+        }]);
+        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        ]);
+        expect(functionMock.Git.isBinaryObject.mock.calls.pop()).toEqual([
+            fakeRepositoryPath, fakeObjectHash,
+        ]);
+        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
     });
 });
