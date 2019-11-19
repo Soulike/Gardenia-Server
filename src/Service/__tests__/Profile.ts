@@ -17,13 +17,14 @@ const databaseMock = {
         selectByUsername: jest.fn<ReturnType<typeof ProfileTable.selectByUsername>,
             Parameters<typeof ProfileTable.selectByUsername>>(),
         update: jest.fn<ReturnType<typeof ProfileTable.update>,
-            Parameters<typeof ProfileTable.update>>().mockResolvedValue(undefined),
+            Parameters<typeof ProfileTable.update>>(),
     },
 };
 
+// can not use template parameters due to TypeScript limitations on overloads
 const fseMock = {
-    move: jest.fn().mockResolvedValue(undefined),
-    remove: jest.fn().mockResolvedValue(undefined),
+    move: jest.fn(),
+    remove: jest.fn(),
 };
 const imageminMock = jest.fn().mockResolvedValue(undefined);
 
@@ -96,6 +97,7 @@ describe(set, () =>
         jest.resetModules();
         jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
+        databaseMock.Profile.update.mockResolvedValue(undefined);
     });
 
     it('should check session', async function ()
@@ -132,6 +134,9 @@ describe(updateAvatar, () =>
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('imagemin', () => imageminMock);
+        databaseMock.Profile.update.mockResolvedValue(undefined);
+        fseMock.move.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
     });
 
     it('should check session', async function ()

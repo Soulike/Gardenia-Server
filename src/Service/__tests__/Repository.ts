@@ -5,6 +5,55 @@ import {Session} from 'koa-session';
 import {EventEmitter} from 'events';
 import path from 'path';
 import {InvalidSessionError} from '../../Dispatcher/Class';
+import {Repository as RepositoryTable} from '../../Database';
+import {Git} from '../../Function';
+import fs from 'fs';
+
+const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+
+const databaseMock = {
+    Repository: {
+        select: jest.fn<ReturnType<typeof RepositoryTable.select>,
+            Parameters<typeof RepositoryTable.select>>(),
+        insert: jest.fn<ReturnType<typeof RepositoryTable.insert>,
+            Parameters<typeof RepositoryTable.insert>>(),
+        selectByUsernameAndName: jest.fn<ReturnType<typeof RepositoryTable.selectByUsernameAndName>,
+            Parameters<typeof RepositoryTable.selectByUsernameAndName>>(),
+        deleteByUsernameAndName: jest.fn<ReturnType<typeof RepositoryTable.deleteByUsernameAndName>,
+            Parameters<typeof RepositoryTable.deleteByUsernameAndName>>(),
+    },
+};
+
+const fseMock = {
+    remove: jest.fn(),  // can not use template parameters due to TypeScript limitations on overloads
+};
+
+const fsMock = {
+    promises: {
+        mkdir: jest.fn<ReturnType<typeof fs.promises.mkdir>, Parameters<typeof fs.promises.mkdir>>(),
+        rename: jest.fn<ReturnType<typeof fs.promises.rename>, Parameters<typeof fs.promises.rename>>(),
+        mkdtemp: jest.fn<ReturnType<typeof fs.promises.mkdtemp>, Parameters<typeof fs.promises.mkdtemp>>(),
+    },
+};
+
+const cpMock = {
+    spawn: jest.fn().mockImplementation(() =>
+    {
+        const event = new EventEmitter();
+        process.nextTick(() =>
+        {
+            event.emit('exit');
+        });
+        return event;
+    }),
+};
+
+const functionMock = {
+    Git: {
+        generateRepositoryPath: jest.fn<ReturnType<typeof Git.generateRepositoryPath>,
+            Parameters<typeof Git.generateRepositoryPath>>(),
+    },
+};
 
 describe(getRepositories, () =>
 {
@@ -20,79 +69,54 @@ describe(getRepositories, () =>
     beforeEach(() =>
     {
         jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        databaseMock.Repository.select.mockResolvedValue(fakeRepositories);
     });
 
     it('should get only public repositories start and end', async function ()
     {
-        const mockObject = {
-            Repository: {
-                select: jest.fn().mockResolvedValue(fakeRepositories),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
         const {getRepositories} = await import('../Repository');
         const response = await getRepositories(6, 23, {} as unknown as Session);
         expect(response).toEqual(new ServiceResponse<Array<RepositoryClass>>(200, {},
             new ResponseBody<Array<RepositoryClass>>(true, '', fakeRepositories)));
-        expect(mockObject.Repository.select.mock.calls.length).toBe(1);
-        expect(mockObject.Repository.select.mock.calls[0][0]).toEqual({isPublic: true});
-        expect(mockObject.Repository.select.mock.calls[0][1]).toBe(6);
-        expect(mockObject.Repository.select.mock.calls[0][2]).toBe(23 - 6);
+        expect(databaseMock.Repository.select.mock.calls.pop()).toEqual([
+            {isPublic: true}, 6, 23 - 6,
+        ]);
     });
 
 
     it('should get only public repositories with session, start and end', async function ()
     {
-        const mockObject = {
-            Repository: {
-                select: jest.fn().mockResolvedValue(fakeRepositories),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
         const {getRepositories} = await import('../Repository');
         const response = await getRepositories(5, 20, fakeOthersSession);
         expect(response).toEqual(new ServiceResponse<Array<RepositoryClass>>(200, {},
             new ResponseBody<Array<RepositoryClass>>(true, '', fakeRepositories)));
-        expect(mockObject.Repository.select.mock.calls.length).toBe(1);
-        expect(mockObject.Repository.select.mock.calls[0][0]).toEqual({isPublic: true});
-        expect(mockObject.Repository.select.mock.calls[0][1]).toBe(5);
-        expect(mockObject.Repository.select.mock.calls[0][2]).toBe(20 - 5);
+        expect(databaseMock.Repository.select.mock.calls.pop()).toEqual([
+            {isPublic: true}, 5, 20 - 5,
+        ]);
     });
 
     it('should get only public repositories with account, other\'s session, start and end', async function ()
     {
-        const mockObject = {
-            Repository: {
-                select: jest.fn().mockResolvedValue(fakeRepositories),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
         const {getRepositories} = await import('../Repository');
         const response = await getRepositories(8, 26, fakeOthersSession, fakeAccount.username);
         expect(response).toEqual(new ServiceResponse<Array<RepositoryClass>>(200, {},
             new ResponseBody<Array<RepositoryClass>>(true, '', fakeRepositories)));
-        expect(mockObject.Repository.select.mock.calls.length).toBe(1);
-        expect(mockObject.Repository.select.mock.calls[0][0]).toEqual({username: fakeAccount.username, isPublic: true});
-        expect(mockObject.Repository.select.mock.calls[0][1]).toBe(8);
-        expect(mockObject.Repository.select.mock.calls[0][2]).toBe(26 - 8);
+        expect(databaseMock.Repository.select.mock.calls.pop()).toEqual([{
+            username: fakeAccount.username,
+            isPublic: true,
+        }, 8, 26 - 8]);
     });
 
     it('should get public and private repositories with account, own session, start and end', async function ()
     {
-        const mockObject = {
-            Repository: {
-                select: jest.fn().mockResolvedValue(fakeRepositories),
-            },
-        };
-        jest.mock('../../Database', () => mockObject);
         const {getRepositories} = await import('../Repository');
         const response = await getRepositories(14, 28, fakeOwnSession, fakeAccount.username);
         expect(response).toEqual(new ServiceResponse<Array<RepositoryClass>>(200, {},
             new ResponseBody<Array<RepositoryClass>>(true, '', fakeRepositories)));
-        expect(mockObject.Repository.select.mock.calls.length).toBe(1);
-        expect(mockObject.Repository.select.mock.calls[0][0]).toEqual({username: fakeAccount.username});
-        expect(mockObject.Repository.select.mock.calls[0][1]).toBe(14);
-        expect(mockObject.Repository.select.mock.calls[0][2]).toBe(28 - 14);
+        expect(databaseMock.Repository.select.mock.calls.pop()).toEqual([
+            {username: fakeAccount.username}, 14, 28 - 14]);
     });
 });
 
@@ -100,50 +124,35 @@ describe(create, () =>
 {
     const fakeRepository = new RepositoryClass(faker.random.word(), faker.name.firstName(), faker.lorem.sentence(), true);
     const fakeSession = {username: fakeRepository.username} as unknown as Session;
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
 
     beforeEach(() =>
     {
         jest.resetModules();
-    });
-
-    it('should create repository', async function ()
-    {
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
-                insert: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                mkdir: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const cpMock = {
-            spawn: jest.fn().mockImplementation(() =>
-            {
-                const event = new EventEmitter();
-                setTimeout(() =>
-                {
-                    event.emit('exit');
-                }, 0);
-                return event;
-            }),
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
+        jest.resetAllMocks();
+        jest.mock('child_process', () => cpMock);
         jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
-        jest.mock('child_process', () => cpMock);
+    });
+
+    it('should create repository', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        fsMock.promises.mkdir.mockResolvedValue(undefined);
+        cpMock.spawn.mockImplementation(() =>
+        {
+            const event = new EventEmitter();
+            process.nextTick(() =>
+            {
+                event.emit('exit');
+            });
+            return event;
+        });
+        databaseMock.Repository.insert.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
+
         const {create} = await import('../Repository');
         const response = await create(fakeRepository, fakeSession);
 
@@ -181,41 +190,20 @@ describe(create, () =>
 
     it('should check repository existence', async function ()
     {
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
-                insert: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                mkdir: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const cpMock = {
-            spawn: jest.fn().mockImplementation(() =>
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        fsMock.promises.mkdir.mockResolvedValue(undefined);
+        cpMock.spawn.mockImplementation(() =>
+        {
+            const event = new EventEmitter();
+            process.nextTick(() =>
             {
-                const event = new EventEmitter();
-                setTimeout(() =>
-                {
-                    event.emit('exit');
-                }, 0);
-                return event;
-            }),
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
-        jest.mock('child_process', () => cpMock);
+                event.emit('exit');
+            });
+            return event;
+        });
+        databaseMock.Repository.insert.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
         const {create} = await import('../Repository');
         const response = await create(fakeRepository, fakeSession);
 
@@ -240,41 +228,20 @@ describe(create, () =>
 
     it('should check session', async function ()
     {
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
-                insert: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                mkdir: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const cpMock = {
-            spawn: jest.fn().mockImplementation(() =>
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        fsMock.promises.mkdir.mockResolvedValue(undefined);
+        cpMock.spawn.mockImplementation(() =>
+        {
+            const event = new EventEmitter();
+            process.nextTick(() =>
             {
-                const event = new EventEmitter();
-                setTimeout(() =>
-                {
-                    event.emit('exit');
-                }, 0);
-                return event;
-            }),
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
-        jest.mock('child_process', () => cpMock);
+                event.emit('exit');
+            });
+            return event;
+        });
+        databaseMock.Repository.insert.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, {} as unknown as Session)).rejects.toEqual(new InvalidSessionError());
@@ -294,41 +261,20 @@ describe(create, () =>
     it('should process mkdir error', async function ()
     {
         const mkdirError = new Error(faker.lorem.sentence());
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
-                insert: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                mkdir: jest.fn().mockRejectedValue(mkdirError),
-            },
-        };
-        const cpMock = {
-            spawn: jest.fn().mockImplementation(() =>
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        fsMock.promises.mkdir.mockRejectedValue(mkdirError);
+        cpMock.spawn.mockImplementation(() =>
+        {
+            const event = new EventEmitter();
+            process.nextTick(() =>
             {
-                const event = new EventEmitter();
-                setTimeout(() =>
-                {
-                    event.emit('exit');
-                }, 0);
-                return event;
-            }),
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
-        jest.mock('child_process', () => cpMock);
+                event.emit('exit');
+            });
+            return event;
+        });
+        databaseMock.Repository.insert.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(mkdirError);
@@ -360,41 +306,20 @@ describe(create, () =>
     it('should process command error', async function ()
     {
         const commandError = new Error(faker.lorem.sentence());
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
-                insert: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                mkdir: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const cpMock = {
-            spawn: jest.fn().mockImplementation(() =>
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        cpMock.spawn.mockImplementation(() =>
+        {
+            const event = new EventEmitter();
+            setTimeout(() =>
             {
-                const event = new EventEmitter();
-                setTimeout(() =>
-                {
-                    event.emit('error', commandError);
-                }, 0);
-                return event;
-            }),
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
-        jest.mock('child_process', () => cpMock);
+                event.emit('error', commandError);
+            }, 0);
+            return event;
+        });
+        fsMock.promises.mkdir.mockResolvedValue(undefined);
+        databaseMock.Repository.insert.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(commandError);
@@ -431,41 +356,21 @@ describe(create, () =>
     it('should process database insert error', async function ()
     {
         const insertError = new Error(faker.lorem.sentence());
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
-                insert: jest.fn().mockRejectedValue(insertError),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                mkdir: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const cpMock = {
-            spawn: jest.fn().mockImplementation(() =>
+
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        fsMock.promises.mkdir.mockResolvedValue(undefined);
+        cpMock.spawn.mockImplementation(() =>
+        {
+            const event = new EventEmitter();
+            process.nextTick(() =>
             {
-                const event = new EventEmitter();
-                setTimeout(() =>
-                {
-                    event.emit('exit');
-                }, 0);
-                return event;
-            }),
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
-        jest.mock('child_process', () => cpMock);
+                event.emit('exit');
+            });
+            return event;
+        });
+        fseMock.remove.mockResolvedValue(undefined);
+        databaseMock.Repository.insert.mockRejectedValue(insertError);
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(insertError);
@@ -504,41 +409,20 @@ describe(create, () =>
     {
         const mkdirError = new Error(faker.lorem.sentence());
         const removeError = new Error(faker.lorem.sentence());
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
-                insert: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockRejectedValue(removeError),
-        };
-        const fsMock = {
-            promises: {
-                mkdir: jest.fn().mockRejectedValue(mkdirError),
-            },
-        };
-        const cpMock = {
-            spawn: jest.fn().mockImplementation(() =>
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        cpMock.spawn.mockImplementation(() =>
+        {
+            const event = new EventEmitter();
+            process.nextTick(() =>
             {
-                const event = new EventEmitter();
-                setTimeout(() =>
-                {
-                    event.emit('exit');
-                }, 0);
-                return event;
-            }),
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
-        jest.mock('child_process', () => cpMock);
+                event.emit('exit');
+            });
+            return event;
+        });
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        fseMock.remove.mockRejectedValue(removeError);
+        fsMock.promises.mkdir.mockRejectedValue(mkdirError);
         const {create} = await import('../Repository');
 
         await expect(create(fakeRepository, fakeSession)).rejects.toThrow(mkdirError);
@@ -574,37 +458,25 @@ describe(del, () =>
     const fakeSession = {username: fakeRepository.username} as unknown as Session;
     const tempPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+
     beforeEach(() =>
     {
         jest.resetModules();
-    });
-
-    it('should delete repository', async function ()
-    {
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
-                deleteByUsernameAndName: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                rename: jest.fn().mockResolvedValue(undefined),
-                mkdtemp: jest.fn().mockResolvedValue(tempPath),
-            },
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
+        jest.resetAllMocks();
         jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
         jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
+        fseMock.remove.mockResolvedValue(undefined);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        fsMock.promises.mkdtemp.mockResolvedValue(tempPath);
+    });
+
+    it('should delete repository', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        databaseMock.Repository.deleteByUsernameAndName.mockResolvedValue(undefined);
+        fsMock.promises.rename.mockResolvedValue(undefined);
         const {del} = await import('../Repository');
         const response = await del(fakeRepository, fakeSession);
 
@@ -641,29 +513,11 @@ describe(del, () =>
 
     it('should check session', async function ()
     {
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
-                deleteByUsernameAndName: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                rename: jest.fn().mockResolvedValue(undefined),
-                mkdtemp: jest.fn().mockResolvedValue(tempPath),
-            },
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        databaseMock.Repository.deleteByUsernameAndName.mockResolvedValue(undefined);
+        fsMock.promises.rename.mockResolvedValue(undefined);
         jest.mock('../../Function', () => functionMock);
         jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
         jest.mock('fs', () => fsMock);
         const {del} = await import('../Repository');
 
@@ -684,30 +538,9 @@ describe(del, () =>
 
     it('should check repository existence', async function ()
     {
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(null),
-                deleteByUsernameAndName: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                rename: jest.fn().mockResolvedValue(undefined),
-                mkdtemp: jest.fn().mockResolvedValue(tempPath),
-            },
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        databaseMock.Repository.deleteByUsernameAndName.mockResolvedValue(undefined);
+        fsMock.promises.rename.mockResolvedValue(undefined);
         const {del} = await import('../Repository');
         const response = await del(fakeRepository, fakeSession);
 
@@ -733,30 +566,9 @@ describe(del, () =>
     it('should process directory moving error', async function ()
     {
         const movingError = new Error(faker.lorem.sentence());
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
-                deleteByUsernameAndName: jest.fn().mockResolvedValue(undefined),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                rename: jest.fn().mockRejectedValue(movingError),
-                mkdtemp: jest.fn().mockResolvedValue(tempPath),
-            },
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        databaseMock.Repository.deleteByUsernameAndName.mockResolvedValue(undefined);
+        fsMock.promises.rename.mockRejectedValue(movingError);
         const {del} = await import('../Repository');
 
         await expect(del(fakeRepository, fakeSession)).rejects.toThrow(movingError);
@@ -787,30 +599,9 @@ describe(del, () =>
     it('should process database delete error', async function ()
     {
         const deleteError = new Error(faker.lorem.sentence());
-        const databaseMock = {
-            Repository: {
-                selectByUsernameAndName: jest.fn().mockResolvedValue(fakeRepository),
-                deleteByUsernameAndName: jest.fn().mockRejectedValue(deleteError),
-            },
-        };
-        const fseMock = {
-            remove: jest.fn().mockResolvedValue(undefined),
-        };
-        const fsMock = {
-            promises: {
-                rename: jest.fn().mockResolvedValue(undefined),
-                mkdtemp: jest.fn().mockResolvedValue(tempPath),
-            },
-        };
-        const functionMock = {
-            Git: {
-                generateRepositoryPath: jest.fn().mockReturnValue(fakeRepositoryPath),
-            },
-        };
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs-extra', () => fseMock);
-        jest.mock('fs', () => fsMock);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        databaseMock.Repository.deleteByUsernameAndName.mockRejectedValue(deleteError);
+        fsMock.promises.rename.mockResolvedValue(undefined);
         const {del} = await import('../Repository');
 
         await expect(del(fakeRepository, fakeSession)).rejects.toThrow(deleteError);
