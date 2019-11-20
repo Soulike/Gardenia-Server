@@ -6,7 +6,6 @@ import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
 import mime from 'mime-types';
 import fse from 'fs-extra';
-import {InvalidSessionError} from '../Dispatcher/Class';
 
 export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<RepositoryClass | void>>
 {
@@ -224,20 +223,16 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
     const {name: repositoryName} = repository;
     const {name: newRepositoryName} = newRepository;
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
-    if ((await RepositoryTable.selectByUsernameAndName({username, name: newRepositoryName})) !== null)
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '仓库名已存在'));
-    }
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
+    }
+    if ((await RepositoryTable.selectByUsernameAndName({username, name: newRepositoryName})) !== null)
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '仓库名已存在'));
     }
 
     const repositoryPath = Git.generateRepositoryPath({username, name: repositoryName});
@@ -274,10 +269,6 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
 export async function setDescription(repository: Readonly<Pick<RepositoryClass, 'name' | 'description'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
     const {name: repositoryName, description} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
@@ -294,10 +285,6 @@ export async function setIsPublic(repository: Readonly<Pick<RepositoryClass, 'na
 {
     const {name, isPublic} = repository;
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (!repositoryIsAvailableToTheViewer(repositoryInDatabase, session))
     {
