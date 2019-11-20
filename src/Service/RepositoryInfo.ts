@@ -200,13 +200,20 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
     const repositoryPath = Git.generateRepositoryPath({username, name});
     try
     {
-        // 获取对象哈希
-        const objectHash = await Git.getObjectHash(repositoryPath, filePath, commitHash);
-        return new ServiceResponse<void>(200,
-            {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
-            Git.getObjectReadStream(repositoryPath, objectHash));
+        if (await Git.objectExists(repositoryPath, filePath, commitHash))
+        {
+            // 获取对象哈希
+            const objectHash = await Git.getObjectHash(repositoryPath, filePath, commitHash);
+            return new ServiceResponse<void>(200,
+                {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
+                Git.getObjectReadStream(repositoryPath, objectHash));
+        }
+        else
+        {
+            return new ServiceResponse<void>(404, {});
+        }
     }
-    catch (e)   // 当提交 hash 不存在时会有 fatal: not a tree object
+    catch (e)
     {
         return new ServiceResponse<void>(404, {});
     }

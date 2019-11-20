@@ -142,6 +142,7 @@ export async function getCommitCount(repositoryPath: string, commitHash: string)
     return Number.parseInt(stdout);
 }
 
+// 注意在 commitHash 不存在时将会抛出错误
 export async function objectExists(repositoryPath: string, filePath: string, commitHash: string): Promise<boolean>
 {
     const stdout = await execPromise(`git ls-tree ${commitHash} -- ${filePath}`, {cwd: repositoryPath});
