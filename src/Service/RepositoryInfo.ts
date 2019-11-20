@@ -6,6 +6,7 @@ import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
 import mime from 'mime-types';
 import fse from 'fs-extra';
+import {Readable} from 'stream';
 
 export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<RepositoryClass | void>>
 {
@@ -193,7 +194,7 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     }
 }
 
-export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>): Promise<ServiceResponse>
+export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>): Promise<ServiceResponse<Readable | void>>
 {
     const {username} = account;
     const {name} = repository;
@@ -210,7 +211,7 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
         {
             // 获取对象哈希
             const objectHash = await Git.getObjectHash(repositoryPath, filePath, commitHash);
-            return new ServiceResponse<void>(200,
+            return new ServiceResponse<Readable>(200,
                 {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
                 Git.getObjectReadStream(repositoryPath, objectHash));
         }
