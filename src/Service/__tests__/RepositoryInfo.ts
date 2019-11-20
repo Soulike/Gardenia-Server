@@ -5,7 +5,7 @@ import {Session} from 'koa-session';
 import path from 'path';
 import {ObjectType} from '../../CONSTANT';
 import {Repository as RepositoryTable} from '../../Database';
-import {Git} from '../../Function';
+import {Git, Repository as RepositoryFunction} from '../../Function';
 import {Readable} from 'stream';
 import mime from 'mime-types';
 
@@ -42,6 +42,9 @@ const functionMock = {
             Parameters<typeof Git.getObjectSize>>(),
         getObjectReadStream: jest.fn<ReturnType<typeof Git.getObjectReadStream>,
             Parameters<typeof Git.getObjectReadStream>>(),
+    },
+    Repository: {
+        repositoryIsAvailableToTheViewer: RepositoryFunction.repositoryIsAvailableToTheViewer,
     },
 };
 
