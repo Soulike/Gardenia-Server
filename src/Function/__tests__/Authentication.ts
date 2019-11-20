@@ -1,27 +1,26 @@
-import {getUsernameAndPasswordFromAuthenticationHeader} from '../Authentication';
+import {getAccountFromAuthenticationHeader} from '../Authentication';
 import {Base64} from 'js-base64';
 import faker from 'faker';
+import {Account} from '../../Class';
 
-describe('getUsernameAndPasswordFromAuthenticationHeader', () =>
+describe(getAccountFromAuthenticationHeader, () =>
 {
     const fakeUsername = faker.name.firstName();
     const fakePassword = faker.random.alphaNumeric(15);
+    const fakeHash = Account.calculateHash(fakeUsername, fakePassword);
 
-    it('should get username and password', function ()
+    it('should get account', function ()
     {
         const authorizationHeader = `Basic ${Base64.encode(`${fakeUsername}:${fakePassword}`)}`;
         const headers = {authorization: authorizationHeader};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
-            .toEqual({
-                username: fakeUsername,
-                password: fakePassword,
-            });
+        expect(getAccountFromAuthenticationHeader(headers))
+            .toEqual(new Account(fakeUsername, fakeHash));
     });
 
     it('should return null when no authorization header', function ()
     {
         const headers = {};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
+        expect(getAccountFromAuthenticationHeader(headers))
             .toBeNull();
     });
 
@@ -29,7 +28,7 @@ describe('getUsernameAndPasswordFromAuthenticationHeader', () =>
     {
         const authorizationHeader = `advanced ${Base64.encode(`${fakeUsername}:${fakePassword}`)}`;
         const headers = {authorization: authorizationHeader};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
+        expect(getAccountFromAuthenticationHeader(headers))
             .toBeNull();
     });
 
@@ -37,7 +36,7 @@ describe('getUsernameAndPasswordFromAuthenticationHeader', () =>
     {
         const authorizationHeader = `${Base64.encode(`${fakeUsername}:${fakePassword}`)}`;
         const headers = {authorization: authorizationHeader};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
+        expect(getAccountFromAuthenticationHeader(headers))
             .toBeNull();
     });
 
@@ -45,7 +44,7 @@ describe('getUsernameAndPasswordFromAuthenticationHeader', () =>
     {
         const authorizationHeader = `Basic ${Base64.encode(`${fakeUsername},${fakePassword}`)}`;
         const headers = {authorization: authorizationHeader};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
+        expect(getAccountFromAuthenticationHeader(headers))
             .toBeNull();
     });
 
@@ -53,7 +52,7 @@ describe('getUsernameAndPasswordFromAuthenticationHeader', () =>
     {
         const authorizationHeader = `Basic ${Base64.encode(`:${fakePassword}`)}`;
         const headers = {authorization: authorizationHeader};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
+        expect(getAccountFromAuthenticationHeader(headers))
             .toBeNull();
     });
 
@@ -61,7 +60,7 @@ describe('getUsernameAndPasswordFromAuthenticationHeader', () =>
     {
         const authorizationHeader = `Basic ${Base64.encode(`${fakeUsername}:`)}`;
         const headers = {authorization: authorizationHeader};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
+        expect(getAccountFromAuthenticationHeader(headers))
             .toBeNull();
     });
 
@@ -69,7 +68,7 @@ describe('getUsernameAndPasswordFromAuthenticationHeader', () =>
     {
         const authorizationHeader = `Basic ${fakeUsername}:${fakePassword}`;
         const headers = {authorization: authorizationHeader};
-        expect(getUsernameAndPasswordFromAuthenticationHeader(headers))
+        expect(getAccountFromAuthenticationHeader(headers))
             .toBeNull();
     });
 });

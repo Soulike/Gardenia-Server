@@ -1,6 +1,7 @@
 import {Base64} from 'js-base64';
+import {Account} from '../Class';
 
-export function getUsernameAndPasswordFromAuthenticationHeader(headers: any): { username: string, password: string } | null
+export function getAccountFromAuthenticationHeader(headers: any): Account | null
 {
     const {authorization} = headers;
     if (typeof authorization !== 'string')
@@ -28,5 +29,5 @@ export function getUsernameAndPasswordFromAuthenticationHeader(headers: any): { 
     {
         return null;
     }
-    return {username, password};
+    return {username, hash: Account.calculateHash(username, password)};
 }
