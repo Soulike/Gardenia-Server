@@ -1,4 +1,5 @@
 import {
+    doAdvertiseRPCCall,
     doRPCCall,
     generateRepositoryPath,
     getAllBranches,
@@ -23,6 +24,7 @@ import {ObjectType} from '../../CONSTANT';
 import os from 'os';
 import faker from 'faker';
 import {GIT} from '../../CONFIG';
+import {Readable} from 'stream';
 
 let repositoryPath = '';
 let bareRepositoryPath = '';
@@ -443,7 +445,7 @@ describe(getObjectReadStream, () =>
     });
 });
 
-describe(doRPCCall, () =>
+describe(doAdvertiseRPCCall, () =>
 {
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeService = `git-${faker.random.word()}`;
@@ -461,8 +463,8 @@ describe(doRPCCall, () =>
         {
             return spawn(`echo hello`, {shell: true});
         });
-        const {doRPCCall} = await import('../Git');
-        expect(await doRPCCall(fakeRepositoryPath, fakeService)).toBe('hello\n');
+        const {doAdvertiseRPCCall} = await import('../Git');
+        expect(await doAdvertiseRPCCall(fakeRepositoryPath, fakeService)).toBe('hello\n');
         expect(childProcessMock.spawn.mock.calls).toEqual([
             [
                 `LANG=en_US git ${fakeService.slice(4)} --stateless-rpc --advertise-refs ${fakeRepositoryPath}`,
@@ -481,11 +483,38 @@ describe(doRPCCall, () =>
             });
         });
 
-        const {doRPCCall} = await import('../Git');
-        await expect(doRPCCall(fakeRepositoryPath, fakeService)).rejects.toThrow();
+        const {doAdvertiseRPCCall} = await import('../Git');
+        await expect(doAdvertiseRPCCall(fakeRepositoryPath, fakeService)).rejects.toThrow();
         expect(childProcessMock.spawn.mock.calls).toEqual([
             [
                 `LANG=en_US git ${fakeService.slice(4)} --stateless-rpc --advertise-refs ${fakeRepositoryPath}`,
+                {shell: true},
+            ],
+        ]);
+    });
+});
+
+describe(doRPCCall, () =>
+{
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeCommand = `${faker.random.word()}`;
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('child_process', () => childProcessMock);
+    });
+
+    it('should execute correct command and return stdout stream', async function ()
+    {
+        const fakeStdout = new Readable();
+        childProcessMock.spawn.mockReturnValue({stdout: fakeStdout});
+        const {doRPCCall} = await import('../Git');
+        expect(doRPCCall(fakeRepositoryPath, fakeCommand)).toEqual(fakeStdout);
+        expect(childProcessMock.spawn.mock.calls).toEqual([
+            [
+                `LANG=en_US git ${fakeCommand} --stateless-rpc ${fakeRepositoryPath}`,
                 {shell: true},
             ],
         ]);

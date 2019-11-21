@@ -172,7 +172,7 @@ export function getObjectReadStream(repositoryPath: string, objectHash: string):
     return stdout;
 }
 
-export async function doRPCCall(repositoryPath: string, service: string): Promise<string>
+export async function doAdvertiseRPCCall(repositoryPath: string, service: string): Promise<string>
 {
     return new Promise((resolve, reject) =>
     {
@@ -197,4 +197,12 @@ export async function doRPCCall(repositoryPath: string, service: string): Promis
             return resolve(outputs.join(''));
         });
     });
+}
+
+export function doRPCCall(repositoryPath: string, command: string): Readable
+{
+    const {stdout} = spawn(`LANG=en_US git ${command} --stateless-rpc ${repositoryPath}`, {
+        shell: true,
+    });
+    return stdout;
 }
