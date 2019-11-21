@@ -42,3 +42,20 @@ export async function repositoryIsAvailableToTheRequest(repository: Readonly<Rep
         && accountInDatabase.hash === accountFromHeader.hash
         && (await repositoryIsAvailableToTheViewer(repository, {username: accountInDatabase.username})));
 }
+
+/**
+ * @description 通过 HTTP 请求的 headers 判断此次请求是否可以修改指定仓库（push 之类）
+ * */
+export async function repositoryIsModifiableToTheRequest(repository: Readonly<RepositoryClass>, headers: any): Promise<boolean>
+{
+    const accountFromHeader = Authentication.getAccountFromAuthenticationHeader(headers);
+    if (accountFromHeader === null) // 没有认证信息
+    {
+        return false;
+    }
+    const accountInDatabase = await AccountTable.selectByUsername(accountFromHeader.username);
+    // 用户存在 && 密码正确 && 仓库是该账号的仓库
+    return (accountInDatabase !== null
+        && accountInDatabase.hash === accountFromHeader.hash
+        && repository.username === accountInDatabase.username);
+}
