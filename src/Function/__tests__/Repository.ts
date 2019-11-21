@@ -1,4 +1,5 @@
 import {
+    generateRefsServiceResponse,
     repositoryIsAvailableToTheRequest,
     repositoryIsAvailableToTheViewer,
     repositoryIsModifiableToTheRequest,
@@ -322,5 +323,19 @@ describe(repositoryIsModifiableToTheRequest, () =>
             .toEqual([
                 [fakeHeader],
             ]);
+    });
+});
+
+describe(generateRefsServiceResponse, () =>
+{
+    it('should generate refs service response', function ()
+    {
+        const fakeService = faker.random.alphaNumeric(10);
+        const fakeRPCOutput = faker.lorem.sentence();
+        const serverAdvert = `# service=${fakeService}`;
+        const length = serverAdvert.length + 4;
+        expect(generateRefsServiceResponse(fakeService, fakeRPCOutput)).toBe(
+            `${length.toString(16).padStart(4, '0')}${serverAdvert}0000${fakeRPCOutput}`,
+        );
     });
 });
