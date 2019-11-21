@@ -1,8 +1,11 @@
 import Router from '@koa/router';
-import processor from './Middleware';
 import {IContext, IState} from '../../Interface';
+import {ADVERTISE, FILE, RPC} from './ROUTE';
+import {advertise, file, rpc} from './Middleware';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.all(/\/(.+)\/(.+)\.git(?:\/(.*))/, processor());
+    router.get(ADVERTISE, advertise());
+    router.post(RPC, rpc());
+    router.get(FILE, file());
 }

@@ -18,15 +18,16 @@ const middlewareWrapper: IRouteHandler = () =>
                 ctx.response.set(headers);
             }
             Object.assign(ctx.session, session);
-            ctx.response.status = statusCode;
             if (body instanceof Readable)
             {
+                ctx.response.status = statusCode;
                 body.pipe(ctx.res);
                 await waitForEvent(body, 'close');
             }
             else
             {
                 ctx.response.body = body;
+                ctx.response.status = statusCode;
             }
         }
     };

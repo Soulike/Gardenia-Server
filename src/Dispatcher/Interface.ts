@@ -9,7 +9,7 @@ export interface IParameterValidator
 
 export interface IState
 {
-    serviceResponse: Readonly<ServiceResponse<any>> | void
+    serviceResponse: Readonly<ServiceResponse<any>> | Readonly<any> | void
 }
 
 export interface IContext

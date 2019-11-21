@@ -1,4 +1,7 @@
 import {
+    doAdvertiseRPCCall,
+    doRPCCall,
+    doUpdateServerInfo,
     generateRepositoryPath,
     getAllBranches,
     getCommitCount,
@@ -13,7 +16,7 @@ import {
     putMasterBranchToFront,
 } from '../Git';
 import fs from 'fs';
-import {exec} from 'child_process';
+import {exec, spawn} from 'child_process';
 import {promisify} from 'util';
 import fse from 'fs-extra';
 import path from 'path';
@@ -22,6 +25,7 @@ import {ObjectType} from '../../CONSTANT';
 import os from 'os';
 import faker from 'faker';
 import {GIT} from '../../CONFIG';
+import {Readable, Writable} from 'stream';
 
 let repositoryPath = '';
 let bareRepositoryPath = '';
@@ -51,6 +55,10 @@ const firstCommitFileInFolderPath = path.join(firstCommitFolderName, firstCommit
 const firstCommitMessage = 'test';
 const binaryFileName = 'binaryFile';
 const binaryFileSize = 101;
+
+const childProcessMock = {
+    spawn: jest.fn(),
+};
 
 describe(getAllBranches, () =>
 {
@@ -435,6 +443,138 @@ describe(getObjectReadStream, () =>
             content += data;
         }
         expect(content).toBe(firstCommitFileContent);
+    });
+});
+
+describe(doAdvertiseRPCCall, () =>
+{
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeService = `git-${faker.random.word()}`;
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('child_process', () => childProcessMock);
+    });
+
+    it('should execute correct command and return output', async function ()
+    {
+        childProcessMock.spawn.mockImplementation(() =>
+        {
+            return spawn(`echo hello`, {shell: true});
+        });
+        const {doAdvertiseRPCCall} = await import('../Git');
+        expect(await doAdvertiseRPCCall(fakeRepositoryPath, fakeService)).toBe('hello\n');
+        expect(childProcessMock.spawn.mock.calls).toEqual([
+            [
+                `LANG=en_US git ${fakeService.slice(4)} --stateless-rpc --advertise-refs ${fakeRepositoryPath}`,
+                {shell: true},
+            ],
+        ]);
+    });
+
+    it('should throw command executing error', async function ()
+    {
+        childProcessMock.spawn.mockImplementation(() =>
+        {
+            childProcessMock.spawn.mockImplementation(() =>
+            {
+                throw Error();
+            });
+        });
+
+        const {doAdvertiseRPCCall} = await import('../Git');
+        await expect(doAdvertiseRPCCall(fakeRepositoryPath, fakeService)).rejects.toThrow();
+        expect(childProcessMock.spawn.mock.calls).toEqual([
+            [
+                `LANG=en_US git ${fakeService.slice(4)} --stateless-rpc --advertise-refs ${fakeRepositoryPath}`,
+                {shell: true},
+            ],
+        ]);
+    });
+});
+
+describe(doRPCCall, () =>
+{
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeCommand = `${faker.random.word()}`;
+    const mockParameterStream = {
+        pipe: jest.fn(),
+    };
+    const fakeStdin = new Writable();
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('child_process', () => childProcessMock);
+    });
+
+    it('should execute correct command and return stdout stream', async function ()
+    {
+        const fakeStdout = new Readable();
+        childProcessMock.spawn.mockReturnValue({stdout: fakeStdout, stdin: fakeStdin});
+        const {doRPCCall} = await import('../Git');
+        expect(doRPCCall(fakeRepositoryPath, fakeCommand, mockParameterStream as unknown as Readable))
+            .toEqual(fakeStdout);
+        expect(childProcessMock.spawn.mock.calls).toEqual([
+            [
+                `LANG=en_US git ${fakeCommand} --stateless-rpc ${fakeRepositoryPath}`,
+                {shell: true},
+            ],
+        ]);
+        expect(mockParameterStream.pipe.mock.calls).toEqual([
+            [fakeStdin],
+        ]);
+    });
+});
+
+describe(doUpdateServerInfo, () =>
+{
+    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('child_process', () => childProcessMock);
+    });
+
+    it('should execute correct command', async function ()
+    {
+        childProcessMock.spawn.mockImplementation(() =>
+        {
+            return spawn(`echo hello`, {shell: true});
+        });
+        const {doUpdateServerInfo} = await import('../Git');
+        await doUpdateServerInfo(fakeRepositoryPath);
+        expect(childProcessMock.spawn.mock.calls).toEqual([
+            [
+                `git --git-dir ${fakeRepositoryPath} update-server-info`,
+                {shell: true},
+            ],
+        ]);
+    });
+
+    it('should throw command executing error', async function ()
+    {
+        childProcessMock.spawn.mockImplementation(() =>
+        {
+            childProcessMock.spawn.mockImplementation(() =>
+            {
+                throw Error();
+            });
+        });
+
+        const {doUpdateServerInfo} = await import('../Git');
+        await expect(doUpdateServerInfo(fakeRepositoryPath)).rejects.toThrow();
+        expect(childProcessMock.spawn.mock.calls).toEqual([
+            [
+                `git --git-dir ${fakeRepositoryPath} update-server-info`,
+                {shell: true},
+            ],
+        ]);
     });
 });
 
