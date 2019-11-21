@@ -31,6 +31,10 @@ export function repositoryIsAvailableToTheViewer(repository: Readonly<Repository
  * */
 export async function repositoryIsAvailableToTheRequest(repository: Readonly<RepositoryClass>, headers: Readonly<any>): Promise<boolean>
 {
+    if (repository.isPublic)    // 公有仓库任何人都能查看
+    {
+        return true;
+    }
     const accountFromHeader = Authentication.getAccountFromAuthenticationHeader(headers);
     if (accountFromHeader === null) // 没有认证信息
     {

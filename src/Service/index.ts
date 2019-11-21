@@ -3,5 +3,6 @@ import * as Repository from './Repository';
 import * as RepositoryInfo from './RepositoryInfo';
 import * as Profile from './Profile';
 import * as Group from './Group';
+import * as Git from './Git';
 
-export {Account, RepositoryInfo, Repository, Profile, Group};
+export {Account, RepositoryInfo, Repository, Profile, Group, Git};
