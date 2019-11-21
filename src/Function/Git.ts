@@ -210,3 +210,23 @@ export function doRPCCall(repositoryPath: string, command: string, parameterStre
     parameterStream.pipe(stdin);
     return stdout;
 }
+
+export async function doUpdateServerInfo(repositoryPath: string): Promise<void>
+{
+    return new Promise((resolve, reject) =>
+    {
+        const childProcess = spawn(`git --git-dir ${repositoryPath} update-server-info`, {
+            shell: true,
+        });
+
+        childProcess.on('error', e =>
+        {
+            return reject(e);
+        });
+
+        childProcess.on('exit', () =>
+        {
+            return resolve();
+        });
+    });
+}
