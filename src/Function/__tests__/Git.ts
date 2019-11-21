@@ -24,7 +24,7 @@ import {ObjectType} from '../../CONSTANT';
 import os from 'os';
 import faker from 'faker';
 import {GIT} from '../../CONFIG';
-import {Readable} from 'stream';
+import {Readable, Writable} from 'stream';
 
 let repositoryPath = '';
 let bareRepositoryPath = '';
@@ -498,6 +498,10 @@ describe(doRPCCall, () =>
 {
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeCommand = `${faker.random.word()}`;
+    const mockParameterStream = {
+        pipe: jest.fn(),
+    };
+    const fakeStdin = new Writable();
 
     beforeEach(() =>
     {
@@ -509,14 +513,18 @@ describe(doRPCCall, () =>
     it('should execute correct command and return stdout stream', async function ()
     {
         const fakeStdout = new Readable();
-        childProcessMock.spawn.mockReturnValue({stdout: fakeStdout});
+        childProcessMock.spawn.mockReturnValue({stdout: fakeStdout, stdin: fakeStdin});
         const {doRPCCall} = await import('../Git');
-        expect(doRPCCall(fakeRepositoryPath, fakeCommand)).toEqual(fakeStdout);
+        expect(doRPCCall(fakeRepositoryPath, fakeCommand, mockParameterStream as unknown as Readable))
+            .toEqual(fakeStdout);
         expect(childProcessMock.spawn.mock.calls).toEqual([
             [
                 `LANG=en_US git ${fakeCommand} --stateless-rpc ${fakeRepositoryPath}`,
                 {shell: true},
             ],
+        ]);
+        expect(mockParameterStream.pipe.mock.calls).toEqual([
+            [fakeStdin],
         ]);
     });
 });

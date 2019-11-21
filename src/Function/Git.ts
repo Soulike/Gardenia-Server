@@ -199,10 +199,14 @@ export async function doAdvertiseRPCCall(repositoryPath: string, service: string
     });
 }
 
-export function doRPCCall(repositoryPath: string, command: string): Readable
+/**
+ * @description 执行 git 命令，并通过流的方式输入数据，返回命令的输出流
+ * */
+export function doRPCCall(repositoryPath: string, command: string, parameterStream: Readable): Readable
 {
-    const {stdout} = spawn(`LANG=en_US git ${command} --stateless-rpc ${repositoryPath}`, {
+    const {stdout, stdin} = spawn(`LANG=en_US git ${command} --stateless-rpc ${repositoryPath}`, {
         shell: true,
     });
+    parameterStream.pipe(stdin);
     return stdout;
 }
