@@ -44,7 +44,7 @@ export async function repositoryIsAvailableToTheRequest(repository: Readonly<Rep
     // 用户存在 && 密码正确 && 仓库对该账号可见
     return (accountInDatabase !== null
         && accountInDatabase.hash === accountFromHeader.hash
-        && (await repositoryIsAvailableToTheViewer(repository, {username: accountInDatabase.username})));
+        && repositoryIsAvailableToTheViewer(repository, {username: accountInDatabase.username}));
 }
 
 /**
