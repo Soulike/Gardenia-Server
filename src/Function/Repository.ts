@@ -29,7 +29,7 @@ export function repositoryIsAvailableToTheViewer(repository: Readonly<Repository
 /**
  * @description 通过 HTTP 请求的 headers 判断此次请求是否可以访问指定仓库
  * */
-export async function repositoryIsAvailableToTheRequest(repository: Readonly<RepositoryClass>, headers: any): Promise<boolean>
+export async function repositoryIsAvailableToTheRequest(repository: Readonly<RepositoryClass>, headers: Readonly<any>): Promise<boolean>
 {
     const accountFromHeader = Authentication.getAccountFromAuthenticationHeader(headers);
     if (accountFromHeader === null) // 没有认证信息
@@ -46,7 +46,7 @@ export async function repositoryIsAvailableToTheRequest(repository: Readonly<Rep
 /**
  * @description 通过 HTTP 请求的 headers 判断此次请求是否可以修改指定仓库（push 之类）
  * */
-export async function repositoryIsModifiableToTheRequest(repository: Readonly<RepositoryClass>, headers: any): Promise<boolean>
+export async function repositoryIsModifiableToTheRequest(repository: Readonly<RepositoryClass>, headers: Readonly<any>): Promise<boolean>
 {
     const accountFromHeader = Authentication.getAccountFromAuthenticationHeader(headers);
     if (accountFromHeader === null) // 没有认证信息
