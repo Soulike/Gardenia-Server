@@ -168,11 +168,10 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
             new ResponseBody(false, '分支或提交不存在'));
     }
 
-    const [objectHash, objectType] = await Promise.all([
+    const [objectHash, objectType] = await Promise.all<string, ObjectType>([
         Git.getObjectHash(repositoryPath, filePath, commitHash),
         Git.getObjectType(repositoryPath, filePath, commitHash),
     ]);
-
     if (!(await Git.isBinaryObject(repositoryPath, objectHash)))
     {
         const size = await Git.getObjectSize(repositoryPath, objectHash);
