@@ -171,3 +171,30 @@ export function getObjectReadStream(repositoryPath: string, objectHash: string):
         });
     return stdout;
 }
+
+export async function doRPCCall(repositoryPath: string, service: string): Promise<string>
+{
+    return new Promise((resolve, reject) =>
+    {
+        const childProcess = spawn(`LANG=en_US git ${service.slice(4)} --stateless-rpc --advertise-refs ${repositoryPath}`, {
+            shell: true,
+        });
+
+        childProcess.on('error', e =>
+        {
+            return reject(e);
+        });
+
+        const {stdout} = childProcess;
+        const outputs: string[] = [];
+        stdout.on('data', chunk =>
+        {
+            outputs.push(chunk);
+        });
+
+        stdout.on('close', () =>
+        {
+            return resolve(outputs.join(''));
+        });
+    });
+}
