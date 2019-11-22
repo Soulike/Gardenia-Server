@@ -44,7 +44,8 @@ const functionMock = {
             Parameters<typeof Git.getObjectReadStream>>(),
     },
     Repository: {
-        repositoryIsAvailableToTheViewer: RepositoryFunction.repositoryIsAvailableToTheViewer,
+        repositoryIsAvailableToTheViewer: jest.fn<ReturnType<typeof RepositoryFunction.repositoryIsAvailableToTheViewer>,
+            Parameters<typeof RepositoryFunction.repositoryIsAvailableToTheViewer>>(),
     },
 };
 
@@ -55,92 +56,76 @@ describe(repository, () =>
         faker.random.alphaNumeric(64),
     );
 
+    const fakeViewer = new Account(
+        faker.name.firstName(),
+        faker.random.alphaNumeric(64),
+    );
+
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
+
     beforeEach(() =>
     {
         jest.resetModules();
         jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
     });
 
-    it('everyone can get the info of a public repository', async function ()
+    it('should return repository info when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {repository} = await import('../RepositoryInfo');
 
         expect(
-            await repository(fakeAccount, fakeRepository, {username: faker.random.word()} as unknown as Session),
+            await repository(fakeAccount, fakeRepository, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true, '', fakeRepository)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
     });
 
-    it('only owner can get the info of a private repository', async function ()
+    it('should not return repository info when repository is not available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {repository} = await import('../RepositoryInfo');
 
         expect(
-            await repository(fakeAccount, fakeRepository, {username: faker.random.word()} as unknown as Session),
+            await repository(fakeAccount, fakeRepository, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse(404, {},
             new ResponseBody(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-
-        expect(
-            await repository(fakeAccount, fakeRepository, {username: fakeAccount.username} as unknown as Session),
-        ).toEqual(new ServiceResponse(200, {},
-            new ResponseBody(true, '', fakeRepository)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-    });
-
-    it('should check repository existence', async function ()
-    {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        const {repository} = await import('../RepositoryInfo');
-        expect(
-            await repository(fakeAccount, fakeRepository, {} as unknown as Session),
-        ).toEqual(new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
     });
 });
 
 describe(branch, () =>
 {
     const fakeAccount = new Account(
+        faker.name.firstName(),
+        faker.random.alphaNumeric(64),
+    );
+    const fakeViewer = new Account(
         faker.name.firstName(),
         faker.random.alphaNumeric(64),
     );
@@ -151,6 +136,12 @@ describe(branch, () =>
         faker.random.word(),
         faker.random.word(),
     ];
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
 
     beforeEach(() =>
     {
@@ -163,107 +154,70 @@ describe(branch, () =>
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
     });
 
-    it('everyone can get the branches of a public repository', async function ()
+    it('should return repository branches when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {branch} = await import('../RepositoryInfo');
         expect(
-            await branch(fakeAccount, fakeRepository, {username: faker.random.word()} as unknown as Session),
+            await branch(fakeAccount, fakeRepository, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true, '', fakeBranches)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getAllBranches.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getAllBranches.mock.calls[0][0]).toBe(fakeRepositoryPath);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls.length).toBe(1);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls[0][0]).toEqual(fakeBranches);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeRepository.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.getAllBranches.mock.calls).toEqual([
+            [fakeRepositoryPath],
+        ]);
+        expect(functionMock.Git.putMasterBranchToFront.mock.calls).toEqual([
+            [fakeBranches, 'master'],
+        ]);
     });
 
-    it('only owner can get the branches of a private repository', async function ()
+    it('should not return repository branches when repository is not available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {branch} = await import('../RepositoryInfo');
 
         expect(
-            await branch(fakeAccount, fakeRepository, {username: faker.random.word()} as unknown as Session),
+            await branch(fakeAccount, fakeRepository, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse(404, {},
             new ResponseBody(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getAllBranches.mock.calls.length).toBe(0);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls.length).toBe(0);
-
-        expect(
-            await branch(fakeAccount, fakeRepository, {username: fakeAccount.username} as unknown as Session),
-        ).toEqual(new ServiceResponse(200, {},
-            new ResponseBody(true, '', fakeBranches)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getAllBranches.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getAllBranches.mock.calls[0][0]).toBe(fakeRepositoryPath);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls.length).toBe(1);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls[0][0]).toEqual(fakeBranches);
-    });
-
-    it('should check repository existence', async function ()
-    {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        const {branch} = await import('../RepositoryInfo');
-        expect(
-            await branch(fakeAccount, fakeRepository, {} as unknown as Session),
-        ).toEqual(new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getAllBranches.mock.calls.length).toBe(0);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls.length).toBe(0);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
+        expect(functionMock.Git.getAllBranches.mock.calls).toEqual([]);
+        expect(functionMock.Git.putMasterBranchToFront.mock.calls).toEqual([]);
     });
 });
 
 describe(lastCommit, () =>
 {
     const fakeAccount = new Account(
+        faker.name.firstName(),
+        faker.random.alphaNumeric(64),
+    );
+    const fakeViewer = new Account(
         faker.name.firstName(),
         faker.random.alphaNumeric(64),
     );
@@ -275,6 +229,12 @@ describe(lastCommit, () =>
         faker.internet.email(),
         faker.date.recent().toISOString(),
         faker.lorem.sentence());
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
 
     beforeEach(() =>
     {
@@ -286,120 +246,64 @@ describe(lastCommit, () =>
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
     });
 
-    it('everyone can get the last commit of a public repository', async function ()
+    it('should return repository last commit when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {lastCommit} = await import('../RepositoryInfo');
 
         expect(
-            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {username: faker.random.word()} as unknown as Session, fakeFilePath),
+            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {username: fakeViewer.username} as unknown as Session, fakeFilePath),
         ).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true, '', fakeCommit)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getLastCommitInfo.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[0][0]).toBe(fakeRepositoryPath);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[0][1]).toBe(fakeCommit.commitHash);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[0][2]).toBe(fakeFilePath);
-
-        expect(
-            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {username: fakeAccount.username} as unknown as Session, fakeFilePath),
-        ).toEqual(new ServiceResponse(200, {},
-            new ResponseBody(true, '', fakeCommit)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(2);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[1][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getLastCommitInfo.mock.calls.length).toBe(2);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[1][0]).toBe(fakeRepositoryPath);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[1][1]).toBe(fakeCommit.commitHash);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[1][2]).toBe(fakeFilePath);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeRepository.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.getLastCommitInfo.mock.calls).toEqual([
+            [fakeRepositoryPath, fakeCommit.commitHash, fakeFilePath],
+        ]);
     });
 
-    it('only owner can get the last commit of a private repository', async function ()
+    it('should not return repository last commit when repository is not available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {lastCommit} = await import('../RepositoryInfo');
 
         expect(
-            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {username: faker.random.word()} as unknown as Session, fakeFilePath),
+            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {username: fakeViewer.username} as unknown as Session, fakeFilePath),
         ).toEqual(new ServiceResponse(404, {},
             new ResponseBody(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getLastCommitInfo.mock.calls.length).toBe(0);
-
-        expect(
-            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {username: fakeAccount.username} as unknown as Session, fakeFilePath),
-        ).toEqual(new ServiceResponse(200, {},
-            new ResponseBody(true, '', fakeCommit)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getLastCommitInfo.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[0][0]).toBe(fakeRepositoryPath);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[0][1]).toBe(fakeCommit.commitHash);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls[0][2]).toBe(fakeFilePath);
-    });
-
-    it('should check repository existence', async function ()
-    {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        const {lastCommit} = await import('../RepositoryInfo');
-        expect(
-            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {} as unknown as Session, fakeFilePath),
-        ).toEqual(new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getLastCommitInfo.mock.calls.length).toBe(0);
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
+        expect(functionMock.Git.getLastCommitInfo.mock.calls).toEqual([]);
     });
 });
 
 describe(directory, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeCommitInfoList = [
         {
             type: ObjectType.BLOB,
@@ -494,6 +398,12 @@ describe(directory, () =>
     const fakeCommitHash = faker.random.alphaNumeric(64);
     const fakeDirectoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
 
     beforeAll(() =>
     {
@@ -523,20 +433,15 @@ describe(directory, () =>
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
     });
 
-    it('everyone can get the directory info of a public repository', async function ()
+    it('should return repository directory info when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockResolvedValue([...sortedCommitInfoListCopy]);
         const {directory} = await import('../RepositoryInfo');
 
         expect(
-            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeAccount.username} as unknown as Session),
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse(
             200,
             {},
@@ -546,37 +451,38 @@ describe(directory, () =>
                 sortedCommitInfoListCopy,
             ),
         ));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
-            fakeRepositoryPath,
-            fakeCommitHash,
-            fakeDirectoryPath,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeRepository.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.getFileCommitInfoList.mock.calls).toEqual([
+            [
+                fakeRepositoryPath,
+                fakeCommitHash,
+                fakeDirectoryPath,
+            ],
         ]);
     });
 
-    it('only owner can get the directory info of a private repository', async function ()
+    it('should not return repository directory info when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockResolvedValue([...sortedCommitInfoListCopy]);
         const {directory} = await import('../RepositoryInfo');
         expect(
-            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: faker.random.word()} as unknown as Session),
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(
             404,
             {},
@@ -585,88 +491,29 @@ describe(directory, () =>
                 '仓库不存在',
             ),
         ));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(0);
-
-        expect(
-            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeAccount.username} as unknown as Session),
-        ).toEqual(new ServiceResponse(
-            200,
-            {},
-            new ResponseBody(
-                true,
-                '',
-                sortedCommitInfoListCopy,
-            ),
-        ));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
-            fakeRepositoryPath,
-            fakeCommitHash,
-            fakeDirectoryPath,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-    });
-
-    it('should check repository existence', async function ()
-    {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        functionMock.Git.getFileCommitInfoList.mockResolvedValue([...fakeCommitInfoList]);
-        const {directory} = await import('../RepositoryInfo');
-        expect(
-            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
-        ).toEqual(new ServiceResponse<void>(
-            404,
-            {},
-            new ResponseBody<void>(
-                false,
-                '仓库不存在',
-            ),
-        ));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(0);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
+        expect(functionMock.Git.getFileCommitInfoList.mock.calls).toEqual([]);
     });
 
     it('should check directory path existence', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
         const fakeError = new Error(faker.lorem.sentence());
 
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockRejectedValue(fakeError);
         const {directory} = await import('../RepositoryInfo');
         expect(
-            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(
             404,
             {},
@@ -675,37 +522,38 @@ describe(directory, () =>
                 '文件不存在',
             ),
         ));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
-            fakeRepositoryPath,
-            fakeCommitHash,
-            fakeDirectoryPath,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeRepository.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.getFileCommitInfoList.mock.calls).toEqual([
+            [
+                fakeRepositoryPath,
+                fakeCommitHash,
+                fakeDirectoryPath,
+            ],
         ]);
     });
 
     it('should sort directory content array', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockResolvedValue([...fakeCommitInfoList]);
         const {directory} = await import('../RepositoryInfo');
         expect(
-            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {} as unknown as Session),
+            await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }>>(
             200,
             {},
@@ -715,21 +563,27 @@ describe(directory, () =>
                 sortedCommitInfoListCopy,
             ),
         ));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeRepository.username,
-            name: fakeRepository.name,
-        });
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getFileCommitInfoList.mock.calls[0]).toEqual([
-            fakeRepositoryPath,
-            fakeCommitHash,
-            fakeDirectoryPath,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeRepository.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.getFileCommitInfoList.mock.calls).toEqual([
+            [
+                fakeRepositoryPath,
+                fakeCommitHash,
+                fakeDirectoryPath,
+            ],
         ]);
     });
 });
@@ -737,26 +591,30 @@ describe(directory, () =>
 describe(commitCount, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeCommitCount = faker.random.number();
     const fakeCommitHash = faker.random.alphaNumeric(64);
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
 
     beforeEach(() =>
     {
         jest.resetModules();
         jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
     });
 
-    it('everyone can get the commit count of a public repository', async function ()
+    it('should return repository commit count when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         functionMock.Git.getCommitCount.mockResolvedValue(fakeCommitCount);
         const {commitCount} = await import('../RepositoryInfo');
         expect(
@@ -764,108 +622,59 @@ describe(commitCount, () =>
                 {username: fakeAccount.username},
                 {name: fakeRepository.name},
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<{ commitCount: number }>(200, {},
             new ResponseBody<{ commitCount: number }>(true, '', {commitCount: fakeCommitCount})));
 
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-
-        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getCommitCount.mock.calls[0]).toEqual([
-            fakeRepositoryPath,
-            fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.getCommitCount.mock.calls).toEqual([
+            [
+                fakeRepositoryPath,
+                fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
     });
 
-    it('only owner can get the commit count of a private repository', async function ()
+    it('should not return repository commit count when repository is not available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getCommitCount.mockResolvedValue(fakeCommitCount);
         const {commitCount} = await import('../RepositoryInfo');
         expect(
-            await commitCount(fakeAccount, fakeRepository, fakeCommitHash, {username: faker.random.word()} as unknown as Session),
+            await commitCount(fakeAccount, fakeRepository, fakeCommitHash, {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在')));
-
-        expect(
-            await commitCount(fakeAccount, fakeRepository, fakeCommitHash, {username: fakeAccount.username} as unknown as Session),
-        ).toEqual(new ServiceResponse<{ commitCount: number }>(200, {},
-            new ResponseBody<{ commitCount: number }>(true, '', {commitCount: fakeCommitCount})));
-
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(2);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[1][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-
-        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getCommitCount.mock.calls[0]).toEqual([
-            fakeRepositoryPath,
-            fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-    });
-
-    it('should check repository existence', async function ()
-    {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        functionMock.Git.getCommitCount.mockResolvedValue(fakeCommitCount);
-        const {commitCount} = await import('../RepositoryInfo');
-        expect(
-            await commitCount(fakeAccount, fakeRepository, fakeCommitHash, {username: faker.random.word()} as unknown as Session),
-        ).toEqual(new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在')));
-
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-
-        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(0);
-
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.getCommitCount.mock.calls).toEqual([]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
     });
 
     it('should check commit hash existence', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getCommitCount.mockRejectedValue(new Error());
         const {commitCount} = await import('../RepositoryInfo');
@@ -874,39 +683,50 @@ describe(commitCount, () =>
                 {username: fakeAccount.username},
                 {name: fakeRepository.name},
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '分支或提交不存在')));
 
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
-
-        expect(functionMock.Git.getCommitCount.mock.calls.length).toBe(1);
-        expect(functionMock.Git.getCommitCount.mock.calls[0]).toEqual([
-            fakeRepositoryPath,
-            fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(1);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls[0][0]).toEqual({
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        });
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.getCommitCount.mock.calls).toEqual([
+            [
+                fakeRepositoryPath,
+                fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
     });
 });
 
 describe(fileInfo, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeObjectHash = faker.random.alphaNumeric(64);
     const fakeObjectType = ObjectType.BLOB;
     const fakeObjectSize = faker.random.number();
     const fakeFilePath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeCommitHash = faker.random.alphaNumeric(64);
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
 
     beforeEach(async () =>
     {
@@ -920,14 +740,9 @@ describe(fileInfo, () =>
         functionMock.Git.getObjectSize.mockResolvedValue(fakeObjectSize);
     });
 
-    it('everyone can get the file info of a public repository', async function ()
+    it('should return repository file info when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -939,7 +754,7 @@ describe(fileInfo, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(
             new ServiceResponse(200, {},
                 new ResponseBody(
@@ -947,36 +762,46 @@ describe(fileInfo, () =>
                         exists: true, isBinary: false, type: fakeObjectType, size: fakeObjectSize,
                     },
                 )));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-        expect(functionMock.Git.getObjectHash.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
         ]);
-        expect(functionMock.Git.isBinaryObject.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeObjectHash,
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-        expect(functionMock.Git.getObjectSize.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeObjectHash,
+        expect(functionMock.Git.objectExists.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.isBinaryObject.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeObjectHash,
+            ],
+        ]);
+        expect(functionMock.Git.getObjectSize.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeObjectHash,
+            ],
         ]);
     });
 
-    it('only owner can get the file info of a private repository', async function ()
+    it('should not return repository file info when repository is not available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -988,98 +813,29 @@ describe(fileInfo, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(
             new ServiceResponse<void>(404, {},
                 new ResponseBody<void>(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-        expect(functionMock.Git.objectExists.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
-        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
-
-        expect(
-            await fileInfo(
-                fakeAccount,
-                fakeRepository,
-                fakeFilePath,
-                fakeCommitHash,
-                {username: fakeAccount.username} as unknown as Session),
-        ).toEqual(
-            new ServiceResponse(200, {},
-                new ResponseBody(
-                    true, '', {
-                        exists: true, isBinary: false, type: fakeObjectType, size: fakeObjectSize,
-                    },
-                )));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-        expect(functionMock.Git.getObjectHash.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
         ]);
-        expect(functionMock.Git.isBinaryObject.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeObjectHash,
-        ]);
-        expect(functionMock.Git.getObjectSize.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeObjectHash,
-        ]);
-    });
-
-    it('should check repository existence', async function ()
-    {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        functionMock.Git.objectExists.mockResolvedValue(true);
-        functionMock.Git.isBinaryObject.mockResolvedValue(false);
-
-        const {fileInfo} = await import('../RepositoryInfo');
-        expect(
-            await fileInfo(
-                fakeAccount,
-                fakeRepository,
-                fakeFilePath,
-                fakeCommitHash,
-                {username: fakeAccount.username} as unknown as Session),
-        ).toEqual(
-            new ServiceResponse<void>(404, {},
-                new ResponseBody<void>(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-        expect(functionMock.Git.objectExists.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
-        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
+        expect(functionMock.Git.objectExists.mock.calls).toEqual([]);
+        expect(functionMock.Git.getObjectHash.mock.calls).toEqual([]);
+        expect(functionMock.Git.isBinaryObject.mock.calls).toEqual([]);
+        expect(functionMock.Git.getObjectSize.mock.calls).toEqual([]);
     });
 
     it('should check object existence', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(false);
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -1091,7 +847,7 @@ describe(fileInfo, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(
             new ServiceResponse(200, {},
                 new ResponseBody(
@@ -1099,30 +855,34 @@ describe(fileInfo, () =>
                         exists: false,
                     },
                 )));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
-        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.objectExists.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls).toEqual([]);
+        expect(functionMock.Git.isBinaryObject.mock.calls).toEqual([]);
+        expect(functionMock.Git.getObjectSize.mock.calls).toEqual([]);
     });
 
     it('should check commit hash existence', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockRejectedValue(new Error());
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -1134,34 +894,38 @@ describe(fileInfo, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(
             new ServiceResponse(404, {},
                 new ResponseBody(false, '分支或提交不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-        expect(functionMock.Git.getObjectHash.mock.calls.length).toBe(0);
-        expect(functionMock.Git.isBinaryObject.mock.calls.length).toBe(0);
-        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.objectExists.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls).toEqual([]);
+        expect(functionMock.Git.isBinaryObject.mock.calls).toEqual([]);
+        expect(functionMock.Git.getObjectSize.mock.calls).toEqual([]);
     });
 
     it('should check whether file is binary', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         functionMock.Git.isBinaryObject.mockResolvedValue(true);
@@ -1173,7 +937,7 @@ describe(fileInfo, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(
             new ServiceResponse(200, {},
                 new ResponseBody(
@@ -1181,35 +945,55 @@ describe(fileInfo, () =>
                         exists: true, isBinary: true,
                     },
                 )));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.pop()).toEqual([{
-            username: fakeAccount.username,
-            name: fakeRepository.name,
-        }]);
-        expect(functionMock.Git.objectExists.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-        expect(functionMock.Git.getObjectHash.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
         ]);
-        expect(functionMock.Git.isBinaryObject.mock.calls.pop()).toEqual([
-            fakeRepositoryPath, fakeObjectHash,
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
         ]);
-        expect(functionMock.Git.getObjectSize.mock.calls.length).toBe(0);
+        expect(functionMock.Git.objectExists.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.getObjectHash.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeFilePath, fakeCommitHash,
+            ],
+        ]);
+        expect(functionMock.Git.isBinaryObject.mock.calls).toEqual([
+            [
+                fakeRepositoryPath, fakeObjectHash,
+            ],
+        ]);
+        expect(functionMock.Git.getObjectSize.mock.calls).toEqual([]);
     });
 });
 
 describe(rawFile, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeObjectHash = faker.random.alphaNumeric(64);
     const fakeFilePath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeCommitHash = faker.random.alphaNumeric(64);
     const fakeReadableStream = new Readable();
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
 
     beforeEach(() =>
     {
@@ -1220,17 +1004,11 @@ describe(rawFile, () =>
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
         functionMock.Git.getObjectHash.mockResolvedValue(fakeObjectHash);
         functionMock.Git.getObjectReadStream.mockReturnValue(fakeReadableStream);
-
     });
 
-    it('everyone can get the raw file read stream of a public repository', async function ()
+    it('should return repository raw file stream when repository is available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         const {rawFile} = await import('../RepositoryInfo');
@@ -1240,13 +1018,16 @@ describe(rawFile, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(200,
             {'Content-Type': mime.contentType(fakeFilePath) || 'application/octet-stream'},
             fakeReadableStream));
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
             [{username: fakeAccount.username, name: fakeRepository.name}],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
         ]);
         expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
             [{username: fakeAccount.username, name: fakeRepository.name}],
@@ -1262,14 +1043,9 @@ describe(rawFile, () =>
         ]);
     });
 
-    it('only owner can get the raw file read stream of a private repository', async function ()
+    it('should not return repository raw file stream when repository is not available to the viewer', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            false,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         const {rawFile} = await import('../RepositoryInfo');
@@ -1279,60 +1055,14 @@ describe(rawFile, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
-        ).toEqual(new ServiceResponse<void>(404, {}));
-
-        expect(
-            await rawFile(
-                fakeAccount,
-                fakeRepository,
-                fakeFilePath,
-                fakeCommitHash,
-                {username: fakeAccount.username} as unknown as Session),
-        ).toEqual(new ServiceResponse<void>(200,
-            {'Content-Type': mime.contentType(fakeFilePath) || 'application/octet-stream'},
-            fakeReadableStream));
-
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
-            [{username: fakeAccount.username, name: fakeRepository.name}],
-            [{username: fakeAccount.username, name: fakeRepository.name}],
-        ]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
-            [{username: fakeAccount.username, name: fakeRepository.name}],
-        ]);
-        expect(functionMock.Git.getObjectHash.mock.calls).toEqual([
-            [fakeRepositoryPath, fakeFilePath, fakeCommitHash],
-        ]);
-        expect(functionMock.Git.getObjectReadStream.mock.calls).toEqual([
-            [fakeRepositoryPath, fakeObjectHash],
-        ]);
-        expect(functionMock.Git.objectExists.mock.calls).toEqual([
-            [fakeRepositoryPath, fakeFilePath, fakeCommitHash],
-        ]);
-    });
-
-    it('should check repository existence', async function ()
-    {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        functionMock.Git.objectExists.mockResolvedValue(true);
-        const {rawFile} = await import('../RepositoryInfo');
-        expect(
-            await rawFile(
-                fakeAccount,
-                fakeRepository,
-                fakeFilePath,
-                fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(404, {}));
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
             [{username: fakeAccount.username, name: fakeRepository.name}],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
         ]);
         expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
         expect(functionMock.Git.getObjectHash.mock.calls).toEqual([]);
@@ -1342,12 +1072,7 @@ describe(rawFile, () =>
 
     it('should check object existence', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(false);
         const {rawFile} = await import('../RepositoryInfo');
@@ -1357,11 +1082,14 @@ describe(rawFile, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: fakeAccount.username} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(404, {}));
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
             [{username: fakeAccount.username, name: fakeRepository.name}],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
         ]);
         expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
             [{username: fakeAccount.username, name: fakeRepository.name}],
@@ -1375,12 +1103,7 @@ describe(rawFile, () =>
 
     it('should check commit hash existence', async function ()
     {
-        const fakeRepository = new Repository(
-            fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
-            true,
-        );
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockRejectedValue(new Error());
         const {rawFile} = await import('../RepositoryInfo');
@@ -1390,11 +1113,14 @@ describe(rawFile, () =>
                 fakeRepository,
                 fakeFilePath,
                 fakeCommitHash,
-                {username: faker.random.word()} as unknown as Session),
+                {username: fakeViewer.username} as unknown as Session),
         ).toEqual(new ServiceResponse<void>(404, {}));
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
             [{username: fakeAccount.username, name: fakeRepository.name}],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
         ]);
         expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
             [{username: fakeAccount.username, name: fakeRepository.name}],
