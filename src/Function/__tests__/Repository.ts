@@ -92,13 +92,10 @@ describe(repositoryIsAvailableToTheRequest, () =>
             true);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(true);
-        expect(databaseMock.Account.selectByUsername.mock.calls).toEqual([
-            [fakeViewer.username],
-        ]);
+        expect(await repositoryIsAvailableToTheRequest(fakeRepository, {})).toBe(true);
+        expect(databaseMock.Account.selectByUsername.mock.calls).toEqual([]);
         expect(authenticationMock.getAccountFromAuthenticationHeader.mock.calls)
-            .toEqual([
-                [fakeHeader],
-            ]);
+            .toEqual([]);
     });
 
     it('should return true when repository is private and requested by owner', async function ()
@@ -141,14 +138,14 @@ describe(repositoryIsAvailableToTheRequest, () =>
             ]);
     });
 
-    it('should return false when no authentication info', async function ()
+    it('should return false when no authentication info and repository is private', async function ()
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(null);
         const fakeRepository = new Repository(
             faker.name.firstName(),
             faker.random.word(),
             faker.lorem.sentence(),
-            true);
+            false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
         expect(databaseMock.Account.selectByUsername.mock.calls).toEqual([]);
@@ -158,7 +155,7 @@ describe(repositoryIsAvailableToTheRequest, () =>
             ]);
     });
 
-    it('should return false when account does not exist', async function ()
+    it('should return false when account does not exist and repository is private', async function ()
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(fakeViewer);
         databaseMock.Account.selectByUsername.mockResolvedValue(null);
@@ -166,7 +163,7 @@ describe(repositoryIsAvailableToTheRequest, () =>
             fakeAccount.username,
             faker.random.word(),
             faker.lorem.sentence(),
-            true);
+            false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
         expect(databaseMock.Account.selectByUsername.mock.calls).toEqual([
@@ -178,7 +175,7 @@ describe(repositoryIsAvailableToTheRequest, () =>
             ]);
     });
 
-    it('should return false when hash is wrong', async function ()
+    it('should return false when hash is wrong and repository is private', async function ()
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue({
             ...fakeViewer,
@@ -189,7 +186,7 @@ describe(repositoryIsAvailableToTheRequest, () =>
             fakeAccount.username,
             faker.random.word(),
             faker.lorem.sentence(),
-            true);
+            false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
         expect(databaseMock.Account.selectByUsername.mock.calls).toEqual([
