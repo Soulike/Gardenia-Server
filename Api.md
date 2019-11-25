@@ -261,7 +261,33 @@ export enum ObjectType
 
 ### Git 模块
 
-Git 模块供普通 Git 命令行指令调用，直接转发到 `git http-server` 官方 CGI 脚本。
+Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下请求。各个请求的详细作用见[这篇文章](https://soulike.tech/article?id=43)。模块中对各个请求增加了权限判断。
+
+#### `/[username]/[repositoryName].git/info/refs`
+
+- 其他说明：
+  - 对公有库
+    - 所有人都可执行 `git-upload-pack`
+    - 只有具有权限的人才能执行 `git-receive-pack`，否则返回 403
+  - 对私有库
+    - 如果请求人不是仓库所有者，返回 404
+
+#### `/[username]/[repositoryName].git/git-[command]`
+
+- 其他说明：
+  - 对公有库
+    - 所有人都可执行 `git-upload-pack`
+    - 只有具有权限的人才能执行 `git-receive-pack`，否则返回 403
+  - 对私有库
+    - 如果请求人不是仓库所有者，返回 404
+
+#### `/[username]/[repositoryName].git/[filePath]`
+
+- 其他说明：
+  - 对公有库
+    - 所有人都可获取文件
+  - 对私有哭
+    - 仅具有权限的人才能获取仓库文件，否则返回 404
 
 ### Repository 模块（`/repository`）
 
