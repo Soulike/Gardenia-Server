@@ -45,6 +45,24 @@ describe(`${Profile.name}`, () =>
             avatar: fakeAvatar,
             email: fakeEmail,
         })).toThrow(TypeError);
+        expect(() => Profile.from({
+            username: fakeUsername,
+            nickname: {},
+            avatar: fakeAvatar,
+            email: fakeEmail,
+        })).toThrow(TypeError);
+        expect(() => Profile.from({
+            username: fakeUsername,
+            nickname: fakeNickname,
+            avatar: [],
+            email: fakeEmail,
+        })).toThrow(TypeError);
+        expect(() => Profile.from({
+            username: fakeUsername,
+            nickname: fakeNickname,
+            avatar: fakeAvatar,
+            email: Symbol(),
+        })).toThrow(TypeError);
     });
 
     it(`${Profile.from.name} method should throw error when source object owns invalid email`, function ()
@@ -60,10 +78,34 @@ describe(`${Profile.name}`, () =>
     it(`${Profile.validate.name} method should validate data type of source object`, function ()
     {
         expect(Profile.validate({
+            username: fakeUsername,
+            nickname: fakeNickname,
+            avatar: fakeAvatar,
+            email: fakeEmail,
+        })).toBe(true);
+        expect(Profile.validate({
             username: 12345,
             nickname: fakeNickname,
             avatar: fakeAvatar,
             email: fakeEmail,
+        })).toBe(false);
+        expect(Profile.validate({
+            username: fakeUsername,
+            nickname: {},
+            avatar: fakeAvatar,
+            email: fakeEmail,
+        })).toBe(false);
+        expect(Profile.validate({
+            username: fakeUsername,
+            nickname: fakeNickname,
+            avatar: [],
+            email: fakeEmail,
+        })).toBe(false);
+        expect(Profile.validate({
+            username: fakeUsername,
+            nickname: fakeNickname,
+            avatar: fakeAvatar,
+            email: Symbol(),
         })).toBe(false);
     });
 
