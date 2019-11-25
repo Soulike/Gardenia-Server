@@ -11,18 +11,14 @@ export class Account
 
     constructor(username: string, hash: string)
     {
-        if (!Account.validate({username, hash}))
-        {
-            throw new TypeError('Account constructor parameter type is incorrect');
-        }
         this.username = username;
         this.hash = hash;
     }
 
     public static calculateHash(username: string, password: string): string
     {
-        const {sha256} = Account;
-        return sha256(sha256(username) + sha256(password));
+        const {calculateSHA256} = Account;
+        return calculateSHA256(calculateSHA256(username) + calculateSHA256(password));
     }
 
     public static validate(obj: Readonly<Record<keyof Account, any>>): boolean
@@ -35,10 +31,14 @@ export class Account
     public static from(obj: Readonly<Record<keyof Account, any>>)
     {
         const {username, hash} = obj;
+        if (!Account.validate({username, hash}))
+        {
+            throw new TypeError(`Source object is not a ${Account.name} instance`);
+        }
         return new Account(username, hash);
     }
 
-    private static sha256(text: string): string
+    private static calculateSHA256(text: string): string
     {
         const hash = crypto.createHash('sha256');
         hash.update(text);

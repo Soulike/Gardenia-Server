@@ -9,7 +9,7 @@ describe(Group, () =>
         const groupName = faker.random.word();
         const group = new Group(groupId, groupName);
         expect(group.id).toEqual(groupId);
-        expect(groupName).toEqual(groupName);
+        expect(group.name).toEqual(groupName);
     });
 
     it('should transform object in the same shape', function ()
@@ -19,7 +19,7 @@ describe(Group, () =>
         const groupLike = {id: groupId, name: groupName};
         const group = Group.from(groupLike);
         expect(group.id).toEqual(groupId);
-        expect(groupName).toEqual(groupName);
+        expect(group.name).toEqual(groupName);
     });
 
     it('should throw error when object in the same shape has wrong value type', function ()

@@ -13,9 +13,9 @@ export class Profile
 
     constructor(username: string, nickname: string, email: string, avatar: string)
     {
-        if (!Profile.validate({username, nickname, email, avatar}))
+        if (!Profile.isEmail(email))
         {
-            throw new TypeError('Profile constructor parameter type is incorrect');
+            throw new TypeError(`${email} is not a valid email`);
         }
         this.username = username;
         this.nickname = nickname;
@@ -28,13 +28,22 @@ export class Profile
         const {username, nickname, email, avatar} = obj;
         return typeof username === 'string'
             && typeof nickname === 'string'
-            && typeof email === 'string' && validator.isEmail(email)
+            && Profile.isEmail(email)
             && typeof avatar === 'string';
     }
 
     public static from(obj: Readonly<Record<keyof Profile, any>>)
     {
         const {username, nickname, email, avatar} = obj;
+        if (!Profile.validate({username, nickname, email, avatar}))
+        {
+            throw new TypeError(`Source object is not a ${Profile.name} instance`);
+        }
         return new Profile(username, nickname, email, avatar);
+    }
+
+    private static isEmail(email: any): boolean
+    {
+        return typeof email === 'string' && validator.isEmail(email);
     }
 }

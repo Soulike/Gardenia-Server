@@ -18,10 +18,6 @@ export class Repository
      * */
     constructor(username: string, name: string, description: string, isPublic: boolean)
     {
-        if (!Repository.validate({username, name, description, isPublic}))
-        {
-            throw new TypeError('Repository constructor parameter type is incorrect');
-        }
         this.username = username;
         this.name = name;
         this.description = description;
@@ -40,6 +36,10 @@ export class Repository
     public static from(obj: Readonly<Record<keyof Repository, any>>)
     {
         const {username, name, description, isPublic} = obj;
+        if (!Repository.validate({username, name, description, isPublic}))
+        {
+            throw new TypeError(`Source object is not a ${Repository.name} instance`);
+        }
         return new Repository(username, name, description, isPublic);
     }
 }

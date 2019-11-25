@@ -13,7 +13,7 @@ export class Group
     {
         if (!Group.validate(obj))
         {
-            throw new TypeError('Source object is not a Group instance');
+            throw new TypeError(`Source object is not a ${Group.name} instance`);
         }
         const {id, name} = obj;
         return new Group(id, name);
