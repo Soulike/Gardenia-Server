@@ -2,13 +2,13 @@ import {Account} from '../Account';
 import crypto from 'crypto';
 import faker from 'faker';
 
-describe(Account, () =>
+describe(`${Account.name}`, () =>
 {
     const fakeUsername = faker.random.word();
     const fakePassword = faker.random.alphaNumeric(10);
     const fakeHash = calculateSHA256(calculateSHA256(fakeUsername) + calculateSHA256(fakePassword));
 
-    it('should construct Account object', function ()
+    it(`should construct ${Account.name} object`, function ()
     {
         expect(new Account(fakeUsername, fakeHash)).toEqual({
             username: fakeUsername,
@@ -16,7 +16,7 @@ describe(Account, () =>
         } as Account);
     });
 
-    it(`${Account.from.name} method should return new Account object`, function ()
+    it(`${Account.from.name} method should return new ${Account.name} object`, function ()
     {
         const account = Account.from({username: fakeUsername, hash: fakeHash});
         expect(account).toBeInstanceOf(Account);
