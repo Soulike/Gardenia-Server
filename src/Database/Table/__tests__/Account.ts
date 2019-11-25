@@ -43,7 +43,7 @@ afterAll(() =>
     client.release();
 });
 
-describe(selectByUsername, () =>
+describe(`${selectByUsername.name}`, () =>
 {
     const nonexistentFakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
 
@@ -70,7 +70,7 @@ describe(selectByUsername, () =>
     });
 });
 
-describe(update, () =>
+describe(`${update.name}`, () =>
 {
     beforeEach(async () =>
     {
@@ -90,7 +90,7 @@ describe(update, () =>
     });
 });
 
-describe(insert, () =>
+describe(`${insert.name}`, () =>
 {
     afterEach(async () =>
     {
@@ -111,7 +111,7 @@ describe(insert, () =>
     });
 });
 
-describe(deleteByUsername, () =>
+describe(`${deleteByUsername.name}`, () =>
 {
     beforeEach(async () =>
     {
@@ -130,7 +130,7 @@ describe(deleteByUsername, () =>
     });
 });
 
-describe(create, () =>
+describe(`${create.name}`, () =>
 {
     afterEach(async () =>
     {
@@ -171,7 +171,7 @@ describe(create, () =>
     });
 });
 
-describe(getGroupsByUsername, () =>
+describe(`${getGroupsByUsername.name}`, () =>
 {
     const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -241,7 +241,7 @@ describe(getGroupsByUsername, () =>
     }
 });
 
-describe(getAdministratingGroupsByUsername, () =>
+describe(`${getAdministratingGroupsByUsername.name}`, () =>
 {
     const fakeAdminAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeAdminAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -319,7 +319,7 @@ describe(getAdministratingGroupsByUsername, () =>
     }
 });
 
-describe(getGroupByUsernameAndGroupName, () =>
+describe(`${getGroupByUsernameAndGroupName.name}`, () =>
 {
     const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -393,7 +393,7 @@ describe(getGroupByUsernameAndGroupName, () =>
     }
 });
 
-describe(getAdministratingGroupByUsernameAndGroupName, () =>
+describe(`${getAdministratingGroupByUsernameAndGroupName.name}`, () =>
 {
     const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -475,7 +475,7 @@ describe(getAdministratingGroupByUsernameAndGroupName, () =>
     }
 });
 
-describe(getAdministratingGroupByUsernameAndGroupId, () =>
+describe(`${getAdministratingGroupByUsernameAndGroupId.name}`, () =>
 {
     const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));

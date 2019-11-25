@@ -54,7 +54,7 @@ afterAll(() =>
     client.release();
 });
 
-describe(insertAndReturnId, () =>
+describe(`${insertAndReturnId.name}`, () =>
 {
     afterEach(async () =>
     {
@@ -71,7 +71,7 @@ describe(insertAndReturnId, () =>
     });
 });
 
-describe(deleteById, () =>
+describe(`${deleteById.name}`, () =>
 {
     beforeEach(async () =>
     {
@@ -91,7 +91,7 @@ describe(deleteById, () =>
     });
 });
 
-describe(update, () =>
+describe(`${update.name}`, () =>
 {
     beforeEach(async () =>
     {
@@ -115,7 +115,7 @@ describe(update, () =>
     });
 });
 
-describe(selectById, () =>
+describe(`${selectById.name}`, () =>
 {
     beforeEach(async () =>
     {
@@ -141,7 +141,7 @@ describe(selectById, () =>
     });
 });
 
-describe(getAccountsById, () =>
+describe(`${getAccountsById.name}`, () =>
 {
     let fakeGroup1Id = -1;
     let fakeGroup2Id = -1;
@@ -208,7 +208,7 @@ describe(getAccountsById, () =>
     }
 });
 
-describe(addAccounts, () =>
+describe(`${addAccounts.name}`, () =>
 {
     const fakeAccounts: Account[] = [];
     beforeAll(async () =>
@@ -247,7 +247,7 @@ describe(addAccounts, () =>
     }
 });
 
-describe(removeAccounts, () =>
+describe(`${removeAccounts.name}`, () =>
 {
     let fakeGroup1Id = -1;
     let fakeGroup2Id = -1;
@@ -307,7 +307,7 @@ describe(removeAccounts, () =>
     }
 });
 
-describe(getAdminsById, () =>
+describe(`${getAdminsById.name}`, () =>
 {
     let fakeGroup1Id = -1;
     let fakeGroup2Id = -1;
@@ -382,7 +382,7 @@ describe(getAdminsById, () =>
     }
 });
 
-describe(addAdmins, () =>
+describe(`${addAdmins.name}`, () =>
 {
     const fakeAdminAccounts: Account[] = [];
     beforeAll(async () =>
@@ -423,7 +423,7 @@ describe(addAdmins, () =>
     }
 });
 
-describe(removeAdmins, () =>
+describe(`${removeAdmins.name}`, () =>
 {
     let fakeGroup1Id = -1;
     let fakeGroup2Id = -1;
@@ -491,7 +491,7 @@ describe(removeAdmins, () =>
     }
 });
 
-describe(getRepositoriesById, () =>
+describe(`${getRepositoriesById.name}`, () =>
 {
     let fakeGroup1Id = -1;
     let fakeGroup2Id = -1;
@@ -561,7 +561,7 @@ describe(getRepositoriesById, () =>
     }
 });
 
-describe(addRepositories, () =>
+describe(`${addRepositories.name}`, () =>
 {
     const fakeRepositories: Repository[] = [];
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -608,7 +608,7 @@ describe(addRepositories, () =>
     }
 });
 
-describe(removeRepositories, () =>
+describe(`${removeRepositories.name}`, () =>
 {
     let fakeGroup1Id = -1;
     let fakeGroup2Id = -1;

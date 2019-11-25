@@ -28,7 +28,7 @@ const fseMock = {
 };
 const imageminMock = jest.fn().mockResolvedValue(undefined);
 
-describe(get, () =>
+describe(`${get.name}`, () =>
 {
     beforeEach(() =>
     {
@@ -90,7 +90,7 @@ describe(get, () =>
     });
 });
 
-describe(set, () =>
+describe(`${set.name}`, () =>
 {
     beforeEach(() =>
     {
@@ -125,7 +125,7 @@ describe(set, () =>
     });
 });
 
-describe(updateAvatar, () =>
+describe(`${updateAvatar.name}`, () =>
 {
     beforeEach(() =>
     {

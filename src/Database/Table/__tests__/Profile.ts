@@ -27,7 +27,7 @@ afterAll(async () =>
     client.release();
 });
 
-describe(selectByUsername, () =>
+describe(`${selectByUsername.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -53,7 +53,7 @@ describe(selectByUsername, () =>
     });
 });
 
-describe(update, () =>
+describe(`${update.name}`, () =>
 {
     beforeEach(async () =>
     {

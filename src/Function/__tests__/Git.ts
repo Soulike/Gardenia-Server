@@ -60,7 +60,7 @@ const childProcessMock = {
     spawn: jest.fn(),
 };
 
-describe(getAllBranches, () =>
+describe(`${getAllBranches.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -97,7 +97,7 @@ describe(getAllBranches, () =>
     });
 });
 
-describe(putMasterBranchToFront, () =>
+describe(`${putMasterBranchToFront.name}`, () =>
 {
     it('should put master branch to front', function ()
     {
@@ -119,7 +119,7 @@ describe(putMasterBranchToFront, () =>
     });
 });
 
-describe(getLastCommitInfo, () =>
+describe(`${getLastCommitInfo.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -159,7 +159,7 @@ describe(getLastCommitInfo, () =>
     });
 });
 
-describe(getFileCommitInfoList, () =>
+describe(`${getFileCommitInfoList.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -214,7 +214,7 @@ describe(getFileCommitInfoList, () =>
     });
 });
 
-describe(getObjectHash, () =>
+describe(`${getObjectHash.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -245,7 +245,7 @@ describe(getObjectHash, () =>
     });
 });
 
-describe(getObjectType, () =>
+describe(`${getObjectType.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -285,7 +285,7 @@ describe(getObjectType, () =>
     });
 });
 
-describe(generateRepositoryPath, () =>
+describe(`${generateRepositoryPath.name}`, () =>
 {
     it('should generate repository path', function ()
     {
@@ -295,7 +295,7 @@ describe(generateRepositoryPath, () =>
     });
 });
 
-describe(getCommitCount, () =>
+describe(`${getCommitCount.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -328,7 +328,7 @@ describe(getCommitCount, () =>
     });
 });
 
-describe(objectExists, () =>
+describe(`${objectExists.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -360,7 +360,7 @@ describe(objectExists, () =>
     });
 });
 
-describe(isBinaryObject, () =>
+describe(`${isBinaryObject.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -395,7 +395,7 @@ describe(isBinaryObject, () =>
     });
 });
 
-describe(getObjectSize, () =>
+describe(`${getObjectSize.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -419,7 +419,7 @@ describe(getObjectSize, () =>
     });
 });
 
-describe(getObjectReadStream, () =>
+describe(`${getObjectReadStream.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -446,7 +446,7 @@ describe(getObjectReadStream, () =>
     });
 });
 
-describe(doAdvertiseRPCCall, () =>
+describe(`${doAdvertiseRPCCall.name}`, () =>
 {
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeService = `git-${faker.random.word()}`;
@@ -495,7 +495,7 @@ describe(doAdvertiseRPCCall, () =>
     });
 });
 
-describe(doRPCCall, () =>
+describe(`${doRPCCall.name}`, () =>
 {
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
     const fakeCommand = `${faker.random.word()}`;
@@ -530,7 +530,7 @@ describe(doRPCCall, () =>
     });
 });
 
-describe(doUpdateServerInfo, () =>
+describe(`${doUpdateServerInfo.name}`, () =>
 {
     const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
 

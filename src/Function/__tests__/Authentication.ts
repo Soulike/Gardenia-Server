@@ -3,7 +3,7 @@ import {Base64} from 'js-base64';
 import faker from 'faker';
 import {Account} from '../../Class';
 
-describe(getAccountFromAuthenticationHeader, () =>
+describe(`${getAccountFromAuthenticationHeader.name}`, () =>
 {
     const fakeUsername = faker.name.firstName();
     const fakePassword = faker.random.alphaNumeric(15);

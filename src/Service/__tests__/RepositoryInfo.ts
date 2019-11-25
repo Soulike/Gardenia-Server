@@ -49,7 +49,7 @@ const functionMock = {
     },
 };
 
-describe(repository, () =>
+describe(`${repository.name}`, () =>
 {
     const fakeAccount = new Account(
         faker.name.firstName(),
@@ -119,7 +119,7 @@ describe(repository, () =>
     });
 });
 
-describe(branch, () =>
+describe(`${branch.name}`, () =>
 {
     const fakeAccount = new Account(
         faker.name.firstName(),
@@ -211,7 +211,7 @@ describe(branch, () =>
     });
 });
 
-describe(lastCommit, () =>
+describe(`${lastCommit.name}`, () =>
 {
     const fakeAccount = new Account(
         faker.name.firstName(),
@@ -300,7 +300,7 @@ describe(lastCommit, () =>
     });
 });
 
-describe(directory, () =>
+describe(`${directory.name}`, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -588,7 +588,7 @@ describe(directory, () =>
     });
 });
 
-describe(commitCount, () =>
+describe(`${commitCount.name}`, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -711,7 +711,7 @@ describe(commitCount, () =>
     });
 });
 
-describe(fileInfo, () =>
+describe(`${fileInfo.name}`, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
@@ -979,7 +979,7 @@ describe(fileInfo, () =>
     });
 });
 
-describe(rawFile, () =>
+describe(`${rawFile.name}`, () =>
 {
     const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
     const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));

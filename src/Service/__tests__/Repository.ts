@@ -55,7 +55,7 @@ const functionMock = {
     },
 };
 
-describe(getRepositories, () =>
+describe(`${getRepositories.name}`, () =>
 {
     const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
     const fakeOthersSession: Session = {username: faker.random.word()} as unknown as Session;
@@ -120,7 +120,7 @@ describe(getRepositories, () =>
     });
 });
 
-describe(create, () =>
+describe(`${create.name}`, () =>
 {
     const fakeRepository = new RepositoryClass(faker.random.word(), faker.name.firstName(), faker.lorem.sentence(), true);
     const fakeSession = {username: fakeRepository.username} as unknown as Session;
@@ -452,7 +452,7 @@ describe(create, () =>
     });
 });
 
-describe(del, () =>
+describe(`${del.name}`, () =>
 {
     const fakeRepository = new RepositoryClass(faker.random.word(), faker.name.firstName(), faker.lorem.sentence(), true);
     const fakeSession = {username: fakeRepository.username} as unknown as Session;

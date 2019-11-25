@@ -1,7 +1,7 @@
 import {execPromise, waitForEvent} from '../Promisify';
 import EventEmitter from 'events';
 
-describe(execPromise, () =>
+describe(`${execPromise.name}`, () =>
 {
     const str = 'hello world';
 
@@ -21,7 +21,7 @@ describe(execPromise, () =>
     });
 });
 
-describe(waitForEvent, () =>
+describe(`${waitForEvent.name}`, () =>
 {
     const eventEmitter = new EventEmitter();
     const event = 'event';

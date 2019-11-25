@@ -20,7 +20,7 @@ const databaseMock = {
     },
 };
 
-describe(repositoryIsAvailableToTheViewer, () =>
+describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
 {
     const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
     const fakeViewer = new Account(faker.random.word(), faker.random.alphaNumeric(64));
@@ -65,7 +65,7 @@ describe(repositoryIsAvailableToTheViewer, () =>
     });
 });
 
-describe(repositoryIsAvailableToTheRequest, () =>
+describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
 {
     const fakeHeader = {
         authorization: faker.random.alphaNumeric(20),
@@ -201,7 +201,7 @@ describe(repositoryIsAvailableToTheRequest, () =>
     });
 });
 
-describe(repositoryIsModifiableToTheRequest, () =>
+describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
 {
     const fakeHeader = {
         authorization: faker.random.alphaNumeric(20),
@@ -323,7 +323,7 @@ describe(repositoryIsModifiableToTheRequest, () =>
     });
 });
 
-describe(generateRefsServiceResponse, () =>
+describe(`${generateRefsServiceResponse.name}`, () =>
 {
     it('should generate refs service response', function ()
     {

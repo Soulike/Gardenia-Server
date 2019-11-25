@@ -41,7 +41,7 @@ afterAll(async () =>
     client.release();
 });
 
-describe(insert, () =>
+describe(`${insert.name}`, () =>
 {
     afterEach(async () =>
     {
@@ -61,7 +61,7 @@ describe(insert, () =>
     });
 });
 
-describe(deleteByUsernameAndName, () =>
+describe(`${deleteByUsernameAndName.name}`, () =>
 {
     beforeEach(async () =>
     {
@@ -80,7 +80,7 @@ describe(deleteByUsernameAndName, () =>
     });
 });
 
-describe(update, () =>
+describe(`${update.name}`, () =>
 {
     beforeEach(async () =>
     {
@@ -115,7 +115,7 @@ describe(update, () =>
     });
 });
 
-describe(selectByUsernameAndName, () =>
+describe(`${selectByUsernameAndName.name}`, () =>
 {
     beforeAll(async () =>
     {
@@ -143,7 +143,7 @@ describe(selectByUsernameAndName, () =>
     });
 });
 
-describe(select, () =>
+describe(`${select.name}`, () =>
 {
     const fakePublicRepositories: Repository[] = [];
     const fakePrivateRepositories: Repository[] = [];
@@ -213,7 +213,7 @@ describe(select, () =>
     }
 });
 
-describe(getGroupsByUsernameAndName, () =>
+describe(`${getGroupsByUsernameAndName.name}`, () =>
 {
     const fakeRepository1 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
     const fakeRepository2 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
@@ -283,7 +283,7 @@ describe(getGroupsByUsernameAndName, () =>
     }
 });
 
-describe(getGroupByUsernameAndNameAndGroupId, () =>
+describe(`${getGroupByUsernameAndNameAndGroupId.name}`, () =>
 {
     const fakeRepository1 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
     const fakeRepository2 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());

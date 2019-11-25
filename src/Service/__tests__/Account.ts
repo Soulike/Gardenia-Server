@@ -20,7 +20,7 @@ const databaseMock = {
     },
 };
 
-describe(login, () =>
+describe(`${login.name}`, () =>
 {
     beforeEach(() =>
     {
@@ -60,7 +60,7 @@ describe(login, () =>
     });
 });
 
-describe(register, () =>
+describe(`${register.name}`, () =>
 {
     beforeEach(() =>
     {
@@ -100,7 +100,7 @@ describe(register, () =>
     });
 });
 
-describe(checkSession, () =>
+describe(`${checkSession.name}`, () =>
 {
     it('should check valid session', async function ()
     {
@@ -125,7 +125,7 @@ describe(checkSession, () =>
     });
 });
 
-describe(logout, () =>
+describe(`${logout.name}`, () =>
 {
     it('should invalidate session', async function ()
     {
@@ -135,7 +135,7 @@ describe(logout, () =>
     });
 });
 
-describe(getGroups, () =>
+describe(`${getGroups.name}`, () =>
 {
     beforeEach(() =>
     {
@@ -169,7 +169,7 @@ describe(getGroups, () =>
     });
 });
 
-describe(getAdministratingGroups, () =>
+describe(`${getAdministratingGroups.name}`, () =>
 {
     beforeEach(() =>
     {
@@ -203,7 +203,7 @@ describe(getAdministratingGroups, () =>
     });
 });
 
-describe(checkPassword, () =>
+describe(`${checkPassword.name}`, () =>
 {
     beforeEach(() =>
     {

@@ -1,7 +1,7 @@
 import {Session} from 'koa-session';
 import {isRequestedBySessionOwner, isValid} from '../Session';
 
-describe(isValid, () =>
+describe(`${isValid.name}`, () =>
 {
     let session: Session;
 
@@ -36,7 +36,7 @@ describe(isValid, () =>
     });
 });
 
-describe(isRequestedBySessionOwner, () =>
+describe(`${isRequestedBySessionOwner.name}`, () =>
 {
     let session: Session;
     const username = 'test';

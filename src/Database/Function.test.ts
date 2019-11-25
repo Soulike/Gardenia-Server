@@ -1,6 +1,6 @@
 import {generateParameterizedStatementAndParametersArray} from './Function';
 
-describe(generateParameterizedStatementAndParametersArray, () =>
+describe(`${generateParameterizedStatementAndParametersArray.name}`, () =>
 {
     const obj = {a: 1, b: 2, c: 3, d: 'a'};
     const objValues = Object.values(obj);
