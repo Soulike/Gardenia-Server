@@ -32,7 +32,7 @@ export class Profile
             && typeof avatar === 'string';
     }
 
-    public static from(obj: Readonly<Record<keyof Profile, any>>)
+    public static from(obj: Readonly<Record<keyof Profile, any>>): Profile
     {
         const {username, nickname, email, avatar} = obj;
         if (!Profile.validate({username, nickname, email, avatar}))
