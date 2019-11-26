@@ -7,7 +7,7 @@ const pool = new Pool(DATABASE);
 pool.connect()
     .then(client =>
     {
-        return new Promise<void>(async (resolve, reject) =>
+        return new Promise<void>((resolve, reject) =>
         {
             client.query('SELECT 1=1', e =>
             {
@@ -26,8 +26,9 @@ pool.connect()
     })
     .catch(e =>
     {
-        SERVER.ERROR_LOGGER(e.stack);
-        process.exit(-1);   // 数据库连接失败，立即退出
+        SERVER.ERROR_LOGGER('数据库连接失败');
+        SERVER.ERROR_LOGGER(e);
+        process.exit(-1);
     });
 
 export default pool;

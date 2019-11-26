@@ -37,6 +37,7 @@
     "fs-extra": "^8.1.0",
     "imagemin": "^7.0.0",
     "imagemin-webp": "^5.1.0",
+    "jest-mock-process": "^1.2.0",
     "js-base64": "^2.5.1",
     "koa": "^2.8.1",
     "koa-body": "^4.1.1",
