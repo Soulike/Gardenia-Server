@@ -3,6 +3,7 @@ import {
     commitCount,
     directory,
     fileInfo,
+    groups,
     lastCommit,
     rawFile,
     repository,
@@ -10,7 +11,7 @@ import {
     setIsPublic,
     setName,
 } from '../RepositoryInfo';
-import {Account, Commit, Repository, ResponseBody, ServiceResponse} from '../../Class';
+import {Account, Commit, Group, Repository, ResponseBody, ServiceResponse} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
 import path from 'path';
@@ -26,6 +27,8 @@ const databaseMock = {
             Parameters<typeof RepositoryTable.selectByUsernameAndName>>(),
         update: jest.fn<ReturnType<typeof RepositoryTable.update>,
             Parameters<typeof RepositoryTable.update>>(),
+        getGroupsByUsernameAndName: jest.fn<ReturnType<typeof RepositoryTable.getGroupsByUsernameAndName>,
+            Parameters<typeof RepositoryTable.getGroupsByUsernameAndName>>(),
     },
 };
 
@@ -1571,6 +1574,87 @@ describe(`${setIsPublic.name}`, () =>
             .toBeCalledWith(fakeOldRepository, fakeSession);
 
         expect(databaseMock.Repository.update)
+            .toBeCalledTimes(0);
+    });
+});
+
+describe(`${groups.name}`, () =>
+{
+    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
+    const fakeGroups = [
+        new Group(faker.random.number(), faker.random.word()),
+        new Group(faker.random.number(), faker.random.word()),
+    ];
+    const fakeSession = {username: fakeAccount.username} as unknown as Session;
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        databaseMock.Repository.getGroupsByUsernameAndName.mockResolvedValue(fakeGroups);
+    });
+
+    it('should get groups', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+
+        const {groups} = await import('../RepositoryInfo');
+        expect(
+            await groups(
+                {username: fakeRepository.username, name: fakeRepository.name},
+                fakeSession),
+        ).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(true, '', fakeGroups)));
+
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledWith({username: fakeRepository.username, name: fakeRepository.name});
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledWith(fakeRepository, fakeSession);
+
+        expect(databaseMock.Repository.getGroupsByUsernameAndName)
+            .toBeCalledTimes(1);
+        expect(databaseMock.Repository.getGroupsByUsernameAndName)
+            .toBeCalledWith({username: fakeRepository.username, name: fakeRepository.name});
+    });
+
+    it('should handle inaccessible repository', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+
+        const {groups} = await import('../RepositoryInfo');
+        expect(
+            await groups(
+                {username: fakeRepository.username, name: fakeRepository.name},
+                fakeSession),
+        ).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, '仓库不存在')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledWith({username: fakeRepository.username, name: fakeRepository.name});
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledWith(fakeRepository, fakeSession);
+
+        expect(databaseMock.Repository.getGroupsByUsernameAndName)
             .toBeCalledTimes(0);
     });
 });
