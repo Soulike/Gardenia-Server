@@ -1,4 +1,4 @@
-import {branch, commitCount, directory, fileInfo, lastCommit, rawFile, repository} from '../RepositoryInfo';
+import {branch, commitCount, directory, fileInfo, lastCommit, rawFile, repository, setName} from '../RepositoryInfo';
 import {Account, Commit, Repository, ResponseBody, ServiceResponse} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
@@ -13,6 +13,8 @@ const databaseMock = {
     Repository: {
         selectByUsernameAndName: jest.fn<ReturnType<typeof RepositoryTable.selectByUsernameAndName>,
             Parameters<typeof RepositoryTable.selectByUsernameAndName>>(),
+        update: jest.fn<ReturnType<typeof RepositoryTable.update>,
+            Parameters<typeof RepositoryTable.update>>(),
     },
 };
 
@@ -47,6 +49,11 @@ const functionMock = {
         repositoryIsAvailableToTheViewer: jest.fn<ReturnType<typeof RepositoryFunction.repositoryIsAvailableToTheViewer>,
             Parameters<typeof RepositoryFunction.repositoryIsAvailableToTheViewer>>(),
     },
+};
+
+const fseMock = {
+    copy: jest.fn(),
+    remove: jest.fn(),
 };
 
 describe(`${repository.name}`, () =>
@@ -1130,5 +1137,266 @@ describe(`${rawFile.name}`, () =>
         expect(functionMock.Git.objectExists.mock.calls).toEqual([
             [fakeRepositoryPath, fakeFilePath, fakeCommitHash],
         ]);
+    });
+});
+
+describe(`${setName.name}`, () =>
+{
+    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeOldRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeNewRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeOldRepositoryName = faker.random.word();
+    const fakeNewRepositoryName = faker.random.word();
+    const fakeOldRepository = new Repository(
+        fakeAccount.username,
+        fakeOldRepositoryName,
+        faker.lorem.sentence(),
+        true,
+    );
+    const fakeNewRepository = new Repository(
+        fakeAccount.username,
+        fakeNewRepositoryName,
+        faker.lorem.sentence(),
+        true,
+    );
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        jest.mock('fs-extra', () => fseMock);
+        functionMock.Git.generateRepositoryPath.mockReturnValueOnce(fakeOldRepositoryPath);
+        functionMock.Git.generateRepositoryPath.mockReturnValueOnce(fakeNewRepositoryPath);
+    });
+
+    it('should set repository name', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        fseMock.copy.mockResolvedValue(undefined);
+        databaseMock.Repository.update.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
+
+        const {setName} = await import('../RepositoryInfo');
+        expect(
+            await setName(
+                {name: fakeOldRepositoryName},
+                {name: fakeNewRepositoryName},
+                {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(true)));
+
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledTimes(2);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(1, {
+                username: fakeAccount.username, name: fakeOldRepositoryName,
+            });
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(2, {
+                username: fakeAccount.username, name: fakeNewRepositoryName,
+            });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledWith(fakeOldRepository, {username: fakeAccount.username});
+
+        expect(fseMock.copy).toBeCalledTimes(1);
+        expect(fseMock.copy).toBeCalledWith(
+            fakeOldRepositoryPath, fakeNewRepositoryPath, {
+                overwrite: false,
+                errorOnExist: true,
+                preserveTimestamps: true,
+            },
+        );
+
+        expect(databaseMock.Repository.update).toBeCalledTimes(1);
+        expect(databaseMock.Repository.update).toBeCalledWith(
+            {...fakeOldRepository, name: fakeNewRepositoryName},
+            {username: fakeAccount.username, name: fakeOldRepositoryName},
+        );
+
+        expect(fseMock.remove).toBeCalledTimes(1);
+        expect(fseMock.remove).toBeCalledWith(fakeOldRepositoryPath);
+    });
+
+    it('should handle inaccessible repository', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        fseMock.copy.mockResolvedValue(undefined);
+        databaseMock.Repository.update.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
+
+        const {setName} = await import('../RepositoryInfo');
+        expect(
+            await setName(
+                {name: fakeOldRepositoryName},
+                {name: fakeNewRepositoryName},
+                {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledWith({
+                username: fakeAccount.username, name: fakeOldRepositoryName,
+            });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledWith(fakeOldRepository, {username: fakeAccount.username});
+
+        expect(fseMock.copy).toBeCalledTimes(0);
+
+        expect(databaseMock.Repository.update).toBeCalledTimes(0);
+
+        expect(fseMock.remove).toBeCalledTimes(0);
+    });
+
+    it('should handle duplicate repository name', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeNewRepository);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        fseMock.copy.mockResolvedValue(undefined);
+        databaseMock.Repository.update.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
+
+        const {setName} = await import('../RepositoryInfo');
+        expect(
+            await setName(
+                {name: fakeOldRepositoryName},
+                {name: fakeNewRepositoryName},
+                {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '仓库名已存在')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledTimes(2);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(1, {
+                username: fakeAccount.username, name: fakeOldRepositoryName,
+            });
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(2, {
+                username: fakeAccount.username, name: fakeNewRepositoryName,
+            });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledWith(fakeOldRepository, {username: fakeAccount.username});
+
+        expect(fseMock.copy).toBeCalledTimes(0);
+
+        expect(databaseMock.Repository.update).toBeCalledTimes(0);
+
+        expect(fseMock.remove).toBeCalledTimes(0);
+    });
+
+    it('should handle repository file copying error', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        fseMock.copy.mockRejectedValue(new Error());
+        databaseMock.Repository.update.mockResolvedValue(undefined);
+        fseMock.remove.mockResolvedValue(undefined);
+
+        const {setName} = await import('../RepositoryInfo');
+        await expect(setName(
+            {name: fakeOldRepositoryName},
+            {name: fakeNewRepositoryName},
+            {username: fakeAccount.username} as unknown as Session),
+        ).rejects.toThrow();
+
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledTimes(2);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(1, {
+                username: fakeAccount.username, name: fakeOldRepositoryName,
+            });
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(2, {
+                username: fakeAccount.username, name: fakeNewRepositoryName,
+            });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledWith(fakeOldRepository, {username: fakeAccount.username});
+
+        expect(fseMock.copy).toBeCalledTimes(1);
+        expect(fseMock.copy).toBeCalledWith(
+            fakeOldRepositoryPath, fakeNewRepositoryPath, {
+                overwrite: false,
+                errorOnExist: true,
+                preserveTimestamps: true,
+            },
+        );
+
+        expect(databaseMock.Repository.update).toBeCalledTimes(0);
+
+        expect(fseMock.remove).toBeCalledTimes(1);
+        expect(fseMock.remove).toBeCalledWith(fakeNewRepositoryPath);
+    });
+
+    it('should handle database updating error', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        fseMock.copy.mockResolvedValue(undefined);
+        databaseMock.Repository.update.mockRejectedValue(new Error());
+        fseMock.remove.mockResolvedValue(undefined);
+
+        const {setName} = await import('../RepositoryInfo');
+        await expect(setName(
+            {name: fakeOldRepositoryName},
+            {name: fakeNewRepositoryName},
+            {username: fakeAccount.username} as unknown as Session),
+        ).rejects.toThrow();
+
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toBeCalledTimes(2);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(1, {
+                username: fakeAccount.username, name: fakeOldRepositoryName,
+            });
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(2, {
+                username: fakeAccount.username, name: fakeNewRepositoryName,
+            });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer)
+            .toBeCalledWith(fakeOldRepository, {username: fakeAccount.username});
+
+        expect(fseMock.copy).toBeCalledTimes(1);
+        expect(fseMock.copy).toBeCalledWith(
+            fakeOldRepositoryPath, fakeNewRepositoryPath, {
+                overwrite: false,
+                errorOnExist: true,
+                preserveTimestamps: true,
+            },
+        );
+
+        expect(databaseMock.Repository.update).toBeCalledTimes(1);
+        expect(databaseMock.Repository.update).toBeCalledWith(
+            {...fakeOldRepository, name: fakeNewRepositoryName},
+            {username: fakeAccount.username, name: fakeOldRepositoryName},
+        );
+
+        expect(fseMock.remove).toBeCalledTimes(1);
+        expect(fseMock.remove).toBeCalledWith(fakeNewRepositoryPath);
     });
 });

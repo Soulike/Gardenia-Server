@@ -252,18 +252,9 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
             errorOnExist: true,
             preserveTimestamps: true,
         });
-    }
-    catch (e)
-    {
-        await fse.remove(newRepoPath);
-        throw e;
-    }
-
-    try
-    {
         const {username, name} = repositoryInDatabase!;
-        repositoryInDatabase!.name = newRepositoryName;
-        await RepositoryTable.update(repositoryInDatabase!, {username, name});
+        const newRepository = {...repositoryInDatabase!, name: newRepositoryName};
+        await RepositoryTable.update(newRepository, {username, name});
     }
     catch (e)
     {
