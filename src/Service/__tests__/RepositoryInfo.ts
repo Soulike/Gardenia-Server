@@ -1,4 +1,5 @@
 import {
+    addToGroup,
     branch,
     commitCount,
     directory,
@@ -16,7 +17,7 @@ import faker from 'faker';
 import {Session} from 'koa-session';
 import path from 'path';
 import {ObjectType} from '../../CONSTANT';
-import {Repository as RepositoryTable} from '../../Database';
+import {Group as GroupTable, Repository as RepositoryTable} from '../../Database';
 import {Git, Repository as RepositoryFunction} from '../../Function';
 import {Readable} from 'stream';
 import mime from 'mime-types';
@@ -29,6 +30,16 @@ const databaseMock = {
             Parameters<typeof RepositoryTable.update>>(),
         getGroupsByUsernameAndName: jest.fn<ReturnType<typeof RepositoryTable.getGroupsByUsernameAndName>,
             Parameters<typeof RepositoryTable.getGroupsByUsernameAndName>>(),
+        getGroupByUsernameAndNameAndGroupId: jest.fn<ReturnType<typeof RepositoryTable.getGroupByUsernameAndNameAndGroupId>,
+            Parameters<typeof RepositoryTable.getGroupByUsernameAndNameAndGroupId>>(),
+    },
+    Group: {
+        selectById: jest.fn<ReturnType<typeof GroupTable.selectById>,
+            Parameters<typeof GroupTable.selectById>>(),
+        getAccountsById: jest.fn<ReturnType<typeof GroupTable.getAccountsById>,
+            Parameters<typeof GroupTable.getAccountsById>>(),
+        addRepositories: jest.fn<ReturnType<typeof GroupTable.addRepositories>,
+            Parameters<typeof GroupTable.addRepositories>>(),
     },
 };
 
@@ -263,7 +274,6 @@ describe(`${lastCommit.name}`, () =>
         jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
         jest.mock('../../Function', () => functionMock);
-        functionMock.Git.getLastCommitInfo.mockResolvedValue(fakeCommit);
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
     });
 
@@ -271,6 +281,7 @@ describe(`${lastCommit.name}`, () =>
     {
         functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.getLastCommitInfo.mockResolvedValue(fakeCommit);
         const {lastCommit} = await import('../RepositoryInfo');
 
         expect(
@@ -301,6 +312,7 @@ describe(`${lastCommit.name}`, () =>
     {
         functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.getLastCommitInfo.mockResolvedValue(fakeCommit);
         const {lastCommit} = await import('../RepositoryInfo');
 
         expect(
@@ -318,6 +330,37 @@ describe(`${lastCommit.name}`, () =>
         ]);
         expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
         expect(functionMock.Git.getLastCommitInfo.mock.calls).toEqual([]);
+    });
+
+    it(`should handle reject from ${Git.getLastCommitInfo.name}`, async function ()
+    {
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Git.getLastCommitInfo.mockRejectedValue(new Error());
+        const {lastCommit} = await import('../RepositoryInfo');
+
+        expect(
+            await lastCommit(fakeAccount, fakeRepository, fakeCommit.commitHash, {username: fakeViewer.username} as unknown as Session, fakeFilePath),
+        ).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, '分支或文件不存在')));
+        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
+            [{
+                username: fakeAccount.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
+            [fakeRepository, {username: fakeViewer.username}],
+        ]);
+        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
+            [{
+                username: fakeRepository.username,
+                name: fakeRepository.name,
+            }],
+        ]);
+        expect(functionMock.Git.getLastCommitInfo.mock.calls).toEqual([
+            [fakeRepositoryPath, fakeCommit.commitHash, fakeFilePath],
+        ]);
     });
 });
 
@@ -1656,5 +1699,243 @@ describe(`${groups.name}`, () =>
 
         expect(databaseMock.Repository.getGroupsByUsernameAndName)
             .toBeCalledTimes(0);
+    });
+});
+
+describe(`${addToGroup.name}`, () =>
+{
+    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeRepository = new Repository(
+        fakeAccount.username,
+        faker.random.word(),
+        faker.lorem.sentence(),
+        true,
+    );
+    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeSession = {username: fakeAccount.username} as unknown as Session;
+    const fakeOthersSession = {username: faker.random.word()} as unknown as Session;
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        databaseMock.Group.addRepositories.mockResolvedValue(undefined);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+    });
+
+    it('should add repository to group', async function ()
+    {
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
+        databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
+        databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
+
+        const {addToGroup} = await import('../RepositoryInfo');
+        expect(await addToGroup(
+            {username: fakeAccount.username, name: fakeRepository.name},
+            {id: fakeGroup.id},
+            fakeSession)).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(true)));
+
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledWith(
+            fakeRepository, fakeSession,
+        );
+
+        expect(databaseMock.Group.selectById).toBeCalledTimes(1);
+        expect(databaseMock.Group.selectById).toBeCalledWith(fakeGroup.id);
+
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledTimes(1);
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        }, {id: fakeGroup.id});
+
+        expect(databaseMock.Group.getAccountsById).toBeCalledTimes(1);
+        expect(databaseMock.Group.getAccountsById).toBeCalledWith(fakeGroup.id);
+
+        expect(databaseMock.Group.addRepositories).toBeCalledTimes(1);
+        expect(databaseMock.Group.addRepositories).toBeCalledWith(fakeGroup.id, [{
+            username: fakeAccount.username, name: fakeRepository.name,
+        }]);
+    });
+
+    it('should handle inaccessible repository', async function ()
+    {
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
+        databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
+        databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
+
+        const {addToGroup} = await import('../RepositoryInfo');
+        expect(await addToGroup(
+            {username: fakeAccount.username, name: fakeRepository.name},
+            {id: fakeGroup.id},
+            fakeSession)).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, '仓库不存在')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledWith(
+            fakeRepository, fakeSession,
+        );
+
+        expect(databaseMock.Group.selectById).toBeCalledTimes(0);
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledTimes(0);
+        expect(databaseMock.Group.getAccountsById).toBeCalledTimes(0);
+        expect(databaseMock.Group.addRepositories).toBeCalledTimes(0);
+    });
+
+    it('should handle nonexistent group', async function ()
+    {
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        databaseMock.Group.selectById.mockResolvedValue(null);
+        databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
+        databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
+
+        const {addToGroup} = await import('../RepositoryInfo');
+        expect(await addToGroup(
+            {username: fakeAccount.username, name: fakeRepository.name},
+            {id: fakeGroup.id},
+            fakeSession)).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, '小组不存在')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledWith(
+            fakeRepository, fakeSession,
+        );
+
+        expect(databaseMock.Group.selectById).toBeCalledTimes(1);
+        expect(databaseMock.Group.selectById).toBeCalledWith(fakeGroup.id);
+
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledTimes(0);
+        expect(databaseMock.Group.getAccountsById).toBeCalledTimes(0);
+        expect(databaseMock.Group.addRepositories).toBeCalledTimes(0);
+    });
+
+    it('should handle request that add repeated repository to group', async function ()
+    {
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
+        databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(fakeGroup);
+        databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
+
+        const {addToGroup} = await import('../RepositoryInfo');
+        expect(await addToGroup(
+            {username: fakeAccount.username, name: fakeRepository.name},
+            {id: fakeGroup.id},
+            fakeSession)).toEqual(new ServiceResponse(403, {},
+            new ResponseBody(false, '仓库已在小组中')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledWith(
+            fakeRepository, fakeSession,
+        );
+
+        expect(databaseMock.Group.selectById).toBeCalledTimes(1);
+        expect(databaseMock.Group.selectById).toBeCalledWith(fakeGroup.id);
+
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledTimes(1);
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        }, {id: fakeGroup.id});
+
+        expect(databaseMock.Group.getAccountsById).toBeCalledTimes(0);
+        expect(databaseMock.Group.addRepositories).toBeCalledTimes(0);
+    });
+
+    it('should handle request from session with insufficient permission', async function ()
+    {
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
+        databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
+        databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
+
+        const {addToGroup} = await import('../RepositoryInfo');
+        // 传入他人的会话对象，只有会话人和仓库所有者是同一个人才有权限
+        expect(await addToGroup(
+            {username: fakeAccount.username, name: fakeRepository.name},
+            {id: fakeGroup.id},
+            fakeOthersSession)).toEqual(new ServiceResponse(403, {},
+            new ResponseBody(false, '添加失败：您不是仓库的所有者')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledWith(
+            fakeRepository, fakeOthersSession,
+        );
+
+        expect(databaseMock.Group.selectById).toBeCalledTimes(1);
+        expect(databaseMock.Group.selectById).toBeCalledWith(fakeGroup.id);
+
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledTimes(1);
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        }, {id: fakeGroup.id});
+
+        expect(databaseMock.Group.getAccountsById).toBeCalledTimes(0);
+        expect(databaseMock.Group.addRepositories).toBeCalledTimes(0);
+    });
+
+    it('should handle request from user that not belong to the group', async function ()
+    {
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
+        databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
+        databaseMock.Group.getAccountsById.mockResolvedValue([]);   // 小组里没有访问账号
+
+        const {addToGroup} = await import('../RepositoryInfo');
+        expect(await addToGroup(
+            {username: fakeAccount.username, name: fakeRepository.name},
+            {id: fakeGroup.id},
+            fakeSession)).toEqual(new ServiceResponse(403, {},
+            new ResponseBody(false, '添加失败：您不是小组的成员')));
+
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        });
+
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheViewer).toBeCalledWith(
+            fakeRepository, fakeSession,
+        );
+
+        expect(databaseMock.Group.selectById).toBeCalledTimes(1);
+        expect(databaseMock.Group.selectById).toBeCalledWith(fakeGroup.id);
+
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledTimes(1);
+        expect(databaseMock.Repository.getGroupByUsernameAndNameAndGroupId).toBeCalledWith({
+            username: fakeAccount.username, name: fakeRepository.name,
+        }, {id: fakeGroup.id});
+
+        expect(databaseMock.Group.getAccountsById).toBeCalledTimes(1);
+        expect(databaseMock.Group.getAccountsById).toBeCalledWith(fakeGroup.id);
+
+        expect(databaseMock.Group.addRepositories).toBeCalledTimes(0);
     });
 });
