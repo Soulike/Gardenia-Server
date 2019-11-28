@@ -1,9 +1,21 @@
-import {Account as AccountTable, Group as GroupTable} from '../../Database';
+import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTable} from '../../Database';
 import {Group as GroupFunction} from '../../Function';
-import {Account, Group, ResponseBody, ServiceResponse} from '../../Class';
+import {Account, Group, Repository, ResponseBody, ServiceResponse} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
-import {accounts, add, addAccounts, addAdmins, admins, dismiss, info, removeAccounts, removeAdmins} from '../Group';
+import {
+    accounts,
+    add,
+    addAccounts,
+    addAdmins,
+    admins,
+    dismiss,
+    info,
+    removeAccounts,
+    removeAdmins,
+    removeRepositories,
+    repositories,
+} from '../Group';
 
 const databaseMock = {
     Account: {
@@ -29,6 +41,14 @@ const databaseMock = {
             Parameters<typeof GroupTable.getAccountsById>>(),
         getAdminsById: jest.fn<ReturnType<typeof GroupTable.getAdminsById>,
             Parameters<typeof GroupTable.getAdminsById>>(),
+        getRepositoriesById: jest.fn<ReturnType<typeof GroupTable.getRepositoriesById>,
+            Parameters<typeof GroupTable.getRepositoriesById>>(),
+        removeRepositories: jest.fn<ReturnType<typeof GroupTable.removeRepositories>,
+            Parameters<typeof GroupTable.removeRepositories>>(),
+    },
+    Repository: {
+        selectByUsernameAndName: jest.fn<ReturnType<typeof RepositoryTable.selectByUsernameAndName>,
+            Parameters<typeof RepositoryTable.selectByUsernameAndName>>(),
     },
 };
 
@@ -722,5 +742,163 @@ describe(`${removeAdmins.name}`, () =>
         expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
         expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSelfSession);
         expect(databaseMock.Group.removeAdmins).toBeCalledTimes(0);
+    });
+});
+
+describe(`${repositories.name}`, () =>
+{
+    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeRepositories = [
+        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
+        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
+    ];
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+    });
+
+    it('should get repositories of group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        databaseMock.Group.getRepositoriesById.mockResolvedValue(fakeRepositories);
+        const {repositories} = await import('../Group');
+        expect(await repositories({id: fakeGroup.id})).toEqual(
+            new ServiceResponse(200, {},
+                new ResponseBody(true, '', fakeRepositories)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(databaseMock.Group.getRepositoriesById).toBeCalledTimes(1);
+        expect(databaseMock.Group.getRepositoriesById).toBeCalledWith(fakeGroup.id);
+    });
+
+    it('should handle nonexistent group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(false);
+        databaseMock.Group.getRepositoriesById.mockResolvedValue(fakeRepositories);
+        const {repositories} = await import('../Group');
+        expect(await repositories({id: fakeGroup.id})).toEqual(
+            new ServiceResponse(404, {},
+                new ResponseBody(false, '小组不存在')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(databaseMock.Group.getRepositoriesById).toBeCalledTimes(0);
+    });
+});
+
+describe(`${removeRepositories.name}`, () =>
+{
+    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
+    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeRepositories = [
+        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
+        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
+    ];
+    const fakeSession = {username: fakeAccount.username} as unknown as Session;
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        databaseMock.Group.removeRepositories.mockResolvedValue(undefined);
+    });
+
+    it('should remove repositories of group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeRepositories[0]);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeRepositories[1]);
+        const {removeRepositories} = await import('../Group');
+        expect(await removeRepositories(
+            {id: fakeGroup.id},
+            fakeRepositories.map(({username, name}) => ({username, name})),
+            fakeSession)).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(true)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(2);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(1,
+                {username: fakeRepositories[0].username, name: fakeRepositories[0].name});
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(2,
+                {username: fakeRepositories[1].username, name: fakeRepositories[1].name});
+        expect(databaseMock.Group.removeRepositories).toBeCalledTimes(1);
+        expect(databaseMock.Group.removeRepositories)
+            .toBeCalledWith(fakeGroup.id,
+                fakeRepositories.map(({username, name}) => ({username, name})));
+    });
+
+    it('should handle nonexistent group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(false);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeRepositories[0]);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeRepositories[1]);
+        const {removeRepositories} = await import('../Group');
+        expect(await removeRepositories(
+            {id: fakeGroup.id},
+            fakeRepositories.map(({username, name}) => ({username, name})),
+            fakeSession)).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, '小组不存在')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(0);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(0);
+        expect(databaseMock.Group.removeRepositories).toBeCalledTimes(0);
+    });
+
+    it('should handle non-admin request', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(false);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeRepositories[0]);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeRepositories[1]);
+        const {removeRepositories} = await import('../Group');
+        expect(await removeRepositories(
+            {id: fakeGroup.id},
+            fakeRepositories.map(({username, name}) => ({username, name})),
+            fakeSession)).toEqual(new ServiceResponse(403, {},
+            new ResponseBody(false, '删除失败：您不是小组的管理员')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(0);
+        expect(databaseMock.Group.removeRepositories).toBeCalledTimes(0);
+    });
+
+    it('should handle non-existent repository', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeRepositories[0]);
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
+        const {removeRepositories} = await import('../Group');
+        expect(await removeRepositories(
+            {id: fakeGroup.id},
+            fakeRepositories.map(({username, name}) => ({username, name})),
+            fakeSession)).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, `仓库${fakeRepositories[1].name}不存在`)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(2);
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(1,
+                {username: fakeRepositories[0].username, name: fakeRepositories[0].name});
+        expect(databaseMock.Repository.selectByUsernameAndName)
+            .toHaveBeenNthCalledWith(2,
+                {username: fakeRepositories[1].username, name: fakeRepositories[1].name});
+        expect(databaseMock.Group.removeRepositories).toBeCalledTimes(0);
     });
 });

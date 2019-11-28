@@ -219,7 +219,7 @@ export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, rep
     }
     await GroupTable.removeRepositories(group.id, repositories);
     return new ServiceResponse<void>(200, {},
-        new ResponseBody<void>(true, ''));
+        new ResponseBody<void>(true));
 }
 
 export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isAdmin: boolean } | void>>
