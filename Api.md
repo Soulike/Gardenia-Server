@@ -620,7 +620,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应体：无
-- 响应消息：无
+- 响应消息：
+  - 解散失败：您不是小组的管理员
 - 其他说明：无
 
 #### `/info`

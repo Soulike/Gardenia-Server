@@ -28,8 +28,13 @@ export async function add(group: Readonly<Omit<Group, 'id'>>, session: Readonly<
         new ResponseBody<Pick<Group, 'id'>>(true, '', {id: groupId}));
 }
 
-export async function dismiss(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceResponse<void>>
+export async function dismiss(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '解散失败：您不是小组的管理员'));
+    }
     await GroupTable.deleteById(group.id);
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));

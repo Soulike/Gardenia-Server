@@ -29,8 +29,13 @@ export const dismiss: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
+        const {username} = ctx.session;
+        if (typeof username !== 'string')
+        {
+            throw new InvalidSessionError();
+        }
         const {group} = ctx.request.body;
-        ctx.state.serviceResponse = await GroupService.dismiss(group);
+        ctx.state.serviceResponse = await GroupService.dismiss(group, ctx.session);
     };
 };
 
