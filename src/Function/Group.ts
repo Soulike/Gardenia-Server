@@ -1,8 +1,8 @@
-import {Group} from '../Class';
+import {Account, Group} from '../Class';
 import {Session} from 'koa-session';
-import {Group as GroupTable} from '../Database';
+import {Account as AccountTable, Group as GroupTable} from '../Database';
 
-export async function isAbleToUpdateGroup(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<boolean>
+export async function isGroupAdmin(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<boolean>
 {
     const {username} = session;
     const {id: groupId} = group;
@@ -20,5 +20,13 @@ export async function groupExists(group: Readonly<Pick<Group, 'id'>>): Promise<b
 {
     const {id} = group;
     const groupInDatabase = await GroupTable.selectById(id);
+    return groupInDatabase !== null;
+}
+
+export async function groupNameExists(account: Pick<Account, 'username'>, group: Pick<Group, 'name'>): Promise<boolean>
+{
+    const {username} = account;
+    const {name: groupName} = group;
+    const groupInDatabase = await AccountTable.getGroupByUsernameAndGroupName(username, groupName);
     return groupInDatabase !== null;
 }

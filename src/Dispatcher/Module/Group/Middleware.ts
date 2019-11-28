@@ -1,6 +1,6 @@
 import {IRouteHandler} from '../../Interface';
 import * as ParameterValidator from './ParameterValidator';
-import {WrongParameterError} from '../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../Class';
 import {Group as GroupService} from '../../../Service';
 
 export const add: IRouteHandler = () =>
@@ -10,6 +10,11 @@ export const add: IRouteHandler = () =>
         if (!ParameterValidator.add(ctx.request.body))
         {
             throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        if (typeof username !== 'string')
+        {
+            throw new InvalidSessionError();
         }
         const {group} = ctx.request.body;
         ctx.state.serviceResponse = await GroupService.add(group, ctx.session);

@@ -1,10 +1,14 @@
-import {Group as GroupTable} from '../../Database';
+import {Account as AccountTable, Group as GroupTable} from '../../Database';
 import {Account, Group} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
-import {groupExists, isAbleToUpdateGroup, isGroupMember} from '../Group';
+import {groupExists, isGroupAdmin, isGroupMember} from '../Group';
 
 const databaseMock = {
+    Account: {
+        getGroupByUsernameAndGroupName: jest.fn<ReturnType<typeof AccountTable.getGroupByUsernameAndGroupName>,
+            Parameters<typeof AccountTable.getGroupByUsernameAndGroupName>>(),
+    },
     Group: {
         getAccountsById: jest.fn<ReturnType<typeof GroupTable.getAccountsById>,
             Parameters<typeof GroupTable.getAccountsById>>(),
@@ -16,7 +20,7 @@ const databaseMock = {
 };
 
 
-describe(`${isAbleToUpdateGroup.name}`, () =>
+describe(`${isGroupAdmin.name}`, () =>
 {
     const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
     const fakeGroup = new Group(faker.random.number(), faker.random.word());
@@ -29,21 +33,21 @@ describe(`${isAbleToUpdateGroup.name}`, () =>
         jest.mock('../../Database', () => databaseMock);
     });
 
-    it('should return true when able', async function ()
+    it('should return true when is admin', async function ()
     {
         databaseMock.Group.getAdminsById.mockResolvedValue([fakeAccount]);  // includes fakeAccount
-        const {isAbleToUpdateGroup} = await import('../Group');
-        expect(await isAbleToUpdateGroup({id: fakeGroup.id}, fakeSession)).toBe(true);
+        const {isGroupAdmin} = await import('../Group');
+        expect(await isGroupAdmin({id: fakeGroup.id}, fakeSession)).toBe(true);
 
         expect(databaseMock.Group.getAdminsById).toBeCalledTimes(1);
         expect(databaseMock.Group.getAdminsById).toBeCalledWith(fakeGroup.id);
     });
 
-    it('should return false when unable', async function ()
+    it('should return false when is not admin', async function ()
     {
         databaseMock.Group.getAdminsById.mockResolvedValue([]); // does not include fakeAccount
-        const {isAbleToUpdateGroup} = await import('../Group');
-        expect(await isAbleToUpdateGroup({id: fakeGroup.id}, fakeSession)).toBe(false);
+        const {isGroupAdmin} = await import('../Group');
+        expect(await isGroupAdmin({id: fakeGroup.id}, fakeSession)).toBe(false);
 
         expect(databaseMock.Group.getAdminsById).toBeCalledTimes(1);
         expect(databaseMock.Group.getAdminsById).toBeCalledWith(fakeGroup.id);
@@ -110,5 +114,40 @@ describe(`${groupExists.name}`, () =>
         expect(await groupExists({id: fakeGroup.id})).toBe(false);
         expect(databaseMock.Group.selectById).toBeCalledTimes(1);
         expect(databaseMock.Group.selectById).toBeCalledWith(fakeGroup.id);
+    });
+});
+
+describe(`groupNameExists`, () =>
+{
+    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
+    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+
+    beforeEach(() =>
+    {
+        jest.resetAllMocks();
+        jest.resetModules();
+        jest.mock('../../Database', () => databaseMock);
+    });
+
+    it('should return true when group name exists', async function ()
+    {
+        databaseMock.Account.getGroupByUsernameAndGroupName.mockResolvedValue(fakeGroup);
+        const {groupNameExists} = await import('../Group');
+        expect(await groupNameExists({username: fakeAccount.username}, {name: fakeGroup.name}))
+            .toBe(true);
+        expect(databaseMock.Account.getGroupByUsernameAndGroupName).toBeCalledTimes(1);
+        expect(databaseMock.Account.getGroupByUsernameAndGroupName)
+            .toBeCalledWith(fakeAccount.username, fakeGroup.name);
+    });
+
+    it('should return true when group name does not exist', async function ()
+    {
+        databaseMock.Account.getGroupByUsernameAndGroupName.mockResolvedValue(null);
+        const {groupNameExists} = await import('../Group');
+        expect(await groupNameExists({username: fakeAccount.username}, {name: fakeGroup.name}))
+            .toBe(false);
+        expect(databaseMock.Account.getGroupByUsernameAndGroupName).toBeCalledTimes(1);
+        expect(databaseMock.Account.getGroupByUsernameAndGroupName)
+            .toBeCalledWith(fakeAccount.username, fakeGroup.name);
     });
 });

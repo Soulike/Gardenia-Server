@@ -1,18 +1,12 @@
 import {Account, Group, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Session} from 'koa-session';
-import {InvalidSessionError} from '../Dispatcher/Class';
 import {Group as GroupFunction} from '../Function';
 
 export async function add(group: Readonly<Omit<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
 {
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
-    const groupWithTheSameUsernameAndName = await AccountTable.getGroupByUsernameAndGroupName(username, group.name);
-    if (groupWithTheSameUsernameAndName !== null)
+    if (await GroupFunction.groupNameExists({username}, {name: group.name}))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '小组名已存在'));
@@ -69,7 +63,7 @@ export async function accounts(group: Readonly<Pick<Group, 'id'>>): Promise<Serv
 
 export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
@@ -95,7 +89,7 @@ export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames:
 
 export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
@@ -132,7 +126,7 @@ export async function admins(group: Readonly<Pick<Group, 'id'>>): Promise<Servic
 
 export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
@@ -163,7 +157,7 @@ export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: R
 
 export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
@@ -182,8 +176,7 @@ export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames
 export async function repositories(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceResponse<Repository[] | void>>
 {
     const {id: groupId} = group;
-    const groupInDatabase = await GroupTable.selectById(groupId);
-    if (groupInDatabase === null)
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<Repository[]>(404, {},
             new ResponseBody<Repository[]>(false, '小组不存在'));
@@ -200,7 +193,7 @@ export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, rep
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
     }
-    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
@@ -218,17 +211,12 @@ export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, rep
         new ResponseBody<void>(true, ''));
 }
 
-export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session | null>): Promise<ServiceResponse<{ isAdmin: boolean } | void>>
+export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isAdmin: boolean } | void>>
 {
     if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
-    }
-    if (session === null)
-    {
-        return new ServiceResponse<{ isAdmin: boolean }>(200, {},
-            new ResponseBody<{ isAdmin: boolean }>(true, '', {isAdmin: false}));
     }
     const {username} = session;
     if (typeof username !== 'string')
