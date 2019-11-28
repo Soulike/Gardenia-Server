@@ -131,22 +131,22 @@ export async function admins(group: Readonly<Pick<Group, 'id'>>): Promise<Servic
 
 export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isGroupAdmin(group, session)))
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
-    }
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
     }
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
+    }
     for (const username of usernames)
     {
         if (await AccountTable.selectByUsername(username) === null)
         {
-            return new ServiceResponse<void>(403, {},
+            return new ServiceResponse<void>(404, {},
                 new ResponseBody<void>(false, `用户${username}不存在`));
         }
         if (!(await GroupFunction.isGroupMember(group, username)))
@@ -162,16 +162,22 @@ export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: R
 
 export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isGroupAdmin(group, session)))
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
-    }
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
+    }
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
+    }
+    const {username: usernameInSession} = session!;
+    if (usernames.includes(usernameInSession))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '不允许移除自己'));
     }
     await GroupTable.removeAdmins(groupId, usernames);
     return new ServiceResponse<void>(200, {},

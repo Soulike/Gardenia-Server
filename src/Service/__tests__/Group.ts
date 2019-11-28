@@ -3,7 +3,7 @@ import {Group as GroupFunction} from '../../Function';
 import {Account, Group, ResponseBody, ServiceResponse} from '../../Class';
 import faker from 'faker';
 import {Session} from 'koa-session';
-import {accounts, add, addAccounts, dismiss, info, removeAccounts} from '../Group';
+import {accounts, add, addAccounts, addAdmins, admins, dismiss, info, removeAccounts, removeAdmins} from '../Group';
 
 const databaseMock = {
     Account: {
@@ -19,12 +19,16 @@ const databaseMock = {
             Parameters<typeof GroupTable.removeAccounts>>(),
         addAdmins: jest.fn<ReturnType<typeof GroupTable.addAdmins>,
             Parameters<typeof GroupTable.addAdmins>>(),
+        removeAdmins: jest.fn<ReturnType<typeof GroupTable.removeAdmins>,
+            Parameters<typeof GroupTable.removeAdmins>>(),
         deleteById: jest.fn<ReturnType<typeof GroupTable.deleteById>,
             Parameters<typeof GroupTable.deleteById>>(),
         selectById: jest.fn<ReturnType<typeof GroupTable.selectById>,
             Parameters<typeof GroupTable.selectById>>(),
         getAccountsById: jest.fn<ReturnType<typeof GroupTable.getAccountsById>,
             Parameters<typeof GroupTable.getAccountsById>>(),
+        getAdminsById: jest.fn<ReturnType<typeof GroupTable.getAdminsById>,
+            Parameters<typeof GroupTable.getAdminsById>>(),
     },
 };
 
@@ -36,6 +40,8 @@ const functionMock = {
             Parameters<typeof GroupFunction.isGroupAdmin>>(),
         groupExists: jest.fn<ReturnType<typeof GroupFunction.groupExists>,
             Parameters<typeof GroupFunction.groupExists>>(),
+        isGroupMember: jest.fn<ReturnType<typeof GroupFunction.isGroupMember>,
+            Parameters<typeof GroupFunction.isGroupMember>>(),
     },
 };
 
@@ -439,5 +445,282 @@ describe(`${removeAccounts.name}`, () =>
         expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
         expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSelfSession);
         expect(databaseMock.Group.removeAccounts).toBeCalledTimes(0);
+    });
+});
+
+describe(`${admins.name}`, () =>
+{
+    const fakeAccounts = [
+        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+    ];
+    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+    });
+
+    it('should get admins of group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        databaseMock.Group.getAdminsById.mockResolvedValue(fakeAccounts);
+        const {admins} = await import('../Group');
+        expect(await admins({id: fakeGroup.id})).toEqual(
+            new ServiceResponse(200, {},
+                new ResponseBody(true, '', fakeAccounts)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(databaseMock.Group.getAdminsById).toBeCalledTimes(1);
+        expect(databaseMock.Group.getAdminsById).toBeCalledWith(fakeGroup.id);
+    });
+
+    it('should handle nonexistent group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(false);
+        databaseMock.Group.getAdminsById.mockResolvedValue(fakeAccounts);
+        const {admins} = await import('../Group');
+        expect(await admins({id: fakeGroup.id})).toEqual(
+            new ServiceResponse(404, {},
+                new ResponseBody(false, '小组不存在')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(databaseMock.Group.getAdminsById).toBeCalledTimes(0);
+    });
+});
+
+describe(`${addAdmins.name}`, () =>
+{
+    const fakeAccounts = [
+        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+    ];
+    const fakeUsernames = fakeAccounts.map(({username}) => username);
+    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeSession = {username: faker.random.word()} as unknown as Session;
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        databaseMock.Group.addAdmins.mockResolvedValue(undefined);
+    });
+
+    it('should add admins to group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[0]);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[1]);
+        functionMock.Group.isGroupMember.mockResolvedValue(true);
+        const {addAdmins} = await import('../Group');
+        expect(await addAdmins(
+            {id: fakeGroup.id},
+            fakeUsernames,
+            fakeSession),
+        ).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(true)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(2);
+        expect(databaseMock.Account.selectByUsername).toHaveBeenNthCalledWith(1, fakeUsernames[0]);
+        expect(databaseMock.Account.selectByUsername).toHaveBeenNthCalledWith(2, fakeUsernames[1]);
+        expect(functionMock.Group.isGroupMember).toBeCalledTimes(2);
+        expect(functionMock.Group.isGroupMember)
+            .toHaveBeenNthCalledWith(1, {id: fakeGroup.id}, fakeUsernames[0]);
+        expect(functionMock.Group.isGroupMember)
+            .toHaveBeenNthCalledWith(2, {id: fakeGroup.id}, fakeUsernames[1]);
+        expect(databaseMock.Group.addAdmins).toBeCalledTimes(1);
+        expect(databaseMock.Group.addAdmins).toBeCalledWith(fakeGroup.id, fakeUsernames);
+    });
+
+    it('should handle nonexistent group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(false);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[0]);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[1]);
+        functionMock.Group.isGroupMember.mockResolvedValue(true);
+        const {addAdmins} = await import('../Group');
+        expect(await addAdmins(
+            {id: fakeGroup.id},
+            fakeUsernames,
+            fakeSession),
+        ).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, '小组不存在')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(0);
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(0);
+        expect(functionMock.Group.isGroupMember).toBeCalledTimes(0);
+        expect(databaseMock.Group.addAdmins).toBeCalledTimes(0);
+    });
+
+    it('should handle non-admin request', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(false);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[0]);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[1]);
+        functionMock.Group.isGroupMember.mockResolvedValue(true);
+        const {addAdmins} = await import('../Group');
+        expect(await addAdmins(
+            {id: fakeGroup.id},
+            fakeUsernames,
+            fakeSession),
+        ).toEqual(new ServiceResponse(403, {},
+            new ResponseBody(false, '添加失败：您不是小组的管理员')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(0);
+        expect(functionMock.Group.isGroupMember).toBeCalledTimes(0);
+        expect(databaseMock.Group.addAdmins).toBeCalledTimes(0);
+    });
+
+    it('should handle nonexistent account', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[0]);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(null);
+        functionMock.Group.isGroupMember.mockResolvedValue(true);
+        const {addAdmins} = await import('../Group');
+        expect(await addAdmins(
+            {id: fakeGroup.id},
+            fakeUsernames,
+            fakeSession),
+        ).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, `用户${fakeUsernames[1]}不存在`)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(2);
+        expect(databaseMock.Account.selectByUsername).toHaveBeenNthCalledWith(1, fakeUsernames[0]);
+        expect(databaseMock.Account.selectByUsername).toHaveBeenNthCalledWith(2, fakeUsernames[1]);
+        expect(functionMock.Group.isGroupMember).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupMember)
+            .toHaveBeenNthCalledWith(1, {id: fakeGroup.id}, fakeUsernames[0]);
+        expect(databaseMock.Group.addAdmins).toBeCalledTimes(0);
+    });
+
+    it('should handle non-member adding request', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[0]);
+        databaseMock.Account.selectByUsername.mockResolvedValueOnce(fakeAccounts[1]);
+        functionMock.Group.isGroupMember.mockResolvedValueOnce(true);
+        functionMock.Group.isGroupMember.mockResolvedValueOnce(false);
+        const {addAdmins} = await import('../Group');
+        expect(await addAdmins(
+            {id: fakeGroup.id},
+            fakeUsernames,
+            fakeSession),
+        ).toEqual(new ServiceResponse(403, {},
+            new ResponseBody(false, `用户${fakeUsernames[1]}不是小组成员`)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(2);
+        expect(databaseMock.Account.selectByUsername).toHaveBeenNthCalledWith(1, fakeUsernames[0]);
+        expect(databaseMock.Account.selectByUsername).toHaveBeenNthCalledWith(2, fakeUsernames[1]);
+        expect(functionMock.Group.isGroupMember).toBeCalledTimes(2);
+        expect(functionMock.Group.isGroupMember)
+            .toHaveBeenNthCalledWith(1, {id: fakeGroup.id}, fakeUsernames[0]);
+        expect(functionMock.Group.isGroupMember)
+            .toHaveBeenNthCalledWith(2, {id: fakeGroup.id}, fakeUsernames[1]);
+        expect(databaseMock.Group.addAdmins).toBeCalledTimes(0);
+    });
+});
+
+describe(`${removeAdmins.name}`, () =>
+{
+    const fakeAccounts = [
+        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+    ];
+    const fakeUsernames = fakeAccounts.map(({username}) => username);
+    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeSession = {username: faker.random.word()} as unknown as Session;
+    const fakeSelfSession = {username: fakeUsernames[0]} as unknown as Session;
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        databaseMock.Group.removeAdmins.mockResolvedValue(undefined);
+    });
+
+    it('should remove admins', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        const {removeAdmins} = await import('../Group');
+        expect(await removeAdmins({id: fakeGroup.id}, fakeUsernames, fakeSession))
+            .toEqual(new ServiceResponse(200, {},
+                new ResponseBody(true)));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Group.removeAdmins).toBeCalledTimes(1);
+        expect(databaseMock.Group.removeAdmins).toBeCalledWith(fakeGroup.id, fakeUsernames);
+    });
+
+    it('should handle nonexistent group', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(false);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        const {removeAdmins} = await import('../Group');
+        expect(await removeAdmins({id: fakeGroup.id}, fakeUsernames, fakeSession))
+            .toEqual(new ServiceResponse(404, {},
+                new ResponseBody(false, '小组不存在')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(0);
+        expect(databaseMock.Group.removeAdmins).toBeCalledTimes(0);
+    });
+
+    it('should handle non-admin request', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(false);
+        const {removeAdmins} = await import('../Group');
+        expect(await removeAdmins({id: fakeGroup.id}, fakeUsernames, fakeSession))
+            .toEqual(new ServiceResponse(403, {},
+                new ResponseBody(false, '删除失败：您不是小组的管理员')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSession);
+        expect(databaseMock.Group.removeAdmins).toBeCalledTimes(0);
+    });
+
+    it('should handle remove self request', async function ()
+    {
+        functionMock.Group.groupExists.mockResolvedValue(true);
+        functionMock.Group.isGroupAdmin.mockResolvedValue(true);
+        const {removeAdmins} = await import('../Group');
+        expect(await removeAdmins({id: fakeGroup.id}, fakeUsernames, fakeSelfSession))
+            .toEqual(new ServiceResponse(403, {},
+                new ResponseBody(false, '不允许移除自己')));
+        expect(functionMock.Group.groupExists).toBeCalledTimes(1);
+        expect(functionMock.Group.groupExists).toBeCalledWith({id: fakeGroup.id});
+        expect(functionMock.Group.isGroupAdmin).toBeCalledTimes(1);
+        expect(functionMock.Group.isGroupAdmin).toBeCalledWith({id: fakeGroup.id}, fakeSelfSession);
+        expect(databaseMock.Group.removeAdmins).toBeCalledTimes(0);
     });
 });
