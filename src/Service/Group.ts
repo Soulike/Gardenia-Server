@@ -94,16 +94,16 @@ export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames:
 
 export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isGroupAdmin(group, session)))
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
-    }
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
+    }
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
     }
     const {username: usernameInSession} = session!;
     if (usernames.includes(usernameInSession))
