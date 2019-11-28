@@ -68,22 +68,22 @@ export async function accounts(group: Readonly<Pick<Group, 'id'>>): Promise<Serv
 
 export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await GroupFunction.isGroupAdmin(group, session)))
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
-    }
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
     }
+    if (!(await GroupFunction.isGroupAdmin(group, session)))
+    {
+        return new ServiceResponse<void>(403, {},
+            new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
+    }
     for (const username of usernames)
     {
         if (await AccountTable.selectByUsername(username) === null)
         {
-            return new ServiceResponse<void>(403, {},
+            return new ServiceResponse<void>(404, {},
                 new ResponseBody<void>(false, `用户${username}不存在`));
         }
     }
