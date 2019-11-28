@@ -2,6 +2,7 @@ import {Account, Group, Repository, ResponseBody, ServiceResponse} from '../Clas
 import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Session} from 'koa-session';
 import {InvalidSessionError} from '../Dispatcher/Class';
+import {Group as GroupFunction} from '../Function';
 
 export async function add(group: Readonly<Omit<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
 {
@@ -56,7 +57,7 @@ export async function info(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceR
 export async function accounts(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceResponse<Account[] | void>>
 {
     const {id: groupId} = group;
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
@@ -66,15 +67,15 @@ export async function accounts(group: Readonly<Pick<Group, 'id'>>): Promise<Serv
         new ResponseBody<Account[]>(true, '', accounts));
 }
 
-export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
+export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
     }
     const {id: groupId} = group;
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
@@ -92,15 +93,15 @@ export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames:
         new ResponseBody<void>(true));
 }
 
-export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
+export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
     }
     const {id: groupId} = group;
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
@@ -119,7 +120,7 @@ export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernam
 export async function admins(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceResponse<Account[] | void>>
 {
     const {id: groupId} = group;
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
@@ -129,15 +130,15 @@ export async function admins(group: Readonly<Pick<Group, 'id'>>): Promise<Servic
         new ResponseBody<Account[]>(true, '', accounts));
 }
 
-export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
+export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '添加失败：您不是小组的管理员'));
     }
     const {id: groupId} = group;
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
@@ -149,7 +150,7 @@ export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: R
             return new ServiceResponse<void>(403, {},
                 new ResponseBody<void>(false, `用户${username}不存在`));
         }
-        if (!(await isGroupMember(group, username)))
+        if (!(await GroupFunction.isGroupMember(group, username)))
         {
             return new ServiceResponse<void>(403, {},
                 new ResponseBody<void>(false, `用户${username}不是小组成员`));
@@ -160,15 +161,15 @@ export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: R
         new ResponseBody<void>(true));
 }
 
-export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session | null>): Promise<ServiceResponse<void>>
+export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
     }
     const {id: groupId} = group;
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
@@ -192,14 +193,14 @@ export async function repositories(group: Readonly<Pick<Group, 'id'>>): Promise<
         new ResponseBody<Repository[]>(true, '', repositories));
 }
 
-export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, repositories: Pick<Repository, 'username' | 'name'>[], session: Readonly<Session | null>): Promise<ServiceResponse<void>>
+export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, repositories: Pick<Repository, 'username' | 'name'>[], session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
     }
-    if (!(await isAbleToUpdateGroup(group, session)))
+    if (!(await GroupFunction.isAbleToUpdateGroup(group, session)))
     {
         return new ServiceResponse<void>(403, {},
             new ResponseBody<void>(false, '删除失败：您不是小组的管理员'));
@@ -219,7 +220,7 @@ export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, rep
 
 export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session | null>): Promise<ServiceResponse<{ isAdmin: boolean } | void>>
 {
-    if (!(await groupExists(group)))
+    if (!(await GroupFunction.groupExists(group)))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '小组不存在'));
@@ -238,29 +239,4 @@ export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, session: Reado
     const groupInDatabase = await AccountTable.getAdministratingGroupByUsernameAndGroupId(username, group.id);
     return new ServiceResponse<{ isAdmin: boolean }>(200, {},
         new ResponseBody<{ isAdmin: boolean }>(true, '', {isAdmin: groupInDatabase !== null}));
-}
-
-async function isAbleToUpdateGroup(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session | null>): Promise<boolean>
-{
-    if (session === null)
-    {
-        return false;
-    }
-    const {username} = session;
-    const {id: groupId} = group;
-    const adminsInGroup = await GroupTable.getAdminsById(groupId);
-    return adminsInGroup.map(({username}) => username).includes(username);
-}
-
-async function isGroupMember(group: Readonly<Pick<Group, 'id'>>, username: string): Promise<boolean>
-{
-    const accountsInGroup = await GroupTable.getAccountsById(group.id);
-    return accountsInGroup.map(({username}) => username).includes(username);
-}
-
-async function groupExists(group: Readonly<Pick<Group, 'id'>>): Promise<boolean>
-{
-    const {id} = group;
-    const groupInDatabase = await GroupTable.selectById(id);
-    return groupInDatabase !== null;
 }
