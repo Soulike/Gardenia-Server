@@ -232,10 +232,10 @@ export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, session: Reado
     const {username} = session;
     if (typeof username !== 'string')
     {
-        return new ServiceResponse<{ isAdmin: boolean }>(200, {},
-            new ResponseBody<{ isAdmin: boolean }>(true, '', {isAdmin: false}));
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {isAdmin: false}));
     }
     const groupInDatabase = await AccountTable.getAdministratingGroupByUsernameAndGroupId(username, group.id);
-    return new ServiceResponse<{ isAdmin: boolean }>(200, {},
-        new ResponseBody<{ isAdmin: boolean }>(true, '', {isAdmin: groupInDatabase !== null}));
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {isAdmin: groupInDatabase !== null}));
 }
