@@ -26,6 +26,7 @@ import os from 'os';
 import faker from 'faker';
 import {GIT} from '../../CONFIG';
 import {Readable, Writable} from 'stream';
+import EventEmitter from 'events';
 
 let repositoryPath = '';
 let bareRepositoryPath = '';
@@ -478,10 +479,9 @@ describe(`${doAdvertiseRPCCall.name}`, () =>
     {
         childProcessMock.spawn.mockImplementation(() =>
         {
-            childProcessMock.spawn.mockImplementation(() =>
-            {
-                throw Error();
-            });
+            const emitter = new EventEmitter();
+            process.nextTick(() => emitter.emit('error', new Error()));
+            return emitter;
         });
 
         const {doAdvertiseRPCCall} = await import('../Git');
@@ -561,10 +561,9 @@ describe(`${doUpdateServerInfo.name}`, () =>
     {
         childProcessMock.spawn.mockImplementation(() =>
         {
-            childProcessMock.spawn.mockImplementation(() =>
-            {
-                throw Error();
-            });
+            const emitter = new EventEmitter();
+            process.nextTick(() => emitter.emit('error', new Error()));
+            return emitter;
         });
 
         const {doUpdateServerInfo} = await import('../Git');
