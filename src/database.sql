@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS  "account_group"
 
 CREATE TABLE IF NOT EXISTS  "admin_group"
 (
-    "admin_username" VARCHAR(255) REFERENCES "accounts" ("username") NOT NULL,
-    "group_id"       INTEGER REFERENCES "groups" ("id")              NOT NULL,
+    "admin_username" VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+    "group_id"       INTEGER REFERENCES "groups" ("id")              ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
     UNIQUE ("admin_username", "group_id"),
     FOREIGN KEY ("admin_username", "group_id") REFERENCES "account_group" ("username", "group_id") ON UPDATE CASCADE ON DELETE CASCADE
 );

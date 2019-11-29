@@ -11,7 +11,7 @@ export async function update(profile: Readonly<Partial<ProfileClass>>, primaryKe
         await executeTransaction(client, async client =>
         {
             await client.query(
-                    `UPDATE profiles
+                `UPDATE profiles
                      SET ${parameterizedStatement}
                      WHERE "username" = $${parameters.length + 1}`,
                 [...parameters, primaryKey.username]);
@@ -37,5 +37,25 @@ export async function selectByUsername(username: ProfileClass['username']): Prom
     else
     {
         return ProfileClass.from(rows[0]);
+    }
+}
+
+export async function deleteByUsername(username: ProfileClass['username']): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            await client.query(
+                    `DELETE
+                     FROM profiles
+                     WHERE username = $1`,
+                [username]);
+        });
+    }
+    finally
+    {
+        client.release();
     }
 }

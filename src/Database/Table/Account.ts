@@ -196,3 +196,81 @@ export async function getAdministratingGroupByUsernameAndGroupId(username: Accou
         return Group.from(rows[0]);
     }
 }
+
+export async function addToGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            await Promise.all(groupIds.map(async groupId =>
+                client.query(`INSERT INTO account_group (username, group_id)
+                              VALUES
+                                  ($1, $2)`, [username, groupId])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+export async function removeFromGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            await Promise.all(groupIds.map(async groupId =>
+                client.query(`DELETE
+                              FROM account_group
+                              WHERE username = $1
+                                AND group_id = $2`, [username, groupId])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+export async function addAdministratingGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            await Promise.all(groupIds.map(async groupId =>
+                client.query(`INSERT INTO admin_group (admin_username, group_id)
+                              VALUES
+                                  ($1, $2)`, [username, groupId])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+export async function removeAdministratingGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            await Promise.all(groupIds.map(async groupId =>
+                client.query(`DELETE
+                              FROM admin_group
+                              WHERE admin_username = $1
+                                AND group_id = $2`, [username, groupId])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
