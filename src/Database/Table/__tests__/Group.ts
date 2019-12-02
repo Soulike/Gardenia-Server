@@ -54,11 +54,6 @@ describe(`${deleteById.name}`, () =>
         fakeGroupId = await insertAndReturnId(fakeGroup);
     });
 
-    beforeEach(() =>
-    {
-        fakeGroupId = -1;
-    });
-
     afterEach(async () =>
     {
         const client = await pool.connect();
@@ -206,6 +201,7 @@ describe(`${addAccounts.name}`, () =>
         new Account(faker.random.word(), faker.random.alphaNumeric(64)),
         new Account(faker.random.word(), faker.random.alphaNumeric(64)),
     ];
+
     beforeAll(async () =>
     {
         fakeGroupId = await insertAndReturnId(fakeGroup);
@@ -554,8 +550,8 @@ describe(`${removeRepositories.name}`, () =>
     beforeAll(async () =>
     {
         [fakeGroup1Id, fakeGroup2Id] = await Promise.all([
-            insertAndReturnId(new Group(-1, faker.random.word())),
-            insertAndReturnId(new Group(-1, faker.random.word())),
+            insertAndReturnId({name: faker.random.word()}),
+            insertAndReturnId({name: faker.random.word()}),
             AccountTable.insert(fakeAccount),
         ]);
         await Promise.all([

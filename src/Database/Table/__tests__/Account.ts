@@ -196,7 +196,7 @@ describe(`${getGroupsByUsername.name}`, () =>
             .map(async ({id}) => await GroupTable.deleteById(id)));
         await Promise.all([
             deleteByUsername(fakeAccount1.username),
-            deleteByUsername(fakeAccount1.username),
+            deleteByUsername(fakeAccount2.username),
         ]);
     });
 
@@ -317,7 +317,8 @@ describe(`${getGroupByUsernameAndGroupName.name}`, () =>
     {
         await Promise.all([...fakeGroupsForAccount1, ...fakeGroupsForAccount2].map(async group =>
         {
-            group.id = await GroupTable.insertAndReturnId(group);
+            const {id, ...rest} = group;
+            group.id = await GroupTable.insertAndReturnId(rest);
         }));
     }
 
@@ -356,7 +357,8 @@ describe(`${getAdministratingGroupByUsernameAndGroupName.name}`, () =>
     {
         await Promise.all([...fakeGroupsForAccount1, ...fakeGroupsForAccount2].map(async group =>
         {
-            group.id = await GroupTable.insertAndReturnId(group);
+            const {id, ...rest} = group;
+            group.id = await GroupTable.insertAndReturnId(rest);
         }));
     }
 
@@ -422,7 +424,8 @@ describe(`${getAdministratingGroupByUsernameAndGroupId.name}`, () =>
         await Promise.all(
             [...fakeGroupsForAccount1, ...fakeGroupsForAccount2].map(async group =>
             {
-                group.id = await GroupTable.insertAndReturnId(group);
+                const {id, ...rest} = group;
+                group.id = await GroupTable.insertAndReturnId(rest);
             }));
     }
 
