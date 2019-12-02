@@ -1,20 +1,22 @@
 import {Account, Group, Repository} from '../../Class';
 import pool from '../Pool';
-import {executeTransaction} from '../Function';
+import {
+    executeTransaction,
+    generateColumnNamesAndValuesArrayAndParameterString,
+    generateParameterizedStatementAndValuesArray,
+} from '../Function';
 
 export async function insertAndReturnId(group: Readonly<Omit<Group, 'id'>>): Promise<Group['id']>
 {
     const client = await pool.connect();
+    const processedGroup = Group.from({id: -1, ...group});
+    const {id, ...rest} = processedGroup;
     try
     {
         const queryResult = await executeTransaction(client, async (client) =>
         {
-            return await client.query(
-                    `INSERT INTO "groups" ("name")
-                     VALUES
-                         ($1)
-                     RETURNING "id"`,
-                [group.name]);
+            const {values, columnNames, parameterString} = generateColumnNamesAndValuesArrayAndParameterString(rest);
+            return await client.query(`INSERT INTO groups (${columnNames}) VALUES (${parameterString}) RETURNING id`, values);
         });
         const {rows} = queryResult;
         return Number.parseInt(rows[0]['id']);
@@ -45,19 +47,19 @@ export async function deleteById(id: Group['id']): Promise<void>
     }
 }
 
-export async function update(group: Readonly<Group>, primaryKey: Readonly<Pick<Group, 'id'>>): Promise<void>
+export async function update(group: Readonly<Partial<Group>>, primaryKey: Readonly<Pick<Group, 'id'>>): Promise<void>
 {
     const client = await pool.connect();
     try
     {
+        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(group, ',');
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                    `UPDATE "groups"
-                     SET "id"=$1,
-                         "name"=$2
-                     WHERE "id" = $3`,
-                [group.id, group.name, primaryKey.id]);
+                `UPDATE "groups"
+                     SET ${parameterizedStatement}
+                     WHERE "id" = $${values.length + 1}`,
+                [...values, primaryKey.id]);
         });
     }
     finally

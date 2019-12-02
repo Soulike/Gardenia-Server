@@ -1272,7 +1272,7 @@ describe(`${setName.name}`, () =>
 
         expect(databaseMock.Repository.update).toBeCalledTimes(1);
         expect(databaseMock.Repository.update).toBeCalledWith(
-            fakeNewRepository,
+            {name: fakeNewRepositoryName},
             {username: fakeAccount.username, name: fakeOldRepositoryName},
         );
 
@@ -1448,7 +1448,7 @@ describe(`${setName.name}`, () =>
 
         expect(databaseMock.Repository.update).toBeCalledTimes(1);
         expect(databaseMock.Repository.update).toBeCalledWith(
-            {...fakeOldRepository, name: fakeNewRepositoryName},
+            {name: fakeNewRepositoryName},
             {username: fakeAccount.username, name: fakeOldRepositoryName},
         );
 
@@ -1468,10 +1468,6 @@ describe(`${setDescription.name}`, () =>
         fakeOldRepositoryDescription,
         true,
     );
-    const fakeNewRepository = Repository.from({
-        ...fakeOldRepository,
-        description: fakeNewRepositoryDescription,
-    });
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
 
     beforeEach(() =>
@@ -1509,7 +1505,7 @@ describe(`${setDescription.name}`, () =>
             .toBeCalledTimes(1);
         expect(databaseMock.Repository.update)
             .toBeCalledWith(
-                fakeNewRepository,
+                {description: fakeNewRepositoryDescription},
                 {username: fakeAccount.username, name: fakeOldRepository.name});
     });
 
@@ -1590,7 +1586,7 @@ describe(`${setIsPublic.name}`, () =>
             .toBeCalledTimes(1);
         expect(databaseMock.Repository.update)
             .toBeCalledWith(
-                fakeNewRepository,
+                {isPublic: fakeNewRepository.isPublic},
                 {username: fakeAccount.username, name: fakeOldRepository.name});
     });
 

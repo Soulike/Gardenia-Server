@@ -1,4 +1,8 @@
-import {executeTransaction, generateParameterizedStatementAndParametersArray} from '../Function';
+import {
+    executeTransaction,
+    generateColumnNamesAndValuesArrayAndParameterString,
+    generateParameterizedStatementAndValuesArray,
+} from '../Function';
 import pool from '../Pool';
 import {Group, Repository as RepositoryClass} from '../../Class';
 
@@ -9,9 +13,8 @@ export async function insert(repository: Readonly<RepositoryClass>): Promise<voi
     {
         await executeTransaction(client, async client =>
         {
-            await client.query(`INSERT INTO repositories("username", "name", "description", "isPublic")
-                                VALUES
-                                    ($1, $2, $3, $4)`, [repository.username, repository.name, repository.description, repository.isPublic]);
+            const {values, columnNames, parameterString} = generateColumnNamesAndValuesArrayAndParameterString(repository);
+            await client.query(`INSERT INTO repositories (${columnNames}) VALUES (${parameterString})`, values);
         });
     }
     finally
@@ -40,21 +43,19 @@ export async function deleteByUsernameAndName(repository: Readonly<Pick<Reposito
     }
 }
 
-export async function update(repository: Readonly<RepositoryClass>, primaryKey: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
+export async function update(repository: Readonly<Partial<RepositoryClass>>, primaryKey: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
     try
     {
+        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, ',');
         await executeTransaction(client, async client =>
         {
             await client.query(`UPDATE repositories
-                                SET "username"=$1,
-                                    "name"=$2,
-                                    "description"=$3,
-                                    "isPublic"=$4
-                                WHERE "username" = $5
-                                  AND "name" = $6`,
-                [repository.username, repository.name, repository.description, repository.isPublic, primaryKey.username, primaryKey.name]);
+                                SET ${parameterizedStatement}
+                                WHERE "username" = $${values.length + 1}
+                                  AND "name" = $${values.length + 2}`,
+                [...values, primaryKey.username, primaryKey.name]);
         });
     }
     finally
@@ -82,11 +83,11 @@ export async function selectByUsernameAndName(repository: Readonly<Pick<Reposito
 
 export async function select(repository: Readonly<Partial<RepositoryClass>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<RepositoryClass[]>
 {
-    const {parameterizedStatement, parameters} = generateParameterizedStatementAndParametersArray(repository, 'AND');
-    const parameterAmount = parameters.length;
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
+    const parameterAmount = values.length;
     const {rows} = await pool.query(
         `SELECT * FROM repositories WHERE ${parameterizedStatement} OFFSET $${parameterAmount + 1} LIMIT $${parameterAmount + 2}`,
-        [...parameters, offset, limit]);
+        [...values, offset, limit]);
     return rows.map(row => RepositoryClass.from(row));
 }
 
@@ -123,5 +124,49 @@ export async function getGroupByUsernameAndNameAndGroupId(repository: Readonly<P
     else
     {
         return Group.from(rows[0]);
+    }
+}
+
+export async function addToGroups(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, groupIds: Readonly<Group['id'][]>): Promise<void>
+{
+    const client = await pool.connect();
+    const {username, name} = repository;
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            await Promise.all(groupIds.map(id => client.query(
+                    `INSERT INTO repository_group (repository_username, repository_name, group_id)
+                     VALUES
+                         ($1, $2, $3)`,
+                [username, name, id])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+export async function removeFromGroups(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, groupIds: Readonly<Group['id'][]>): Promise<void>
+{
+    const client = await pool.connect();
+    const {username, name} = repository;
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            await Promise.all(groupIds.map(id => client.query(
+                    `DELETE
+                     FROM repository_group
+                     WHERE repository_username = $1
+                       AND repository_name = $2
+                       AND group_id = $3`,
+                [username, name, id])));
+        });
+    }
+    finally
+    {
+        client.release();
     }
 }

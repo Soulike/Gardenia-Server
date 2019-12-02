@@ -21,17 +21,35 @@ export async function executeTransaction<T extends Client | PoolClient, R>(clien
     }
 }
 
-export function generateParameterizedStatementAndParametersArray(obj: Readonly<{ [key: string]: any }>, connection: 'AND' | ',')
+export function generateParameterizedStatementAndValuesArray(obj: Readonly<{ [key: string]: any }>, connection: 'AND' | ',')
 {
-    const parameters: any[] = [];
-    let parameterizedStatement = '';    // "a"=$1,"b"=$2
+    const values: any[] = [];
+    const parameterizedStatements: string[] = [];    // "a"=$1,"b"=$2
     Object.keys(obj).forEach((key, index) =>
     {
-        parameterizedStatement += `"${key}"=$${index + 1} ${connection} `;
-        parameters.push(obj[key]);
+        parameterizedStatements.push(`"${key}"=$${index + 1}`);
+        values.push(obj[key]);
     });
     return {
-        parameters,
-        parameterizedStatement: parameterizedStatement.slice(0, -1 * (connection.length + 2)),    // 删除末尾连接符号
+        values,
+        parameterizedStatement: parameterizedStatements.join(` ${connection} `),
+    };
+}
+
+export function generateColumnNamesAndValuesArrayAndParameterString(obj: Readonly<any>)
+{
+    const values: any[] = [];
+    const columnNames: string[] = [];
+    const parameterStrings: string[] = [];
+    Object.keys(obj).forEach((key, index) =>
+    {
+        columnNames.push(`"${key}"`);
+        values.push(obj[key]);
+        parameterStrings.push(`$${index + 1}`);
+    });
+    return {
+        values,
+        columnNames: columnNames.join(','),
+        parameterString: parameterStrings.join(','),
     };
 }

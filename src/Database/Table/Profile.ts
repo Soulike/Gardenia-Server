@@ -1,4 +1,8 @@
-import {executeTransaction, generateParameterizedStatementAndParametersArray} from '../Function';
+import {
+    executeTransaction,
+    generateColumnNamesAndValuesArrayAndParameterString,
+    generateParameterizedStatementAndValuesArray,
+} from '../Function';
 import pool from '../Pool';
 import {Profile as ProfileClass} from '../../Class';
 
@@ -7,14 +11,14 @@ export async function update(profile: Readonly<Partial<ProfileClass>>, primaryKe
     const client = await pool.connect();
     try
     {
-        const {parameterizedStatement, parameters} = generateParameterizedStatementAndParametersArray(profile, ',');
+        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(profile, ',');
         await executeTransaction(client, async client =>
         {
             await client.query(
                 `UPDATE profiles
                      SET ${parameterizedStatement}
-                     WHERE "username" = $${parameters.length + 1}`,
-                [...parameters, primaryKey.username]);
+                     WHERE "username" = $${values.length + 1}`,
+                [...values, primaryKey.username]);
         });
     }
     finally
@@ -52,6 +56,23 @@ export async function deleteByUsername(username: ProfileClass['username']): Prom
                      FROM profiles
                      WHERE username = $1`,
                 [username]);
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+export async function insert(profile: Readonly<ProfileClass>): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            const {values, columnNames, parameterString} = generateColumnNamesAndValuesArrayAndParameterString(profile);
+            await client.query(`INSERT INTO profiles (${columnNames}) VALUES (${parameterString})`, values);
         });
     }
     finally

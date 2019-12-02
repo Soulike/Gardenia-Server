@@ -1,6 +1,10 @@
 import {Account as AccountClass, Group, Profile as ProfileClass} from '../../Class';
 import pool from '../Pool';
-import {executeTransaction} from '../Function';
+import {
+    executeTransaction,
+    generateColumnNamesAndValuesArrayAndParameterString,
+    generateParameterizedStatementAndValuesArray,
+} from '../Function';
 
 export async function selectByUsername(username: AccountClass['username']): Promise<AccountClass | null>
 {
@@ -19,19 +23,19 @@ export async function selectByUsername(username: AccountClass['username']): Prom
     }
 }
 
-export async function update(account: Readonly<AccountClass>, primaryKey: Readonly<Pick<AccountClass, 'username'>>): Promise<void>
+export async function update(account: Readonly<Partial<AccountClass>>, primaryKey: Readonly<Pick<AccountClass, 'username'>>): Promise<void>
 {
     const client = await pool.connect();
     try
     {
+        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(account, ',');
         await executeTransaction(client, async (client) =>
         {
             await client.query(
-                    `UPDATE accounts
-                     SET "username"=$1,
-                         "hash"=$2
-                     WHERE "username" = $3`,
-                [account.username, account.hash, primaryKey.username]);
+                `UPDATE accounts
+                     SET ${parameterizedStatement}
+                     WHERE "username" = $${values.length + 1}`,
+                [...values, primaryKey.username]);
         });
     }
     finally
@@ -47,11 +51,8 @@ export async function insert(account: Readonly<AccountClass>): Promise<void>
     {
         await executeTransaction(client, async (client) =>
         {
-            await client.query(
-                    `INSERT INTO accounts("username", "hash")
-                     VALUES
-                         ($1, $2)`,
-                [account.username, account.hash]);
+            const {values, columnNames, parameterString} = generateColumnNamesAndValuesArrayAndParameterString(account);
+            await client.query(`INSERT INTO accounts (${columnNames}) VALUES (${parameterString})`, values);
         });
     }
     finally

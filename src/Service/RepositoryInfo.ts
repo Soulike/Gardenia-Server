@@ -252,9 +252,8 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
             errorOnExist: true,
             preserveTimestamps: true,
         });
-        const {username, name} = repositoryInDatabase!;
-        const newRepository = {...repositoryInDatabase!, name: newRepositoryName} as RepositoryClass;
-        await RepositoryTable.update(newRepository, {username, name});
+        const {username} = repositoryInDatabase!;
+        await RepositoryTable.update({name: newRepositoryName}, {username, name: repositoryName});
     }
     catch (e)
     {
@@ -276,8 +275,7 @@ export async function setDescription(repository: Readonly<Pick<RepositoryClass, 
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const newRepository = {...repositoryInDatabase!, description} as RepositoryClass;
-    await RepositoryTable.update(newRepository, {username, name: repositoryName});
+    await RepositoryTable.update({description}, {username, name: repositoryName});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
@@ -292,8 +290,7 @@ export async function setIsPublic(repository: Readonly<Pick<RepositoryClass, 'na
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const newRepository = {...repositoryInDatabase!, isPublic} as RepositoryClass;
-    await RepositoryTable.update(newRepository, {username, name});
+    await RepositoryTable.update({isPublic}, {username, name});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 

@@ -1,42 +1,34 @@
 import {Account, Profile} from '../../../Class';
 import faker from 'faker';
-import {PoolClient} from 'pg';
+import {deleteByUsername, insert, selectByUsername, update} from '../Profile';
+import * as AccountTable from '../Account';
 import pool from '../../Pool';
-import {selectByUsername, update} from '../Profile';
-import {
-    deleteFakeAccount,
-    deleteFakeProfile,
-    insertFakeAccount,
-    insertFakeProfile,
-    selectFakeProfile,
-} from '../_TestHelper';
+import {executeTransaction} from '../../Function';
 
 const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
-let client: PoolClient;
 
 beforeAll(async () =>
 {
-    client = await pool.connect();
-    await insertFakeAccount(client, fakeAccount);
+    await AccountTable.insert(fakeAccount);
 });
 
 afterAll(async () =>
 {
-    await deleteFakeAccount(client, fakeAccount.username);
-    client.release();
+    await AccountTable.deleteByUsername(fakeAccount.username);  // Profile is `DELETE ON CASCADE`
 });
 
 describe(`${selectByUsername.name}`, () =>
 {
+    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+
     beforeAll(async () =>
     {
-        await insertFakeProfile(client, fakeProfile);
+        await insert(fakeProfile);
     });
 
     afterAll(async () =>
     {
-        await deleteFakeProfile(client, fakeProfile.username);
+        await deleteByUsername(fakeProfile.username);
     });
 
     it('should select profile', async function ()
@@ -55,14 +47,16 @@ describe(`${selectByUsername.name}`, () =>
 
 describe(`${update.name}`, () =>
 {
+    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+
     beforeEach(async () =>
     {
-        await insertFakeProfile(client, fakeProfile);
+        await insert(fakeProfile);
     });
 
-    afterEach(async () =>
+    afterAll(async () =>
     {
-        await deleteFakeProfile(client, fakeProfile.username);
+        await deleteByUsername(fakeProfile.username);
     });
 
     it('should update profile', async function ()
@@ -76,6 +70,75 @@ describe(`${update.name}`, () =>
             ...fakeProfile,
             ...modifiedFakeProfile,
         });
-        expect(await selectFakeProfile(client, fakeProfile.username)).toStrictEqual(fakeProfileCopy);
+        expect(await selectByUsername(fakeProfile.username)).toStrictEqual(fakeProfileCopy);
+    });
+});
+
+describe(`${deleteByUsername.name}`, () =>
+{
+    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+
+    beforeEach(async () =>
+    {
+        await insert(fakeProfile);
+    });
+
+    afterEach(async () =>
+    {
+        const client = await pool.connect();
+        try
+        {
+            await executeTransaction(client, async client =>
+            {
+                await client.query(`DELETE
+                                    FROM profiles
+                                    WHERE username = $1`, [fakeProfile.username]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
+    });
+
+    it('should delete profile by username', async function ()
+    {
+        await deleteByUsername(fakeProfile.username);
+        expect(await selectByUsername(fakeProfile.username)).toBeNull();
+    });
+});
+
+describe(`${insert.name}`, () =>
+{
+    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+    const fakeOthersProfile = new Profile(faker.random.word(), faker.name.firstName(), faker.internet.email(), '');
+
+    afterEach(async () =>
+    {
+        const client = await pool.connect();
+        try
+        {
+            await executeTransaction(client, async client =>
+            {
+                await client.query(`DELETE
+                                    FROM profiles
+                                    WHERE username = $1`, [fakeProfile.username]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
+    });
+
+    it('should insert profile', async function ()
+    {
+        await insert(fakeProfile);
+        expect(await selectByUsername(fakeAccount.username)).toEqual(fakeProfile);
+    });
+
+    it('should throw error when username does not exist in Account table', async function ()
+    {
+        await expect(insert(fakeOthersProfile)).rejects.toThrow();
     });
 });
