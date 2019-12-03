@@ -9,7 +9,5 @@ jobs:
      steps:
        - name: Install dependencies
          run: yarn install
-         working-directory: .
        - name: Run test
          run: yarn test-ci
-         working-directory: .
