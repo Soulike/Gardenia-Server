@@ -14,7 +14,8 @@
     "check-type": "tsc --noEmit",
     "test": "jest",
     "test-ci": "jest -c jest.ci.config.js",
-    "test-coverage": "jest --collectCoverage"
+    "test-coverage": "jest --collectCoverage",
+    "ci": "yarn check-type && yarn test-ci"
   },
   "husky": {
     "hooks": {
