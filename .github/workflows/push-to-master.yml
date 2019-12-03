@@ -1,15 +1,14 @@
-on:
-  push:
-    branches: master
+name: master
+
+on: [push, pull_request]
     
 jobs: 
   auto-test:
      name: Automatic Jest run
-     runs-on: [ubuntu-18.04]
+     runs-on: [ubuntu-16.04]
      steps:
+       - uses: /actions/checkout@v1
        - name: Install dependencies
          run: yarn install
-         working-directory: ../
        - name: Run test
          run: yarn test-ci
-         working-directory: ../
