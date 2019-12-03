@@ -4,7 +4,7 @@ import {Repository as RepositoryClass, ServiceResponse} from '../../Class';
 import path from 'path';
 import EventEmitter from 'events';
 import mime from 'mime-types';
-import {file} from '../Git';
+import {advertise, file} from '../Git';
 
 const databaseMock = {
     Repository: {
@@ -17,10 +17,16 @@ const functionMock = {
     Repository: {
         repositoryIsAvailableToTheRequest: jest.fn<ReturnType<typeof Repository.repositoryIsAvailableToTheRequest>,
             Parameters<typeof Repository.repositoryIsAvailableToTheRequest>>(),
+        repositoryIsModifiableToTheRequest: jest.fn<ReturnType<typeof Repository.repositoryIsModifiableToTheRequest>,
+            Parameters<typeof Repository.repositoryIsModifiableToTheRequest>>(),
+        generateRefsServiceResponse: jest.fn<ReturnType<typeof Repository.generateRefsServiceResponse>,
+            Parameters<typeof Repository.generateRefsServiceResponse>>(),
     },
     Git: {
         generateRepositoryPath: jest.fn<ReturnType<typeof Git.generateRepositoryPath>,
             Parameters<typeof Git.generateRepositoryPath>>(),
+        doAdvertiseRPCCall: jest.fn<ReturnType<typeof Git.doAdvertiseRPCCall>,
+            Parameters<typeof Git.doAdvertiseRPCCall>>(),
     },
 };
 
@@ -134,5 +140,132 @@ describe(`${file.name}`, () =>
         expect(functionMock.Git.generateRepositoryPath).toBeCalledWith({username, name});
         expect(fsMock.createReadStream).toBeCalledTimes(1);
         expect(fsMock.createReadStream).toBeCalledWith(fakeAbsoluteFilePath);
+    });
+});
+
+describe(`${advertise.name}`, () =>
+{
+    const fakeRepository = new RepositoryClass('feaqfgaefg', 'faegaeg', 'gfagaeg', true);
+    const fakeRepositoryPath = path.join('aegaegaeg', 'hbwhwr');
+    const fakeHeaders = {afgaeg: 'gaghaeshgaes'};
+    const fakeRefsServiceResponse = 'bougboqegoaqeughoqeag98';
+    const fakeRPCCallOutput = 'fgoag983gh9w398wy';
+
+    beforeEach(() =>
+    {
+        jest.resetModules();
+        jest.resetAllMocks();
+        jest.mock('../../Database', () => databaseMock);
+        jest.mock('../../Function', () => functionMock);
+        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
+        functionMock.Git.doAdvertiseRPCCall.mockResolvedValue(fakeRPCCallOutput);
+        functionMock.Repository.generateRefsServiceResponse.mockReturnValue(fakeRefsServiceResponse);
+    });
+
+    it('should handle nonexistent repository', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
+        const {username, name} = fakeRepository;
+        const {advertise} = await import('../Git');
+        expect(await advertise({username, name}, 'faefae', fakeHeaders))
+            .toEqual(new ServiceResponse(404, {}, '仓库不存在'));
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({username, name});
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledTimes(0);
+        expect(functionMock.Repository.repositoryIsModifiableToTheRequest).toBeCalledTimes(0);
+        expect(functionMock.Git.generateRepositoryPath).toBeCalledTimes(0);
+        expect(functionMock.Git.doAdvertiseRPCCall).toBeCalledTimes(0);
+        expect(functionMock.Repository.generateRefsServiceResponse).toBeCalledTimes(0);
+    });
+
+    it('should handle unavailable repository', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Repository.repositoryIsAvailableToTheRequest.mockResolvedValue(false);
+        const {username, name} = fakeRepository;
+        const {advertise} = await import('../Git');
+        expect(await advertise({username, name}, 'faefae', fakeHeaders))
+            .toEqual(new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'}));
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({username, name});
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledWith(fakeRepository, fakeHeaders);
+        expect(functionMock.Repository.repositoryIsModifiableToTheRequest).toBeCalledTimes(0);
+        expect(functionMock.Git.generateRepositoryPath).toBeCalledTimes(0);
+        expect(functionMock.Git.doAdvertiseRPCCall).toBeCalledTimes(0);
+        expect(functionMock.Repository.generateRefsServiceResponse).toBeCalledTimes(0);
+    });
+
+    it('should handle non-"git-receive-pack" request', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Repository.repositoryIsAvailableToTheRequest.mockResolvedValue(true);
+        functionMock.Git.doAdvertiseRPCCall.mockResolvedValue(fakeRPCCallOutput);
+        const fakeService = 'gaegaeg';
+        const {username, name} = fakeRepository;
+        const {advertise} = await import('../Git');
+        expect(await advertise({username, name}, fakeService, fakeHeaders))
+            .toEqual(new ServiceResponse<string | void>(200, {
+                'Content-Type': `application/x-${fakeService}-advertisement`,
+            }, fakeRefsServiceResponse));
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({username, name});
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledWith(fakeRepository, fakeHeaders);
+        expect(functionMock.Repository.repositoryIsModifiableToTheRequest).toBeCalledTimes(0);
+        expect(functionMock.Git.generateRepositoryPath).toBeCalledTimes(1);
+        expect(functionMock.Git.generateRepositoryPath).toBeCalledWith({username, name});
+        expect(functionMock.Git.doAdvertiseRPCCall).toBeCalledTimes(1);
+        expect(functionMock.Git.doAdvertiseRPCCall).toBeCalledWith(fakeRepositoryPath, fakeService);
+        expect(functionMock.Repository.generateRefsServiceResponse).toBeCalledTimes(1);
+        expect(functionMock.Repository.generateRefsServiceResponse).toBeCalledWith(fakeService, fakeRPCCallOutput);
+    });
+
+    it('should handle unmodifiable "git-receive-pack" request', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Repository.repositoryIsAvailableToTheRequest.mockResolvedValue(true);
+        functionMock.Repository.repositoryIsModifiableToTheRequest.mockResolvedValue(false);
+        const fakeService = 'git-receive-pack';
+        const {username, name} = fakeRepository;
+        const {advertise} = await import('../Git');
+        expect(await advertise({username, name}, fakeService, fakeHeaders))
+            .toEqual(new ServiceResponse<string | void>(403, {}, '权限不足'));
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({username, name});
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledWith(fakeRepository, fakeHeaders);
+        expect(functionMock.Repository.repositoryIsModifiableToTheRequest).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsModifiableToTheRequest).toBeCalledWith(fakeRepository, fakeHeaders);
+        expect(functionMock.Git.generateRepositoryPath).toBeCalledTimes(0);
+        expect(functionMock.Git.doAdvertiseRPCCall).toBeCalledTimes(0);
+        expect(functionMock.Repository.generateRefsServiceResponse).toBeCalledTimes(0);
+    });
+
+    it('should handle modifiable "git-receive-pack" request', async function ()
+    {
+        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
+        functionMock.Repository.repositoryIsAvailableToTheRequest.mockResolvedValue(true);
+        functionMock.Repository.repositoryIsModifiableToTheRequest.mockResolvedValue(true);
+        functionMock.Git.doAdvertiseRPCCall.mockResolvedValue(fakeRPCCallOutput);
+        const fakeService = 'git-receive-pack';
+        const {username, name} = fakeRepository;
+        const {advertise} = await import('../Git');
+        expect(await advertise({username, name}, fakeService, fakeHeaders))
+            .toEqual(new ServiceResponse<string | void>(200, {
+                'Content-Type': `application/x-${fakeService}-advertisement`,
+            }, fakeRefsServiceResponse));
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
+        expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({username, name});
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledWith(fakeRepository, fakeHeaders);
+        expect(functionMock.Repository.repositoryIsModifiableToTheRequest).toBeCalledTimes(1);
+        expect(functionMock.Repository.repositoryIsModifiableToTheRequest).toBeCalledWith(fakeRepository, fakeHeaders);
+        expect(functionMock.Git.generateRepositoryPath).toBeCalledTimes(1);
+        expect(functionMock.Git.generateRepositoryPath).toBeCalledWith({username, name});
+        expect(functionMock.Git.doAdvertiseRPCCall).toBeCalledTimes(1);
+        expect(functionMock.Git.doAdvertiseRPCCall).toBeCalledWith(fakeRepositoryPath, fakeService);
+        expect(functionMock.Repository.generateRefsServiceResponse).toBeCalledTimes(1);
+        expect(functionMock.Repository.generateRefsServiceResponse).toBeCalledWith(fakeService, fakeRPCCallOutput);
     });
 });
