@@ -23,7 +23,6 @@ import path from 'path';
 import {Commit, Repository} from '../../Class';
 import {ObjectType} from '../../CONSTANT';
 import os from 'os';
-import faker from 'faker';
 import {GIT} from '../../CONFIG';
 import {Readable, Writable} from 'stream';
 import EventEmitter from 'events';
@@ -290,7 +289,7 @@ describe(`${generateRepositoryPath.name}`, () =>
 {
     it('should generate repository path', function ()
     {
-        const fakeRepository = new Repository(faker.name.firstName(), faker.random.word(), faker.lorem.sentence(), true);
+        const fakeRepository = new Repository('gsgsg3', 'vnoa8yoghiu3ghy89ahg', 'vikasghvi8v983gh9', true);
         expect(generateRepositoryPath(fakeRepository))
             .toBe(path.join(GIT.ROOT, fakeRepository.username, `${fakeRepository.name}.git`));
     });
@@ -348,15 +347,15 @@ describe(`${objectExists.name}`, () =>
         await Promise.all([
             expect(objectExists(repositoryPath, firstCommitFolderName, mainBranchName)).resolves.toBe(true),
             expect(objectExists(repositoryPath, firstCommitFileName, mainBranchName)).resolves.toBe(true),
-            expect(objectExists(repositoryPath, path.join(faker.random.word(), faker.random.word()), mainBranchName)).resolves.toBe(false),
+            expect(objectExists(repositoryPath, path.join('vnoah289hv', 'vnoi28h9ah2'), mainBranchName)).resolves.toBe(false),
         ]);
     });
 
     it('should reject when repository or commit hash does not exist', async function ()
     {
         await Promise.all([
-            expect(objectExists(path.join(faker.random.word(), faker.random.word()), firstCommitFolderName, mainBranchName)).rejects.toThrow(),
-            expect(objectExists(repositoryPath, firstCommitFileName, faker.random.alphaNumeric(64))).rejects.toThrow(),
+            expect(objectExists(path.join('fnoa8bh2ofa2', 'fa9iygi9a28h'), firstCommitFolderName, mainBranchName)).rejects.toThrow(),
+            expect(objectExists(repositoryPath, firstCommitFileName, 'e'.repeat(64))).rejects.toThrow(),
         ]);
     });
 });
@@ -449,8 +448,8 @@ describe(`${getObjectReadStream.name}`, () =>
 
 describe(`${doAdvertiseRPCCall.name}`, () =>
 {
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeService = `git-${faker.random.word()}`;
+    const fakeRepositoryPath = path.join('fnoaih982h', 'fn9a28y98t');
+    const fakeService = `git-fagqa2ga`;
 
     beforeEach(() =>
     {
@@ -497,8 +496,8 @@ describe(`${doAdvertiseRPCCall.name}`, () =>
 
 describe(`${doRPCCall.name}`, () =>
 {
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeCommand = `${faker.random.word()}`;
+    const fakeRepositoryPath = path.join('nfvaio8h98a2', 'vna28y98trya2');
+    const fakeCommand = `cniafbiqa2`;
     const mockParameterStream = {
         pipe: jest.fn(),
     };
@@ -532,7 +531,7 @@ describe(`${doRPCCall.name}`, () =>
 
 describe(`${doUpdateServerInfo.name}`, () =>
 {
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeRepositoryPath = path.join('vno28y0rt89y2at', 'vna9o28rh098a');
 
     beforeEach(() =>
     {
@@ -609,7 +608,7 @@ async function doBinaryCommit()
     const binary = [];
     for (let i = 0; i < binaryFileSize; i++)
     {
-        binary.push(faker.random.number(255));
+        binary.push(Math.round(Math.random() * 255));
     }
     await fs.promises.writeFile(
         path.join(repositoryPath, binaryFileName),

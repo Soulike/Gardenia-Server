@@ -1,12 +1,11 @@
 import {getAccountFromAuthenticationHeader} from '../Authentication';
 import {Base64} from 'js-base64';
-import faker from 'faker';
 import {Account} from '../../Class';
 
 describe(`${getAccountFromAuthenticationHeader.name}`, () =>
 {
-    const fakeUsername = faker.name.firstName();
-    const fakePassword = faker.random.alphaNumeric(15);
+    const fakeUsername = 'fniauhgfiq3';
+    const fakePassword = 'giabgv92b9iag2a';
     const fakeHash = Account.calculateHash(fakeUsername, fakePassword);
 
     it('should get account', function ()

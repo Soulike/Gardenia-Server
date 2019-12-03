@@ -1,11 +1,10 @@
 import {Account, Profile} from '../../../Class';
-import faker from 'faker';
 import {deleteByUsername, insert, selectByUsername, update} from '../Profile';
 import * as AccountTable from '../Account';
 import pool from '../../Pool';
 import {executeTransaction} from '../../Function';
 
-const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+const fakeAccount = new Account('vbqanstjd', 'a'.repeat(64));
 
 beforeAll(async () =>
 {
@@ -19,7 +18,7 @@ afterAll(async () =>
 
 describe(`${selectByUsername.name}`, () =>
 {
-    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+    const fakeProfile = new Profile(fakeAccount.username, 'bvahersahrs', 'a@b.com', '');
 
     beforeAll(async () =>
     {
@@ -39,7 +38,7 @@ describe(`${selectByUsername.name}`, () =>
 
     it('should return null when profile does not exists', async function ()
     {
-        const nonexistentFakeProfile = new Profile(faker.name.firstName(), faker.name.firstName(), faker.internet.email(), '');
+        const nonexistentFakeProfile = new Profile('bekr35q3', 'bsrbsrhbrsh', 'b@c.com', '');
         const profile = await selectByUsername(nonexistentFakeProfile.username);
         expect(profile).toBeNull();
     });
@@ -47,7 +46,7 @@ describe(`${selectByUsername.name}`, () =>
 
 describe(`${update.name}`, () =>
 {
-    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+    const fakeProfile = new Profile(fakeAccount.username, 'bvahegsrsahrs', 'a@b.com', '');
 
     beforeEach(async () =>
     {
@@ -62,8 +61,8 @@ describe(`${update.name}`, () =>
     it('should update profile', async function ()
     {
         const modifiedFakeProfile: Omit<Profile, 'avatar' | 'username'> = {
-            email: faker.internet.email(),
-            nickname: faker.name.firstName(),
+            email: 'bsr@bsr.com',
+            nickname: 'bsrrnjtdejfdt',
         };
         await update(modifiedFakeProfile, {username: fakeProfile.username});
         const fakeProfileCopy = Profile.from({
@@ -76,7 +75,7 @@ describe(`${update.name}`, () =>
 
 describe(`${deleteByUsername.name}`, () =>
 {
-    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+    const fakeProfile = new Profile(fakeAccount.username, 'bvahgsgsersahrs', 'a@b.com', '');
 
     beforeEach(async () =>
     {
@@ -110,8 +109,8 @@ describe(`${deleteByUsername.name}`, () =>
 
 describe(`${insert.name}`, () =>
 {
-    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
-    const fakeOthersProfile = new Profile(faker.random.word(), faker.name.firstName(), faker.internet.email(), '');
+    const fakeProfile = new Profile(fakeAccount.username, 'bvahcvagaersahrs', 'a@b.com', '');
+    const fakeOthersProfile = new Profile('bvsrhjetdje', 'bvahersdsahrs', 'a@b.com', '');
 
     afterEach(async () =>
     {

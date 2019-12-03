@@ -1,12 +1,11 @@
 import {Profile} from '../Profile';
-import faker from 'faker';
 
 describe(`${Profile.name}`, () =>
 {
-    const fakeUsername = faker.name.firstName();
-    const fakeNickname = faker.random.word();
-    const fakeAvatar = faker.random.alphaNumeric(1024);
-    const fakeEmail = faker.internet.email();
+    const fakeUsername = 'ncvaoi8b98g9hv';
+    const fakeNickname = 'gb987ahgbioa8h3';
+    const fakeAvatar = 'fna98ht9i8aht';
+    const fakeEmail = 'a@f.com';
 
     it(`should construct ${Profile.name} object`, function ()
     {

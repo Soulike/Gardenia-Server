@@ -1,11 +1,10 @@
 import {Account, Group, Profile, ResponseBody, ServiceResponse} from '../../Class';
-import faker from 'faker';
 import {checkPassword, checkSession, getAdministratingGroups, getGroups, login, logout, register} from '../Account';
 import {Session} from 'koa-session';
 import {InvalidSessionError} from '../../Dispatcher/Class';
 import {Account as AccountTable} from '../../Database';
 
-const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
+const fakeAccount = new Account('barsrharsh', 'A'.repeat(64));
 
 const databaseMock = {
     Account: {
@@ -53,7 +52,7 @@ describe(`${login.name}`, () =>
     {
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {login} = await import('../Account');
-        const response = await login({...fakeAccount, hash: faker.random.alphaNumeric(64)});
+        const response = await login({...fakeAccount, hash: 'b'.repeat(64)});
         expect(response).toEqual(new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名或密码错误')));
         expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
@@ -75,7 +74,7 @@ describe(`${register.name}`, () =>
         databaseMock.Account.create.mockResolvedValue(undefined);
         const {register} = await import('../Account');
         const response = await register(fakeAccount,
-            new Profile('', faker.name.firstName(), faker.internet.email(), ''));
+            new Profile(fakeAccount.username, 'ghwrhwh', 'a@b.com', ''));
         expect(response).toEqual(new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名已存在')));
         expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
@@ -86,7 +85,7 @@ describe(`${register.name}`, () =>
     {
         databaseMock.Account.selectByUsername.mockResolvedValue(null);
         databaseMock.Account.create.mockResolvedValue(undefined);
-        const fakeProfile = new Profile(fakeAccount.username, faker.random.word(), faker.internet.email(), '');
+        const fakeProfile = new Profile(fakeAccount.username, 'gfaefaehwrhwh', 'a@b.com', '');
         const {register} = await import('../Account');
         const response = await register(fakeAccount,
             {
@@ -250,7 +249,7 @@ describe(`${checkPassword.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {checkPassword} = await import('../Account');
         const result = await checkPassword(
-            {hash: faker.random.alphaNumeric(64)},
+            {hash: 'c'.repeat(64)},
             {username: fakeAccount.username} as unknown as Session);
         expect(result).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true, '', {isCorrect: false})));

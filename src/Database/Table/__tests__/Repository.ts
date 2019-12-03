@@ -10,14 +10,13 @@ import {
     update,
 } from '../Repository';
 import {Account, Group, Repository} from '../../../Class';
-import faker from 'faker';
 import * as AccountTable from '../Account';
 import * as GroupTable from '../Group';
 import {deleteById} from '../Group';
 import pool from '../../Pool';
 import {executeTransaction} from '../../Function';
 
-const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+const fakeAccount = new Account('brswhrsthjedj', 'a'.repeat(64));
 
 beforeAll(async () =>
 {
@@ -31,7 +30,7 @@ afterAll(async () =>
 
 describe(`${insert.name}`, () =>
 {
-    const fakeRepository = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository = new Repository(fakeAccount.username, 'baebaeghae', 'aeghahb', true);
 
     afterEach(async () =>
     {
@@ -53,7 +52,7 @@ describe(`${insert.name}`, () =>
 
 describe(`${deleteByUsernameAndName.name}`, () =>
 {
-    const fakeRepository = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository = new Repository(fakeAccount.username, 'baebaeghfgaegfae', 'aeghahb', true);
 
     beforeEach(async () =>
     {
@@ -89,7 +88,7 @@ describe(`${deleteByUsernameAndName.name}`, () =>
 
 describe(`${update.name}`, () =>
 {
-    const fakeRepository = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository = new Repository(fakeAccount.username, 'baebaegbaehbresaghewaghae', 'aeghahb', true);
 
     beforeEach(async () =>
     {
@@ -104,7 +103,7 @@ describe(`${update.name}`, () =>
     it('should update repository not on primary key', async function ()
     {
         const modifiedFakeRepository = Repository.from(fakeRepository);
-        modifiedFakeRepository.description = faker.lorem.sentence();
+        modifiedFakeRepository.description = 'vahjbvaejhbiaehk';
         await update(modifiedFakeRepository, modifiedFakeRepository);
         expect(await selectByUsernameAndName(modifiedFakeRepository)).toStrictEqual(modifiedFakeRepository);
         await deleteByUsernameAndName(modifiedFakeRepository);
@@ -113,8 +112,8 @@ describe(`${update.name}`, () =>
     it('should update repository on primary key', async function ()
     {
         const modifiedFakeRepository = Repository.from(fakeRepository);
-        modifiedFakeRepository.name = faker.lorem.word();
-        modifiedFakeRepository.description = faker.lorem.sentence();
+        modifiedFakeRepository.name = 'vahjvbaekjhgvuavbg';
+        modifiedFakeRepository.description = 'vabkhjbvjahugbviaebgv';
         await update(modifiedFakeRepository, {
             username: fakeRepository.username,
             name: fakeRepository.name,
@@ -126,7 +125,7 @@ describe(`${update.name}`, () =>
 
 describe(`${selectByUsernameAndName.name}`, () =>
 {
-    const fakeRepository = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository = new Repository(fakeAccount.username, 'baebaegvaegeagghae', 'aeghahb', true);
 
     beforeAll(async () =>
     {
@@ -147,8 +146,8 @@ describe(`${selectByUsernameAndName.name}`, () =>
     it('should return null when repository does not exist', async function ()
     {
         const nonexistentRepository = Repository.from(fakeRepository);
-        nonexistentRepository.username = faker.name.firstName();
-        nonexistentRepository.name = faker.random.word();
+        nonexistentRepository.username = 'vabhjvbjahevgiakuegbviuae';
+        nonexistentRepository.name = 'vabjvuikaebviaekbgikvaeug';
         const repository = await selectByUsernameAndName(nonexistentRepository);
         expect(repository).toBeNull();
     });
@@ -157,18 +156,18 @@ describe(`${selectByUsernameAndName.name}`, () =>
 describe(`${select.name}`, () =>
 {
     const fakePublicRepositories: Repository[] = [
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), true),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), true),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), true),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), true),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), true),
+        new Repository(fakeAccount.username, 'gakjebgniouabg', 'faibgkaebgi', true),
+        new Repository(fakeAccount.username, 'gakjebgseagniouabg', 'faibgkaebgi', true),
+        new Repository(fakeAccount.username, 'faegaeghrsw', 'faibgkaebgi', true),
+        new Repository(fakeAccount.username, 'herdthdethj', 'faibgkaebgi', true),
+        new Repository(fakeAccount.username, 'awfgaqtaqwg', 'faibgkaebgi', true),
     ];
     const fakePrivateRepositories: Repository[] = [
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), false),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), false),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), false),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), false),
-        new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), false),
+        new Repository(fakeAccount.username, 'gakjebgnagaegiouabg', 'faibgkaebgi', false),
+        new Repository(fakeAccount.username, 'gakjebagegaegseagniouabg', 'faibgkaebgi', false),
+        new Repository(fakeAccount.username, 'babbabae', 'faibgkaebgi', false),
+        new Repository(fakeAccount.username, 'aebawaba', 'faibgkaebgi', false),
+        new Repository(fakeAccount.username, 'babaeb', 'faibgkaebgi', false),
     ];
 
     beforeAll(async () =>
@@ -199,8 +198,8 @@ describe(`${select.name}`, () =>
     {
         const [publicRepositories, privateRepositories, repositories] =
             await Promise.all([
-                select({isPublic: true, username: faker.name.firstName()}),
-                select({isPublic: false, username: faker.name.firstName()}),
+                select({isPublic: true, username: 'abgaeigbaeiubg'}),
+                select({isPublic: false, username: 'vnoiqeahboqakejg89'}),
                 select({username: fakeAccount.username}),
             ]);
         expect(publicRepositories.length).toBe(0);
@@ -224,15 +223,15 @@ describe(`${select.name}`, () =>
 
 describe(`${getGroupsByUsernameAndName.name}`, () =>
 {
-    const fakeRepository1 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
-    const fakeRepository2 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository1 = new Repository(fakeAccount.username, 'gakjebgniouabg', 'faibgkaebgi', true);
+    const fakeRepository2 = new Repository(fakeAccount.username, 'geaghewagewaghewa', 'faibgkaebgi', false);
     const fakeGroupsForRepository1: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'vaegaegaeg'),
+        new Group(-1, 'vawhwrshsr'),
     ];
     const fakeGroupsForRepository2: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'vahraehgyaegh'),
+        new Group(-1, 'vaeghaeyaegvae'),
     ];
 
     beforeAll(async () =>
@@ -286,15 +285,15 @@ describe(`${getGroupsByUsernameAndName.name}`, () =>
 
 describe(`${getGroupByUsernameAndNameAndGroupId.name}`, () =>
 {
-    const fakeRepository1 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
-    const fakeRepository2 = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
+    const fakeRepository1 = new Repository(fakeAccount.username, 'gakjebawfawfgniouabg', 'faibgkaebgi', true);
+    const fakeRepository2 = new Repository(fakeAccount.username, 'geaghfagvaegewagewaghewa', 'faibgkaebgi', false);
     const fakeGroupsForRepository1: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'vaegaegae'),
+        new Group(-1, 'vawhawfwaqfwrshsr'),
     ];
     const fakeGroupsForRepository2: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'vahraehaegbasggyaegh'),
+        new Group(-1, 'vaeghawafafeyaegvae'),
     ];
 
     beforeAll(async () =>
@@ -352,10 +351,10 @@ describe(`${getGroupByUsernameAndNameAndGroupId.name}`, () =>
 
 describe(`${addToGroups.name}`, () =>
 {
-    const fakeRepository = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
-    const fakeGroups = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+    const fakeRepository = new Repository(fakeAccount.username, 'gakjebgfgaegfaeniouabg', 'faibgkaebgi', true);
+    const fakeGroups: Group[] = [
+        new Group(-1, 'vahraehgyaeggagh'),
+        new Group(-1, 'vaeghaegaegaegyaegvae'),
     ];
 
     async function insertFakeGroupsAndSetTheirIds()
@@ -402,10 +401,10 @@ describe(`${addToGroups.name}`, () =>
 
 describe(`${removeFromGroups.name}`, () =>
 {
-    const fakeRepository = new Repository(fakeAccount.username, faker.random.word(), faker.lorem.sentence(), faker.random.boolean());
-    const fakeGroups = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+    const fakeRepository = new Repository(fakeAccount.username, 'afwawgaega', 'faibgkaebgi', true);
+    const fakeGroups: Group[] = [
+        new Group(-1, 'gabahrash'),
+        new Group(-1, 'aefawfagf'),
     ];
 
     async function insertFakeGroupsAndSetTheirIds()

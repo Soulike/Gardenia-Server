@@ -1,7 +1,6 @@
 import {Account as AccountTable, Group as GroupTable, Repository as RepositoryTable} from '../../Database';
 import {Group as GroupFunction} from '../../Function';
 import {Account, Group, Repository, ResponseBody, ServiceResponse} from '../../Class';
-import faker from 'faker';
 import {Session} from 'koa-session';
 import {
     accounts,
@@ -70,8 +69,8 @@ const functionMock = {
 
 describe(`${add.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('faqgaegaegaeg', 'a'.repeat(64));
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
 
     beforeEach(() =>
@@ -161,8 +160,8 @@ describe(`${add.name}`, () =>
 
 describe(`${dismiss.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('faqgaegaegaeg', 'a'.repeat(64));
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
 
     beforeEach(() =>
@@ -205,7 +204,7 @@ describe(`${dismiss.name}`, () =>
 
 describe(`${info.name}`, () =>
 {
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
 
     beforeEach(() =>
     {
@@ -241,10 +240,10 @@ describe(`${info.name}`, () =>
 describe(`${accounts.name}`, () =>
 {
     const fakeAccounts = [
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account('vagaegaegaeg', 'a'.repeat(64)),
+        new Account('awfafaegf', 'b'.repeat(64)),
     ];
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
 
     beforeEach(() =>
     {
@@ -285,12 +284,12 @@ describe(`${accounts.name}`, () =>
 describe(`${addAccounts.name}`, () =>
 {
     const fakeAccounts = [
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account('vagaegaegfafgaeaeg', 'a'.repeat(64)),
+        new Account('awfawfawfafaegf', 'b'.repeat(64)),
     ];
     const fakeUsernames = fakeAccounts.map(({username}) => username);
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
-    const fakeSession = {username: faker.random.word()} as unknown as Session;
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
+    const fakeSession = {username: 'vahagaeg'} as unknown as Session;
 
     beforeEach(() =>
     {
@@ -393,12 +392,12 @@ describe(`${addAccounts.name}`, () =>
 describe(`${removeAccounts.name}`, () =>
 {
     const fakeAccounts = [
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account('vagaeafgagaegaeg', 'a'.repeat(64)),
+        new Account('awfafgaegaeaegf', 'b'.repeat(64)),
     ];
     const fakeUsernames = fakeAccounts.map(({username}) => username);
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
-    const fakeSession = {username: faker.random.word()} as unknown as Session;
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
+    const fakeSession = {username: 'vaeegaegaeg'} as unknown as Session;
     const fakeSelfSession = {username: fakeUsernames[0]} as unknown as Session;
 
     beforeEach(() =>
@@ -474,10 +473,10 @@ describe(`${removeAccounts.name}`, () =>
 describe(`${admins.name}`, () =>
 {
     const fakeAccounts = [
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account('afgaefgaeg', 'a'.repeat(64)),
+        new Account('awfgaegagvagaeafaegf', 'b'.repeat(64)),
     ];
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
 
     beforeEach(() =>
     {
@@ -518,12 +517,12 @@ describe(`${admins.name}`, () =>
 describe(`${addAdmins.name}`, () =>
 {
     const fakeAccounts = [
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account('vagafaegaegaeg', 'a'.repeat(64)),
+        new Account('awfafafvaegfaegf', 'b'.repeat(64)),
     ];
     const fakeUsernames = fakeAccounts.map(({username}) => username);
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
-    const fakeSession = {username: faker.random.word()} as unknown as Session;
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
+    const fakeSession = {username: 'vahgaetaf'} as unknown as Session;
 
     beforeEach(() =>
     {
@@ -670,12 +669,12 @@ describe(`${addAdmins.name}`, () =>
 describe(`${removeAdmins.name}`, () =>
 {
     const fakeAccounts = [
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
-        new Account(faker.random.word(), faker.random.alphaNumeric(64)),
+        new Account('aaa', ''),
+        new Account('bbb', ''),
     ];
     const fakeUsernames = fakeAccounts.map(({username}) => username);
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
-    const fakeSession = {username: faker.random.word()} as unknown as Session;
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
+    const fakeSession = {username: 'ccc'} as unknown as Session;
     const fakeSelfSession = {username: fakeUsernames[0]} as unknown as Session;
 
     beforeEach(() =>
@@ -750,10 +749,10 @@ describe(`${removeAdmins.name}`, () =>
 
 describe(`${repositories.name}`, () =>
 {
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
     const fakeRepositories = [
-        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
-        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
+        new Repository('fagfaegaegaegv', 'vagaegaeeg', 'cagaegf', true),
+        new Repository('vaaeg', 'vageatfwafva', 'vahgaegae', false),
     ];
 
     beforeEach(() =>
@@ -794,11 +793,11 @@ describe(`${repositories.name}`, () =>
 
 describe(`${removeRepositories.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('faqgaegaegaeg', 'a'.repeat(64));
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
     const fakeRepositories = [
-        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
-        new Repository(faker.random.word(), faker.random.word(), faker.lorem.sentence(), faker.random.boolean()),
+        new Repository('fagfaegaagvaegegaegv', 'vagaegaavaeeg', 'cagaegf', true),
+        new Repository('vvaevaeaaeg', 'vageatfwvbageafva', 'vahgaegae', false),
     ];
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
 
@@ -908,8 +907,8 @@ describe(`${removeRepositories.name}`, () =>
 
 describe(`${isAdmin.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('faqgaegaegaeg', 'a'.repeat(64));
+    const fakeGroup = new Group(-1, 'vagaegaeghaegaegaeg');
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
 
     beforeEach(() =>

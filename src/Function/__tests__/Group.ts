@@ -1,6 +1,5 @@
 import {Account as AccountTable, Group as GroupTable} from '../../Database';
 import {Account, Group} from '../../Class';
-import faker from 'faker';
 import {Session} from 'koa-session';
 import {groupExists, isGroupAdmin, isGroupMember} from '../Group';
 
@@ -22,8 +21,8 @@ const databaseMock = {
 
 describe(`${isGroupAdmin.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('nfiaehfiuae', 'u'.repeat(64));
+    const fakeGroup = new Group(-1, 'faibhybfiuyawf');
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
 
     beforeEach(() =>
@@ -56,8 +55,8 @@ describe(`${isGroupAdmin.name}`, () =>
 
 describe(`${isGroupMember.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('nfiaehfiuae', 'u'.repeat(64));
+    const fakeGroup = new Group(-1, 'faibhybfiuyawf');
 
     beforeEach(() =>
     {
@@ -89,7 +88,7 @@ describe(`${isGroupMember.name}`, () =>
 
 describe(`${groupExists.name}`, () =>
 {
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeGroup = new Group(-1, 'faibhybfiuyawf');
 
     beforeEach(() =>
     {
@@ -119,8 +118,8 @@ describe(`${groupExists.name}`, () =>
 
 describe(`groupNameExists`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('nfiaehfiuae', 'u'.repeat(64));
+    const fakeGroup = new Group(-1, 'faibhybfiuyawf');
 
     beforeEach(() =>
     {

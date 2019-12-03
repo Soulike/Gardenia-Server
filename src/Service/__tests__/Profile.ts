@@ -1,6 +1,5 @@
 import {get, set, updateAvatar} from '../Profile';
 import {Account, Profile as ProfileClass, Profile, ResponseBody, ServiceResponse} from '../../Class';
-import faker from 'faker';
 import {Session} from 'koa-session';
 import {InvalidSessionError} from '../../Dispatcher/Class';
 import {File} from 'formidable';
@@ -10,7 +9,7 @@ import imageminWebp from 'imagemin-webp';
 import {SERVER} from '../../CONFIG';
 import {Profile as ProfileTable} from '../../Database';
 
-const fakeProfile = new Profile(faker.random.word(), faker.name.firstName(), faker.internet.email(), '');
+const fakeProfile = new Profile('vagagaegawg', 'vahbaeh', 'a@b.com', '');
 
 const databaseMock = {
     Profile: {
@@ -70,7 +69,7 @@ describe(`${get.name}`, () =>
         databaseMock.Profile.selectByUsername.mockResolvedValue(fakeProfile);
         const {get} = await import('../Profile');
         const response = await get(
-            {username: faker.random.word()} as unknown as Session,
+            {username: 'vabaeh'} as unknown as Session,
             {username: fakeProfile.username});
         expect(response).toEqual(new ServiceResponse<ProfileClass>(200, {},
             new ResponseBody<ProfileClass>(true, '', fakeProfile)));
@@ -108,10 +107,10 @@ describe(`${set.name}`, () =>
 
     it('should set profile', async function ()
     {
-        const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+        const fakeAccount = new Account('vaegaegawegaqg', 'a'.repeat(64));
         const fakeProfile: Partial<Omit<Profile, 'avatar' | 'username'>> = {
-            email: faker.internet.email(),
-            nickname: faker.name.firstName(),
+            email: 'vaev@gsrh.com',
+            nickname: 'abkjaekjlbgaek',
         };
         const {set} = await import('../Profile');
         expect(
@@ -143,11 +142,11 @@ describe(`${updateAvatar.name}`, () =>
     {
         const fakeFile: File = {
             size: 0,
-            path: '',
-            name: faker.random.word(),
+            path: path.join('gaegaeg', 'baqbaegh'),
+            name: 'vagaegae',
             type: '',
-            lastModifiedDate: faker.date.past(),
-            hash: faker.random.alphaNumeric(64),
+            lastModifiedDate: new Date(1998, 1, 20),
+            hash: 'v'.repeat(64),
             toJSON: () => ({}),
         };
         await expect(updateAvatar(fakeFile, {} as unknown as Session)).rejects.toBeInstanceOf(InvalidSessionError);
@@ -157,16 +156,16 @@ describe(`${updateAvatar.name}`, () =>
     it('should modify avatar', async function ()
     {
         const fakeAccount = new Account(
-            faker.name.firstName(),
-            faker.random.alphaNumeric(64),
+            'qahbaehrasharsh',
+            'a'.repeat(64),
         );
         const fakeFile: File = {
             size: 0,
-            path: path.join(faker.random.word(), faker.random.word(), faker.random.word()),
-            name: faker.random.word(),
+            path: path.join('gaegaeg', 'baqbaegh'),
+            name: 'vagaegae',
             type: '',
-            lastModifiedDate: faker.date.past(),
-            hash: faker.random.alphaNumeric(64),
+            lastModifiedDate: new Date(1998, 1, 20),
+            hash: 'v'.repeat(64),
             toJSON: () => ({}),
         };
         const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);
@@ -214,16 +213,16 @@ describe(`${updateAvatar.name}`, () =>
     {
         imageminMock.mockRejectedValue(new Error());
         const fakeAccount = new Account(
-            faker.name.firstName(),
-            faker.random.alphaNumeric(64),
+            'aaBAEHAEHHA',
+            'b'.repeat(64),
         );
         const fakeFile: File = {
             size: 0,
-            path: path.join(faker.random.word(), faker.random.word(), faker.random.word()),
-            name: faker.random.word(),
+            path: path.join('gaegaeg', 'baqbaegh'),
+            name: 'vagaegae',
             type: '',
-            lastModifiedDate: faker.date.past(),
-            hash: faker.random.alphaNumeric(64),
+            lastModifiedDate: new Date(1998, 1, 20),
+            hash: 'v'.repeat(64),
             toJSON: () => ({}),
         };
         const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
@@ -270,16 +269,16 @@ describe(`${updateAvatar.name}`, () =>
     {
         databaseMock.Profile.update.mockRejectedValue(new Error());
         const fakeAccount = new Account(
-            faker.name.firstName(),
-            faker.random.alphaNumeric(64),
+            'aaBAEHAvaevaeEHHA',
+            'b'.repeat(64),
         );
         const fakeFile: File = {
             size: 0,
-            path: path.join(faker.random.word(), faker.random.word(), faker.random.word()),
-            name: faker.random.word(),
+            path: path.join('gfafaegaeg', 'baawfawqbaegh'),
+            name: 'vagaawfawfegae',
             type: '',
-            lastModifiedDate: faker.date.past(),
-            hash: faker.random.alphaNumeric(64),
+            lastModifiedDate: new Date(1998, 1, 20),
+            hash: 'c'.repeat(64),
             toJSON: () => ({}),
         };
         const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
@@ -326,16 +325,16 @@ describe(`${updateAvatar.name}`, () =>
     {
         fseMock.move.mockRejectedValue(new Error());
         const fakeAccount = new Account(
-            faker.name.firstName(),
-            faker.random.alphaNumeric(64),
+            'aaBfafawfAEHAEHHA',
+            'b'.repeat(64),
         );
         const fakeFile: File = {
             size: 0,
-            path: path.join(faker.random.word(), faker.random.word(), faker.random.word()),
-            name: faker.random.word(),
+            path: path.join('gaawfegaeg', 'baqbawfaegh'),
+            name: 'vagacawfegae',
             type: '',
-            lastModifiedDate: faker.date.past(),
-            hash: faker.random.alphaNumeric(64),
+            lastModifiedDate: new Date(1998, 1, 20),
+            hash: 'e'.repeat(64),
             toJSON: () => ({}),
         };
         const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);

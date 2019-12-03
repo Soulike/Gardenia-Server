@@ -1,6 +1,5 @@
 import {create, del, getRepositories} from '../Repository';
 import {Account, Repository as RepositoryClass, Repository, ResponseBody, ServiceResponse} from '../../Class';
-import faker from 'faker';
 import {Session} from 'koa-session';
 import {EventEmitter} from 'events';
 import path from 'path';
@@ -9,7 +8,7 @@ import {Repository as RepositoryTable} from '../../Database';
 import {Git} from '../../Function';
 import fs from 'fs';
 
-const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+const fakeRepositoryPath = path.join('vagaeg', 'cafaf');
 
 const databaseMock = {
     Repository: {
@@ -57,13 +56,13 @@ const functionMock = {
 
 describe(`${getRepositories.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeOthersSession: Session = {username: faker.random.word()} as unknown as Session;
+    const fakeAccount = new Account('vagaegaeg', 'c'.repeat(64));
+    const fakeOthersSession: Session = {username: 'vasghaeghae'} as unknown as Session;
     const fakeOwnSession: Session = {username: fakeAccount.username} as unknown as Session;
     const fakeRepositories = [
-        new Repository(faker.name.firstName(), faker.random.word(), faker.lorem.sentence(), true),
-        new Repository(faker.name.firstName(), faker.random.word(), faker.lorem.sentence(), false),
-        new Repository(faker.name.firstName(), faker.random.word(), faker.lorem.sentence(), true),
+        new Repository('vabaegaeg', 'vahaetgae', 'caGAGAEGAEGAV', true),
+        new Repository('vabfafaegaeg', 'vahaefawfwtgae', 'cfaGAGAEGAEGAV', false),
+        new Repository('aghaegae', 'wadqsf', 'caGAGAEGAEGAV', true),
     ];
 
     beforeEach(() =>
@@ -122,7 +121,7 @@ describe(`${getRepositories.name}`, () =>
 
 describe(`${create.name}`, () =>
 {
-    const fakeRepository = new RepositoryClass(faker.random.word(), faker.name.firstName(), faker.lorem.sentence(), true);
+    const fakeRepository = new RepositoryClass('babaehae', 'dAFQAFGQA', 'baheaghae', true);
     const fakeSession = {username: fakeRepository.username} as unknown as Session;
 
     beforeEach(() =>
@@ -260,10 +259,9 @@ describe(`${create.name}`, () =>
 
     it('should process mkdir error', async function ()
     {
-        const mkdirError = new Error(faker.lorem.sentence());
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
-        fsMock.promises.mkdir.mockRejectedValue(mkdirError);
+        fsMock.promises.mkdir.mockRejectedValue(new Error());
         cpMock.spawn.mockImplementation(() =>
         {
             const event = new EventEmitter();
@@ -277,7 +275,7 @@ describe(`${create.name}`, () =>
         fseMock.remove.mockResolvedValue(undefined);
         const {create} = await import('../Repository');
 
-        await expect(create(fakeRepository, fakeSession)).rejects.toThrow(mkdirError);
+        await expect(create(fakeRepository, fakeSession)).rejects.toThrow();
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -305,7 +303,6 @@ describe(`${create.name}`, () =>
 
     it('should process command error', async function ()
     {
-        const commandError = new Error(faker.lorem.sentence());
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
         cpMock.spawn.mockImplementation(() =>
@@ -313,7 +310,7 @@ describe(`${create.name}`, () =>
             const event = new EventEmitter();
             setTimeout(() =>
             {
-                event.emit('error', commandError);
+                event.emit('error', new Error());
             }, 0);
             return event;
         });
@@ -322,7 +319,7 @@ describe(`${create.name}`, () =>
         fseMock.remove.mockResolvedValue(undefined);
         const {create} = await import('../Repository');
 
-        await expect(create(fakeRepository, fakeSession)).rejects.toThrow(commandError);
+        await expect(create(fakeRepository, fakeSession)).rejects.toThrow();
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -355,8 +352,6 @@ describe(`${create.name}`, () =>
 
     it('should process database insert error', async function ()
     {
-        const insertError = new Error(faker.lorem.sentence());
-
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
         fsMock.promises.mkdir.mockResolvedValue(undefined);
@@ -370,10 +365,10 @@ describe(`${create.name}`, () =>
             return event;
         });
         fseMock.remove.mockResolvedValue(undefined);
-        databaseMock.Repository.insert.mockRejectedValue(insertError);
+        databaseMock.Repository.insert.mockRejectedValue(new Error());
         const {create} = await import('../Repository');
 
-        await expect(create(fakeRepository, fakeSession)).rejects.toThrow(insertError);
+        await expect(create(fakeRepository, fakeSession)).rejects.toThrow();
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -407,8 +402,6 @@ describe(`${create.name}`, () =>
 
     it('should not throw error created by fse.remove', async function ()
     {
-        const mkdirError = new Error(faker.lorem.sentence());
-        const removeError = new Error(faker.lorem.sentence());
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
         functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
         cpMock.spawn.mockImplementation(() =>
@@ -421,11 +414,11 @@ describe(`${create.name}`, () =>
             return event;
         });
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        fseMock.remove.mockRejectedValue(removeError);
-        fsMock.promises.mkdir.mockRejectedValue(mkdirError);
+        fseMock.remove.mockRejectedValue(new Error());
+        fsMock.promises.mkdir.mockRejectedValue(new Error());
         const {create} = await import('../Repository');
 
-        await expect(create(fakeRepository, fakeSession)).rejects.toThrow(mkdirError);
+        await expect(create(fakeRepository, fakeSession)).rejects.toThrow();
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -454,10 +447,10 @@ describe(`${create.name}`, () =>
 
 describe(`${del.name}`, () =>
 {
-    const fakeRepository = new RepositoryClass(faker.random.word(), faker.name.firstName(), faker.lorem.sentence(), true);
+    const fakeRepository = new RepositoryClass('vageaqga', 'fagaegaqgq2gw3', 'vaghq2qa2g', true);
     const fakeSession = {username: fakeRepository.username} as unknown as Session;
-    const tempPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const tempPath = path.join('vavawg', 'gagqa2');
+    const fakeRepositoryPath = path.join('agfagha3g', 'ga2tagb3g');
 
     beforeEach(() =>
     {
@@ -565,13 +558,12 @@ describe(`${del.name}`, () =>
 
     it('should process directory moving error', async function ()
     {
-        const movingError = new Error(faker.lorem.sentence());
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         databaseMock.Repository.deleteByUsernameAndName.mockResolvedValue(undefined);
-        fsMock.promises.rename.mockRejectedValue(movingError);
+        fsMock.promises.rename.mockRejectedValue(new Error());
         const {del} = await import('../Repository');
 
-        await expect(del(fakeRepository, fakeSession)).rejects.toThrow(movingError);
+        await expect(del(fakeRepository, fakeSession)).rejects.toThrow();
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({
@@ -598,13 +590,12 @@ describe(`${del.name}`, () =>
 
     it('should process database delete error', async function ()
     {
-        const deleteError = new Error(faker.lorem.sentence());
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        databaseMock.Repository.deleteByUsernameAndName.mockRejectedValue(deleteError);
+        databaseMock.Repository.deleteByUsernameAndName.mockRejectedValue(new Error());
         fsMock.promises.rename.mockResolvedValue(undefined);
         const {del} = await import('../Repository');
 
-        await expect(del(fakeRepository, fakeSession)).rejects.toThrow(deleteError);
+        await expect(del(fakeRepository, fakeSession)).rejects.toThrow();
 
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(1);
         expect(databaseMock.Repository.selectByUsernameAndName.mock.calls[0][0]).toEqual({

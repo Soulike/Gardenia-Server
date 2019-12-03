@@ -1,11 +1,10 @@
 import {Account} from '../Account';
 import crypto from 'crypto';
-import faker from 'faker';
 
 describe(`${Account.name}`, () =>
 {
-    const fakeUsername = faker.random.word();
-    const fakePassword = faker.random.alphaNumeric(10);
+    const fakeUsername = 'nfioahfioau3t';
+    const fakePassword = 'faohf98q2yf9ha';
     const fakeHash = calculateSHA256(calculateSHA256(fakeUsername) + calculateSHA256(fakePassword));
 
     it(`should construct ${Account.name} object`, function ()

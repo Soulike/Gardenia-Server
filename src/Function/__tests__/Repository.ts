@@ -5,7 +5,6 @@ import {
     repositoryIsModifiableToTheRequest,
 } from '../Repository';
 import {Account, Repository} from '../../Class';
-import faker from 'faker';
 import {Account as AccountTable} from '../../Database';
 import * as Authentication from '../Authentication';
 
@@ -22,15 +21,15 @@ const databaseMock = {
 
 describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
 {
-    const fakeAccount = new Account(faker.random.word(), faker.random.alphaNumeric(64));
-    const fakeViewer = new Account(faker.random.word(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('fafgaefg', 'i'.repeat(64));
+    const fakeViewer = new Account('faafawfaefgaefg', 'i'.repeat(64));
 
     it('public repository is available to any one', function ()
     {
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'faibjfbaei',
+            'fbiuagqfi',
             true,
         );
         expect(
@@ -42,8 +41,8 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
     {
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'faibjfafawfbaei',
+            'fbifafuagqfi',
             false,
         );
         expect(
@@ -68,10 +67,10 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
 describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
 {
     const fakeHeader = {
-        authorization: faker.random.alphaNumeric(20),
+        authorization: 'bviaegbiueagiaebuaeugb',
     };
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('fawfaefaef', 'r'.repeat(64));
+    const fakeViewer = new Account('fawfuyvuaefaef', 'r'.repeat(64));
 
     beforeEach(() =>
     {
@@ -87,8 +86,8 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'vaegaegaegf',
+            'fiahybbegiaegbia',
             true);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(true);
@@ -104,8 +103,8 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(true);
@@ -124,8 +123,8 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -142,9 +141,9 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(null);
         const fakeRepository = new Repository(
-            faker.name.firstName(),
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fibuaubfiaufgbiuagviuae',
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -161,8 +160,8 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(null);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -179,13 +178,13 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue({
             ...fakeViewer,
-            hash: faker.random.alphaNumeric(64),
+            hash: 'e'.repeat(64),
         });
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             false);
         const {repositoryIsAvailableToTheRequest} = await import('../Repository');
         expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -204,10 +203,10 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
 describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
 {
     const fakeHeader = {
-        authorization: faker.random.alphaNumeric(20),
+        authorization: 'fbigauygfiaugf',
     };
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('fawfaefaef', 'r'.repeat(64));
+    const fakeViewer = new Account('fawfuyvuaefaef', 'r'.repeat(64));
 
     beforeEach(() =>
     {
@@ -223,8 +222,8 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             true);
         const {repositoryIsModifiableToTheRequest} = await import('../Repository');
         expect(await repositoryIsModifiableToTheRequest(fakeRepository, fakeHeader)).toBe(true);
@@ -243,8 +242,8 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             true);
         const {repositoryIsModifiableToTheRequest} = await import('../Repository');
         expect(await repositoryIsModifiableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -264,9 +263,9 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(null);
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
         const fakeRepository = new Repository(
-            faker.name.firstName(),
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgonangoauebgouae',
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             true);
         const {repositoryIsModifiableToTheRequest} = await import('../Repository');
         expect(await repositoryIsModifiableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -283,8 +282,8 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
         databaseMock.Account.selectByUsername.mockResolvedValue(null);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             true);
         const {repositoryIsModifiableToTheRequest} = await import('../Repository');
         expect(await repositoryIsModifiableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -301,13 +300,13 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue({
             ...fakeViewer,
-            hash: faker.random.alphaNumeric(64),
+            hash: 't'.repeat(64),
         });
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
         const fakeRepository = new Repository(
             fakeAccount.username,
-            faker.random.word(),
-            faker.lorem.sentence(),
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
             true);
         const {repositoryIsModifiableToTheRequest} = await import('../Repository');
         expect(await repositoryIsModifiableToTheRequest(fakeRepository, fakeHeader)).toBe(false);
@@ -327,8 +326,8 @@ describe(`${generateRefsServiceResponse.name}`, () =>
 {
     it('should generate refs service response', function ()
     {
-        const fakeService = faker.random.alphaNumeric(10);
-        const fakeRPCOutput = faker.lorem.sentence();
+        const fakeService = 'fn8q73gh89q73ghioqu7g';
+        const fakeRPCOutput = 'nfvi8q3ahgoiqygthaoi38gy';
         const serverAdvert = `# service=${fakeService}`;
         const length = serverAdvert.length + 4;
         expect(generateRefsServiceResponse(fakeService, fakeRPCOutput)).toBe(

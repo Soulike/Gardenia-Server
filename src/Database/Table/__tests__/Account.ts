@@ -17,14 +17,13 @@ import {
 import * as GroupTable from '../Group';
 import * as ProfileTable from '../Profile';
 import {Account, Group, Profile} from '../../../Class';
-import faker from 'faker';
 import pool from '../../Pool';
 import {executeTransaction} from '../../Function';
 
 describe(`${selectByUsername.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const nonexistentFakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('sdhdsh', 'a'.repeat(64));
+    const nonexistentFakeAccount = new Account('afaefga', 'a'.repeat(64));
 
     beforeAll(async () =>
     {
@@ -51,7 +50,7 @@ describe(`${selectByUsername.name}`, () =>
 
 describe(`${update.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('grwgrwsg', 'a'.repeat(64));
 
     beforeEach(async () =>
     {
@@ -65,7 +64,7 @@ describe(`${update.name}`, () =>
 
     it('should update account', async function ()
     {
-        const modifiedFakeAccount = new Account(fakeAccount.username, faker.random.alphaNumeric(64));
+        const modifiedFakeAccount = new Account(fakeAccount.username, 'b'.repeat(64));
         await update(modifiedFakeAccount, {username: modifiedFakeAccount.username});
         expect(await selectByUsername(fakeAccount.username)).toStrictEqual(modifiedFakeAccount);
     });
@@ -73,7 +72,7 @@ describe(`${update.name}`, () =>
 
 describe(`${insert.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('gagsegsrg', 'a'.repeat(64));
 
     afterEach(async () =>
     {
@@ -96,7 +95,7 @@ describe(`${insert.name}`, () =>
 
 describe(`${deleteByUsername.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('gwsgswrgad', 'a'.repeat(64));
 
     beforeEach(async () =>
     {
@@ -130,8 +129,8 @@ describe(`${deleteByUsername.name}`, () =>
 
 describe(`${create.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeProfile = new Profile(fakeAccount.username, faker.name.firstName(), faker.internet.email(), '');
+    const fakeAccount = new Account('sdhddsgh', 'a'.repeat(64));
+    const fakeProfile = new Profile(fakeAccount.username, 'dawfaf', 'a@b.com', '');
 
     afterEach(async () =>
     {
@@ -146,7 +145,7 @@ describe(`${create.name}`, () =>
 
     it('should rollback when error happens', async function ()
     {
-        const invalidProfile = Profile.from({...fakeProfile, username: faker.random.word()});
+        const invalidProfile = Profile.from({...fakeProfile, username: 'gsherdshjryjr'});
         await expect(create(fakeAccount, invalidProfile)).rejects.toThrow();
         expect(await selectByUsername(fakeAccount.username)).toBeNull();
         expect(await ProfileTable.selectByUsername(fakeAccount.username)).toBeNull();
@@ -155,15 +154,15 @@ describe(`${create.name}`, () =>
 
 describe(`${getGroupsByUsername.name}`, () =>
 {
-    const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount1 = new Account('sdhddsgh', 'a'.repeat(64));
+    const fakeAccount2 = new Account('awfaesgsr', 'a'.repeat(64));
     const fakeGroupsForAccount1: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'gaegsrwhwdsh'),
+        new Group(-1, 'bhejheth'),
     ];
     const fakeGroupsForAccount2: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'awarat'),
+        new Group(-1, 'bnsndsh'),
     ];
 
     async function insertAllFakeGroupsAndSetTheirIds()
@@ -216,15 +215,15 @@ describe(`${getGroupsByUsername.name}`, () =>
 
 describe(`${getAdministratingGroupsByUsername.name}`, () =>
 {
-    const fakeAdminAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeAdminAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAdminAccount1 = new Account('sdhddsgh', 'a'.repeat(64));
+    const fakeAdminAccount2 = new Account('awfaesgsr', 'a'.repeat(64));
     const fakeGroupsForAdminAccount1: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'gaegsrwhwdsh'),
+        new Group(-1, 'bhejheth'),
     ];
     const fakeGroupsForAdminAccount2: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'awarat'),
+        new Group(-1, 'bnsndsh'),
     ];
 
     async function insertFakeGroupsAndSetTheirId()
@@ -279,15 +278,15 @@ describe(`${getAdministratingGroupsByUsername.name}`, () =>
 
 describe(`${getGroupByUsernameAndGroupName.name}`, () =>
 {
-    const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount1 = new Account('sdhddsgh', 'a'.repeat(64));
+    const fakeAccount2 = new Account('awfaesgsr', 'a'.repeat(64));
     const fakeGroupsForAccount1: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'gaegsrwhwdsh'),
+        new Group(-1, 'bhejheth'),
     ];
     const fakeGroupsForAccount2: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'awarat'),
+        new Group(-1, 'bnsndsh'),
     ];
 
     beforeAll(async () =>
@@ -342,15 +341,15 @@ describe(`${getGroupByUsernameAndGroupName.name}`, () =>
 
 describe(`${getAdministratingGroupByUsernameAndGroupName.name}`, () =>
 {
-    const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount1 = new Account('sdhddsgh', 'a'.repeat(64));
+    const fakeAccount2 = new Account('awfaesgsr', 'a'.repeat(64));
     const fakeGroupsForAccount1: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'gaegsrwhwdsh'),
+        new Group(-1, 'bhejheth'),
     ];
     const fakeGroupsForAccount2: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'awarat'),
+        new Group(-1, 'bnsndsh'),
     ];
 
     async function insertFakeGroupsAndSetTheirIds()
@@ -408,15 +407,15 @@ describe(`${getAdministratingGroupByUsernameAndGroupName.name}`, () =>
 
 describe(`${getAdministratingGroupByUsernameAndGroupId.name}`, () =>
 {
-    const fakeAccount1 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeAccount2 = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount1 = new Account('sdhddsgh', 'a'.repeat(64));
+    const fakeAccount2 = new Account('awfaesgsr', 'a'.repeat(64));
     const fakeGroupsForAccount1: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'gaegsrwhwdsh'),
+        new Group(-1, 'bhejheth'),
     ];
     const fakeGroupsForAccount2: Group[] = [
-        new Group(-1, faker.random.word()),
-        new Group(-1, faker.random.word()),
+        new Group(-1, 'awarat'),
+        new Group(-1, 'bnsndsh'),
     ];
 
     async function insertFakeGroups()
@@ -476,10 +475,10 @@ describe(`${getAdministratingGroupByUsernameAndGroupId.name}`, () =>
 
 describe(`${addToGroups.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeGroups = [
-        new Group(faker.random.number(), faker.random.word()),
-        new Group(faker.random.number(), faker.random.word()),
+    const fakeAccount = new Account('feaf', 'a'.repeat(64));
+    const fakeGroups: Group[] = [
+        new Group(-1, 'gsgsrg'),
+        new Group(-1, 'ntdntr'),
     ];
 
     beforeEach(async () =>
@@ -527,10 +526,10 @@ describe(`${addToGroups.name}`, () =>
 
 describe(`${removeFromGroups.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeGroups = [
-        new Group(faker.random.number(), faker.random.word()),
-        new Group(faker.random.number(), faker.random.word()),
+    const fakeAccount = new Account('feaf', 'a'.repeat(64));
+    const fakeGroups: Group[] = [
+        new Group(-1, 'gsgsrg'),
+        new Group(-1, 'ntdntr'),
     ];
 
     beforeEach(async () =>
@@ -579,10 +578,10 @@ describe(`${removeFromGroups.name}`, () =>
 
 describe(`${addAdministratingGroups.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeGroups = [
-        new Group(faker.random.number(), faker.random.word()),
-        new Group(faker.random.number(), faker.random.word()),
+    const fakeAccount = new Account('feaf', 'a'.repeat(64));
+    const fakeGroups: Group[] = [
+        new Group(-1, 'gsgsrg'),
+        new Group(-1, 'ntdntr'),
     ];
 
     beforeEach(async () =>
@@ -631,10 +630,10 @@ describe(`${addAdministratingGroups.name}`, () =>
 
 describe(`${removeAdministratingGroups.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeGroups = [
-        new Group(faker.random.number(), faker.random.word()),
-        new Group(faker.random.number(), faker.random.word()),
+    const fakeAccount = new Account('feaf', 'a'.repeat(64));
+    const fakeGroups: Group[] = [
+        new Group(-1, 'gsgsrg'),
+        new Group(-1, 'ntdntr'),
     ];
 
     beforeEach(async () =>

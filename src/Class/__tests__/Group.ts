@@ -1,10 +1,9 @@
 import {Group} from '../Group';
-import faker from 'faker';
 
 describe(`${Group.name}`, () =>
 {
-    const groupId = faker.random.number();
-    const groupName = faker.random.word();
+    const groupId = 4898;
+    const groupName = 'nvcioaho8h982';
 
     it(`should construct ${Group.name} object`, function ()
     {

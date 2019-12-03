@@ -1,13 +1,12 @@
 import {Commit} from '../Commit';
-import faker from 'faker';
 
 describe(`${Commit.name}`, () =>
 {
-    const commitHash = faker.random.alphaNumeric(64);
-    const committerName = faker.name.firstName();
-    const committerEmail = faker.internet.email();
-    const time = faker.date.recent().toString();
-    const message = faker.lorem.sentence();
+    const commitHash = '4'.repeat(64);
+    const committerName = 'fiaiyugtfaou';
+    const committerEmail = 'a@b.com';
+    const time = (new Date()).toString();
+    const message = 'dnaioy3t0h98ayt908a38';
 
     it(`should construct ${Commit.name} object`, function ()
     {

@@ -1,12 +1,11 @@
 import {Repository} from '../Repository';
-import faker from 'faker';
 
 describe(`${Repository.name}`, () =>
 {
-    const fakeUsername = faker.name.firstName();
-    const fakeName = faker.random.word();
-    const fakeDescription = faker.lorem.sentence();
-    const fakeIsPublic = faker.random.boolean();
+    const fakeUsername = 'gbiagiayywf';
+    const fakeName = 'fiuabfgiuabegiuaeb';
+    const fakeDescription = 'gnviathoga38yto';
+    const fakeIsPublic = true;
 
     it(`should construct ${Repository.name} object`, function ()
     {

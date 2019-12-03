@@ -13,7 +13,6 @@ import {
     setName,
 } from '../RepositoryInfo';
 import {Account, Commit, Group, Repository, ResponseBody, ServiceResponse} from '../../Class';
-import faker from 'faker';
 import {Session} from 'koa-session';
 import path from 'path';
 import {ObjectType} from '../../CONSTANT';
@@ -83,22 +82,9 @@ const fseMock = {
 
 describe(`${repository.name}`, () =>
 {
-    const fakeAccount = new Account(
-        faker.name.firstName(),
-        faker.random.alphaNumeric(64),
-    );
-
-    const fakeViewer = new Account(
-        faker.name.firstName(),
-        faker.random.alphaNumeric(64),
-    );
-
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+    const fakeAccount = new Account('cABVAGAEG', 'a'.repeat(64));
+    const fakeViewer = new Account('vabaegaeg', 'c'.repeat(64));
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
 
     beforeEach(() =>
     {
@@ -153,27 +139,17 @@ describe(`${repository.name}`, () =>
 
 describe(`${branch.name}`, () =>
 {
-    const fakeAccount = new Account(
-        faker.name.firstName(),
-        faker.random.alphaNumeric(64),
-    );
-    const fakeViewer = new Account(
-        faker.name.firstName(),
-        faker.random.alphaNumeric(64),
-    );
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeAccount = new Account('cABVAGAEG', 'a'.repeat(64));
+    const fakeViewer = new Account('vabaegaeg', 'c'.repeat(64));
+    const fakeRepositoryPath = path.join('vafawfgafg', 'babaeghaeg');
     const fakeBranches = [
-        faker.random.word(),
-        faker.random.word(),
-        faker.random.word(),
-        faker.random.word(),
+        'gaegaegaegeg',
+        'niauebgiouabguoiag',
+        'vnbiaquhgbiaekubguaebg',
+        'gh9whboihuw',
     ];
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
 
     beforeEach(() =>
     {
@@ -245,28 +221,18 @@ describe(`${branch.name}`, () =>
 
 describe(`${lastCommit.name}`, () =>
 {
-    const fakeAccount = new Account(
-        faker.name.firstName(),
-        faker.random.alphaNumeric(64),
-    );
-    const fakeViewer = new Account(
-        faker.name.firstName(),
-        faker.random.alphaNumeric(64),
-    );
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeFilePath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
+    const fakeAccount = new Account('cABVAGAEG', 'a'.repeat(64));
+    const fakeViewer = new Account('vabaegaeg', 'c'.repeat(64));
+    const fakeRepositoryPath = path.join('vafawfgafg', 'babaeghaeg');
+    const fakeFilePath = path.join('fvagaegaeg', 'vabkakuebgia');
     const fakeCommit = new Commit(
-        faker.random.alphaNumeric(64),
-        faker.name.firstName(),
-        faker.internet.email(),
-        faker.date.recent().toISOString(),
-        faker.lorem.sentence());
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+        'c'.repeat(64),
+        'dkbuabfkae',
+        'a@n.com',
+        (new Date()).toString(),
+        'dnbiuawfubgiaf');
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
 
     beforeEach(() =>
     {
@@ -366,108 +332,96 @@ describe(`${lastCommit.name}`, () =>
 
 describe(`${directory.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeViewer = new Account('fagaegea', 'r'.repeat(64));
     const fakeCommitInfoList = [
         {
             type: ObjectType.BLOB,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabfkae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbiuawfubgiaf'),
         },
         {
             type: ObjectType.BLOB,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabfdkae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbiusawfubgiaf'),
         },
         {
             type: ObjectType.TREE,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabfadfwakae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbifawfuawfubgiaf'),
         },
         {
             type: ObjectType.TREE,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabfafawkae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbiuafawfwfubgiaf'),
         },
         {
             type: ObjectType.BLOB,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabawdawfkae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbiuadawdwfubgiaf'),
         },
         {
             type: ObjectType.TREE,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabfkafgaegae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbiuawfgeagubgiaf'),
         },
         {
             type: ObjectType.TREE,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabfawfawkae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbiuawfawfubgiaf'),
         },
         {
             type: ObjectType.BLOB,
             path: '/',
             commit: new Commit(
-                faker.random.alphaNumeric(64),
-                faker.name.firstName(),
-                faker.internet.email(),
-                faker.date.recent().toString(),
-                faker.lorem.sentence(),
-            ),
+                'c'.repeat(64),
+                'dkbuabfagaegkae',
+                'a@n.com',
+                (new Date()).toString(),
+                'dnbiuagaegwfubgiaf'),
         },
     ];
     const sortedCommitInfoListCopy = [...fakeCommitInfoList];
-    const fakeCommitHash = faker.random.alphaNumeric(64);
-    const fakeDirectoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+    const fakeCommitHash = 'f'.repeat(64);
+    const fakeDirectoryPath = path.join('faibfiaf', 'faibugiaugbei');
+    const fakeRepositoryPath = path.join('vafawfgafg', 'babaeghaeg');
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
 
     beforeAll(() =>
     {
@@ -570,11 +524,9 @@ describe(`${directory.name}`, () =>
 
     it('should check directory path existence', async function ()
     {
-        const fakeError = new Error(faker.lorem.sentence());
-
         functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        functionMock.Git.getFileCommitInfoList.mockRejectedValue(fakeError);
+        functionMock.Git.getFileCommitInfoList.mockRejectedValue(new Error());
         const {directory} = await import('../RepositoryInfo');
         expect(
             await directory({username: fakeAccount.username}, {name: fakeRepository.name}, fakeCommitHash, fakeDirectoryPath, {username: fakeViewer.username} as unknown as Session),
@@ -654,17 +606,13 @@ describe(`${directory.name}`, () =>
 
 describe(`${commitCount.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeCommitCount = faker.random.number();
-    const fakeCommitHash = faker.random.alphaNumeric(64);
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeViewer = new Account('fagaegea', 'r'.repeat(64));
+    const fakeRepositoryPath = path.join('vafawfgafg', 'babaeghaeg');
+    const fakeCommitCount = 9849;
+    const fakeCommitHash = 'f'.repeat(64);
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
 
     beforeEach(() =>
     {
@@ -777,20 +725,16 @@ describe(`${commitCount.name}`, () =>
 
 describe(`${fileInfo.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeObjectHash = faker.random.alphaNumeric(64);
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeViewer = new Account('fagaegea', 'r'.repeat(64));
+    const fakeRepositoryPath = path.join('vafawfgafg', 'babaeghaeg');
+    const fakeObjectHash = 'w'.repeat(64);
     const fakeObjectType = ObjectType.BLOB;
-    const fakeObjectSize = faker.random.number();
-    const fakeFilePath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeCommitHash = faker.random.alphaNumeric(64);
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+    const fakeObjectSize = 486864;
+    const fakeFilePath = path.join('fvagaegaeg', 'vabkakuebgia');
+    const fakeCommitHash = 'g'.repeat(64);
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
 
     beforeEach(async () =>
     {
@@ -1045,19 +989,15 @@ describe(`${fileInfo.name}`, () =>
 
 describe(`${rawFile.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeViewer = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeObjectHash = faker.random.alphaNumeric(64);
-    const fakeFilePath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeCommitHash = faker.random.alphaNumeric(64);
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeViewer = new Account('fagaegea', 'r'.repeat(64));
+    const fakeRepositoryPath = path.join('vafawfgafg', 'babaeghaeg');
+    const fakeObjectHash = 'w'.repeat(64);
+    const fakeFilePath = path.join('fvagaegaeg', 'vabkakuebgia');
+    const fakeCommitHash = 'g'.repeat(64);
     const fakeReadableStream = new Readable();
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
 
     beforeEach(() =>
     {
@@ -1199,15 +1139,15 @@ describe(`${rawFile.name}`, () =>
 
 describe(`${setName.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeOldRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeNewRepositoryPath = path.join(faker.random.word(), faker.random.word(), faker.random.word());
-    const fakeOldRepositoryName = faker.random.word();
-    const fakeNewRepositoryName = faker.random.word();
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeOldRepositoryPath = path.join('gaegaeg', 'gfaawf');
+    const fakeNewRepositoryPath = path.join('fafawf', 'bashsawhs');
+    const fakeOldRepositoryName = 'fagagvg';
+    const fakeNewRepositoryName = 'fagagadgae';
     const fakeOldRepository = new Repository(
         fakeAccount.username,
         fakeOldRepositoryName,
-        faker.lorem.sentence(),
+        'fagfagaegaew',
         true,
     );
     const fakeNewRepository = Repository.from({
@@ -1459,12 +1399,12 @@ describe(`${setName.name}`, () =>
 
 describe(`${setDescription.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeOldRepositoryDescription = faker.lorem.sentence();
-    const fakeNewRepositoryDescription = faker.lorem.sentence();
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeOldRepositoryDescription = 'vnikauhboaeibnioaueg';
+    const fakeNewRepositoryDescription = 'nfiabgoaebuioe';
     const fakeOldRepository = new Repository(
         fakeAccount.username,
-        faker.random.word(),
+        'ncvoahgoaegaegbnhae',
         fakeOldRepositoryDescription,
         true,
     );
@@ -1538,11 +1478,11 @@ describe(`${setDescription.name}`, () =>
 
 describe(`${setIsPublic.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
     const fakeOldRepository = new Repository(
         fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
+        'avbnaeiuhvuaeo',
+        'nfoaubgnoaugh9ha8ghoaihgoi',
         true,
     );
     const fakeNewRepository = Repository.from({
@@ -1619,16 +1559,12 @@ describe(`${setIsPublic.name}`, () =>
 
 describe(`${groups.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
     const fakeGroups = [
-        new Group(faker.random.number(), faker.random.word()),
-        new Group(faker.random.number(), faker.random.word()),
+        new Group(-1, 'awonifoaiuwbf'),
+        new Group(-1, 'fibnaghfia'),
     ];
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
 
@@ -1700,16 +1636,12 @@ describe(`${groups.name}`, () =>
 
 describe(`${addToGroup.name}`, () =>
 {
-    const fakeAccount = new Account(faker.name.firstName(), faker.random.alphaNumeric(64));
-    const fakeRepository = new Repository(
-        fakeAccount.username,
-        faker.random.word(),
-        faker.lorem.sentence(),
-        true,
-    );
-    const fakeGroup = new Group(faker.random.number(), faker.random.word());
+    const fakeAccount = new Account('dbiauwbfiuawbfiu', 'q'.repeat(64));
+    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
+
+    const fakeGroup = new Group(-1, 'aibgnuauegb');
     const fakeSession = {username: fakeAccount.username} as unknown as Session;
-    const fakeOthersSession = {username: faker.random.word()} as unknown as Session;
+    const fakeOthersSession = {username: 'bviahg9o8qhgw398hqivu'} as unknown as Session;
 
     beforeEach(() =>
     {
