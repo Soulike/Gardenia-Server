@@ -11,6 +11,6 @@ jobs:
        - name: Install dependencies
          run: yarn install
        - name: Configure Git
-         run: git config user.email "316413310@qq.com" && git config user.name "Soulike"
+         run: git config --global user.email "316413310@qq.com" && git config --global user.name "Soulike"
        - name: Run test
          run: yarn ci
