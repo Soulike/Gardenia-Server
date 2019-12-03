@@ -12,3 +12,4 @@ jobs:
          working-directory: ./
        - name: Run test
          run: yarn test
+         working-directory: ./
