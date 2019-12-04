@@ -1,13 +1,13 @@
 import Router from '@koa/router';
 import {CREATE, DEL, GET_REPOSITORIES} from './ROUTE';
-import JSONQueryParameterParser from '../../Middleware/JSONQueryParameterParser';
+import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import {create, del, getRepositories} from './Middleware';
-import POSTBodyParser from '../../Middleware/POSTBodyParser';
+import bodyParser from '../../Middleware/bodyParser';
 import {IContext, IState} from '../../Interface';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.post(CREATE, POSTBodyParser(), create());
-    router.post(DEL, POSTBodyParser(), del());
-    router.get(GET_REPOSITORIES, JSONQueryParameterParser(), getRepositories());
+    router.post(CREATE, bodyParser(), create());
+    router.post(DEL, bodyParser(), del());
+    router.get(GET_REPOSITORIES, JSONQuerystringParser(), getRepositories());
 };

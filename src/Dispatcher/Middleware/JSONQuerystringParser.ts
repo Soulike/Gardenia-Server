@@ -5,7 +5,7 @@ import {WrongParameterError} from '../Class';
 /**
  * @description koa 中间件，可以将 GET 请求查询字符串中名为 json 的参数内容自动转换为对象放置在 ctx.request.body 中
  * */
-const middlewareWrapper: IRouteHandler = () =>
+const JSONQuerystringParser: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {
@@ -33,4 +33,4 @@ const middlewareWrapper: IRouteHandler = () =>
     };
 };
 
-export default middlewareWrapper;
+export default JSONQuerystringParser;

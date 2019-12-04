@@ -14,7 +14,7 @@ import {
     REMOVE_REPOSITORIES,
     REPOSITORIES,
 } from './ROUTE';
-import JSONQueryParameterParser from '../../Middleware/JSONQueryParameterParser';
+import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import {
     accounts,
     add,
@@ -29,20 +29,20 @@ import {
     removeRepositories,
     repositories,
 } from './Middleware';
-import POSTBodyParser from '../../Middleware/POSTBodyParser';
+import bodyParser from '../../Middleware/bodyParser';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.post(ADD, POSTBodyParser(), add());
-    router.post(DISMISS, POSTBodyParser(), dismiss());
-    router.get(INFO, JSONQueryParameterParser(), info());
-    router.get(ACCOUNTS, JSONQueryParameterParser(), accounts());
-    router.post(ADD_ACCOUNTS, POSTBodyParser(), addAccounts());
-    router.post(REMOVE_ACCOUNTS, POSTBodyParser(), removeAccounts());
-    router.get(ADMINS, JSONQueryParameterParser(), admins());
-    router.post(ADD_ADMINS, POSTBodyParser(), addAdmins());
-    router.post(REMOVE_ADMINS, POSTBodyParser(), removeAdmins());
-    router.get(REPOSITORIES, JSONQueryParameterParser(), repositories());
-    router.post(REMOVE_REPOSITORIES, POSTBodyParser(), removeRepositories());
-    router.get(IS_ADMIN, JSONQueryParameterParser(), isAdmin());
+    router.post(ADD, bodyParser(), add());
+    router.post(DISMISS, bodyParser(), dismiss());
+    router.get(INFO, JSONQuerystringParser(), info());
+    router.get(ACCOUNTS, JSONQuerystringParser(), accounts());
+    router.post(ADD_ACCOUNTS, bodyParser(), addAccounts());
+    router.post(REMOVE_ACCOUNTS, bodyParser(), removeAccounts());
+    router.get(ADMINS, JSONQuerystringParser(), admins());
+    router.post(ADD_ADMINS, bodyParser(), addAdmins());
+    router.post(REMOVE_ADMINS, bodyParser(), removeAdmins());
+    router.get(REPOSITORIES, JSONQuerystringParser(), repositories());
+    router.post(REMOVE_REPOSITORIES, bodyParser(), removeRepositories());
+    router.get(IS_ADMIN, JSONQuerystringParser(), isAdmin());
 };

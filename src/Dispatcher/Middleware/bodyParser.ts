@@ -2,7 +2,7 @@ import {IRouteHandler} from '../Interface';
 import koaBody, {IKoaBodyOptions} from 'koa-body';
 import {WrongParameterError} from '../Class';
 
-const middlewareWrapper: IRouteHandler = () =>
+const bodyParser: IRouteHandler = () =>
 {
     return koaBody({
         multipart: true,
@@ -13,4 +13,4 @@ const middlewareWrapper: IRouteHandler = () =>
     } as IKoaBodyOptions);
 };
 
-export default middlewareWrapper;
+export default bodyParser;

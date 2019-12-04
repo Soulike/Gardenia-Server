@@ -3,7 +3,7 @@ import {ServiceResponse} from '../../Class';
 import {Readable} from 'stream';
 import {waitForEvent} from '../../Function/Promisify';
 
-const middlewareWrapper: IRouteHandler = () =>
+const responseHandler: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {
@@ -33,4 +33,4 @@ const middlewareWrapper: IRouteHandler = () =>
     };
 };
 
-export default middlewareWrapper;
+export default responseHandler;

@@ -1,17 +1,17 @@
 import {ResponseBody, ServiceResponse} from '../Class';
 
-export class WrongParameterError extends ServiceResponse<string>
+export class WrongParameterError extends ServiceResponse<void>
 {
     constructor()
     {
-        super(400, {}, new ResponseBody<string>(false, '请求参数错误'));
+        super(400, {}, new ResponseBody(false, '请求参数错误'));
     }
 }
 
-export class InvalidSessionError extends ServiceResponse<string>
+export class InvalidSessionError extends ServiceResponse<void>
 {
     constructor()
     {
-        super(400, {}, new ResponseBody<string>(false, '未登录操作'));
+        super(400, {}, new ResponseBody(false, '未登录操作'));
     }
 }
