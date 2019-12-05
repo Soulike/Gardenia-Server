@@ -1,6 +1,5 @@
 import Router from '@koa/router';
 import {Session} from 'koa-session';
-import {ServiceResponse} from '../Class';
 
 export interface IParameterValidator
 {
@@ -9,7 +8,7 @@ export interface IParameterValidator
 
 export interface IState
 {
-    serviceResponse: Readonly<ServiceResponse<any>> | Readonly<any> | void
+    serviceResponse: Readonly<any>
 }
 
 export interface IContext

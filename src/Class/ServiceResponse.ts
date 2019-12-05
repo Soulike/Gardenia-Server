@@ -8,11 +8,11 @@ import {Readable} from 'stream';
 export class ServiceResponse<TBody>
 {
     public readonly statusCode: number;
-    public readonly headers?: Readonly<{ [key: string]: string }>;
+    public readonly headers: Readonly<{ [key: string]: string }>;
     public readonly session?: Readonly<{ [key: string]: string | undefined }>;
     public readonly body?: Readable | Readonly<ResponseBody<TBody>> | Readonly<TBody>;
 
-    constructor(statusCode: number, headers?: { [key: string]: string }, body?: Readable | Readonly<ResponseBody<TBody>> | Readonly<TBody>, session?: { [key: string]: string | undefined })
+    constructor(statusCode: number, headers: { [key: string]: string }, body?: Readable | Readonly<ResponseBody<TBody>> | Readonly<TBody>, session?: { [key: string]: string | undefined })
     {
         this.statusCode = statusCode;
         this.headers = Object.freeze(headers);
