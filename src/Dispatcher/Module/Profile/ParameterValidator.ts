@@ -1,4 +1,5 @@
 import {IParameterValidator} from '../../Interface';
+import validator from 'validator';
 
 export const get: IParameterValidator = body =>
 {
