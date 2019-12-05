@@ -58,8 +58,8 @@ describe(`${JSONQuerystringParser.name}`, () =>
                 body: null,
             },
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
-        nextMock.mockImplementation();
         const JSONParseMock = jest.spyOn(JSON, 'parse');
+        nextMock.mockResolvedValue(undefined);
         await (JSONQuerystringParser())(fakeContext, nextMock);
         expect(fakeContext.request.body).toEqual(fakeBody);
         expect(nextMock).toBeCalledTimes(1);

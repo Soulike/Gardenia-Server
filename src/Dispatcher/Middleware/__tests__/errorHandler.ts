@@ -17,7 +17,6 @@ describe(`${errorHandler.name}`, () =>
     beforeEach(() =>
     {
         jest.resetAllMocks();
-        jest.mock('../../../CONFIG', () => CONFIGMock);
     });
 
     it('should call next() if no error', async function ()
@@ -32,7 +31,6 @@ describe(`${errorHandler.name}`, () =>
         const {default: errorHandler} = await import('../errorHandler');
         await (errorHandler())(fakeContext, nextMock);
         expect(nextMock).toBeCalledTimes(1);
-        expect(CONFIGMock.SERVER.ERROR_LOGGER).toBeCalledTimes(0);
     });
 
     it('should set ctx.response.body if error is predefined ServiceResponse', async function ()
@@ -57,13 +55,14 @@ describe(`${errorHandler.name}`, () =>
         const {default: errorHandler} = await import('../errorHandler');
         await (errorHandler())(fakeContext, nextMock);
         expect(nextMock).toBeCalledTimes(1);
-        expect(CONFIGMock.SERVER.ERROR_LOGGER).toBeCalledTimes(0);
         expect(fakeContext.response.status).toBe(404);
         expect(fakeContext.state.serviceResponse).toEqual(predefinedError);
     });
 
     it('should respond with 500 and print error if error is not predefined ServiceResponse', async function ()
     {
+        jest.resetModules();
+        jest.mock('../../../CONFIG', () => CONFIGMock);
         const fakeContext = {
             state: <IState>{},
             response: {
