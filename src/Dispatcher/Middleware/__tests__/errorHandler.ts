@@ -14,18 +14,9 @@ describe(`${errorHandler.name}`, () =>
         },
     };
 
-    class PredefinedError extends ServiceResponse<void>
-    {
-        constructor()
-        {
-            super(400, {}, new ResponseBody(false, ''));
-        }
-    }
-
     beforeEach(() =>
     {
         jest.resetAllMocks();
-        jest.resetModules();
         jest.mock('../../../CONFIG', () => CONFIGMock);
     });
 
@@ -52,6 +43,15 @@ describe(`${errorHandler.name}`, () =>
                 status: 404,
             },
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+
+        class PredefinedError extends ServiceResponse<void>
+        {
+            constructor()
+            {
+                super(400, {}, new ResponseBody(false, ''));
+            }
+        }
+
         const predefinedError = new PredefinedError();
         nextMock.mockRejectedValue(predefinedError);
         const {default: errorHandler} = await import('../errorHandler');

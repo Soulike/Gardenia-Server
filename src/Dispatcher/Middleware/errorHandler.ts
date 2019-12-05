@@ -1,5 +1,6 @@
 import {SERVER} from '../../CONFIG';
 import {IRouteHandler} from '../Interface';
+import {ServiceResponse} from '../../Class';
 
 const errorHandler: IRouteHandler = () =>
 {
@@ -11,14 +12,14 @@ const errorHandler: IRouteHandler = () =>
         }
         catch (e)
         {
-            if (e instanceof Error)
+            if (e instanceof ServiceResponse)
             {
-                ctx.response.status = 500;
-                SERVER.ERROR_LOGGER(e);
+                ctx.state.serviceResponse = e;
             }
             else
             {
-                ctx.state.serviceResponse = e;
+                ctx.response.status = 500;
+                SERVER.ERROR_LOGGER(e);
             }
         }
     };
