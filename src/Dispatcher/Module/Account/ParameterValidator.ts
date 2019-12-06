@@ -15,7 +15,7 @@ export const register: IParameterValidator = body =>
 export const getGroups: IParameterValidator = body =>
 {
     const {username} = body;
-    return typeof username === 'string';
+    return Account.validate({username, hash: ''});
 };
 
 export const getAdministratingGroups = getGroups;
@@ -23,5 +23,5 @@ export const getAdministratingGroups = getGroups;
 export const checkPassword: IParameterValidator = body =>
 {
     const {hash} = body;
-    return typeof hash === 'string';
+    return Account.validate({username: '', hash});
 };
