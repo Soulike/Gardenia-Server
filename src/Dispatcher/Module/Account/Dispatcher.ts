@@ -9,8 +9,8 @@ export default (router: Router<IState, IContext>) =>
 {
     router.post(LOGIN, bodyParser(), login());
     router.post(REGISTER, bodyParser(), register());
-    router.get(CHECK_SESSION, checkSession());
-    router.post(LOGOUT, logout());
+    router.get(CHECK_SESSION, JSONQuerystringParser(), checkSession());
+    router.post(LOGOUT, bodyParser(), logout());
     router.get(GET_GROUPS, JSONQuerystringParser(), getGroups());
     router.get(GET_ADMINISTRATING_GROUPS, JSONQuerystringParser(), getAdministratingGroups());
     router.post(CHECK_PASSWORD, bodyParser(), checkPassword());
