@@ -13,5 +13,5 @@ export default (router: Router<IState, IContext>) =>
     router.post(LOGOUT, logout());
     router.get(GET_GROUPS, JSONQuerystringParser(), getGroups());
     router.get(GET_ADMINISTRATING_GROUPS, JSONQuerystringParser(), getAdministratingGroups());
-    router.get(CHECK_PASSWORD, JSONQuerystringParser(), checkPassword());
+    router.post(CHECK_PASSWORD, bodyParser(), checkPassword());
 };

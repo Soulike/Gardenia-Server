@@ -163,13 +163,8 @@ export enum ObjectType
 #### `/checkPassword`
 
 - 功能：检测当前会话的密码是否正确
-- 方法：GET
-- 请求体：
-```
-{
-    json : Pick<Account, 'hash'>
-}
-```
+- 方法：POST
+- 请求体：`Pick<Account, 'hash'>`
 - 响应体：
 ```ts
 {
