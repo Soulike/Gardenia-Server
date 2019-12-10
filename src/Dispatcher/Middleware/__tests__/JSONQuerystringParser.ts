@@ -15,18 +15,21 @@ describe(`${JSONQuerystringParser.name}`, () =>
         jest.resetModules();
     });
 
-    it('should throw WrongParameterError if ctx.request.body.json is undefined', async function ()
+    it('should pass if ctx.request.body.json is undefined', async function ()
     {
         const fakeContext = {
             request: {
-                query: {},
-                body: null,
+                query: {a: 'b'},
+                body: {},
             },
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const JSONParseMock = jest.spyOn(JSON, 'parse');
         nextMock.mockResolvedValue(undefined);
-        await expect((JSONQuerystringParser())(fakeContext, nextMock)).rejects.toBeInstanceOf(WrongParameterError);
-        expect(nextMock).toBeCalledTimes(0);
-        expect(fakeContext.request.body).toBeNull();
+        await (JSONQuerystringParser())(fakeContext, nextMock);
+        expect(fakeContext.request.body).toEqual({});
+        expect(nextMock).toBeCalledTimes(1);
+        expect(JSONParseMock).not.toBeCalled();
+        JSONParseMock.mockRestore();
     });
 
     it('should throw WrongParameterError if json is invalid', async function ()

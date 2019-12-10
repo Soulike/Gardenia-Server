@@ -10,9 +10,10 @@ const JSONQuerystringParser: IRouteHandler = () =>
     return async (ctx, next) =>
     {
         const {json} = ctx.request.query;
-        if (typeof json !== 'string')
+        if (typeof json === 'undefined') // 如果没有请求字符串，跳过
         {
-            throw new WrongParameterError();
+            ctx.request.body = {};
+            return await next();
         }
         try
         {
