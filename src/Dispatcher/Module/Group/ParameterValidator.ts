@@ -34,7 +34,21 @@ export const addAccounts: IParameterValidator = body =>
         return false;
     }
     const {id} = group;
-    return typeof id === 'number' && Array.isArray(usernames);
+    if (typeof id !== 'number' || !Array.isArray(usernames))
+    {
+        return false;
+    }
+    else    // typeof id === 'number' && Array.isArray(usernames)
+    {
+        for (const username of usernames)
+        {
+            if (typeof username !== 'string')
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 };
 
 export const removeAccounts = addAccounts;
@@ -55,8 +69,22 @@ export const removeRepositories: IParameterValidator = body =>
         return false;
     }
     const {id} = group;
-    return typeof id === 'number'
-        && Array.isArray(repositories);
+    if (typeof id !== 'number' || !Array.isArray(repositories))
+    {
+        return false;
+    }
+    else    // typeof id === 'number' && Array.isArray(repositories)
+    {
+        for (const repository of repositories)
+        {
+            const {username, name} = repository;
+            if (typeof username !== 'string' || typeof name !== 'string')
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 };
 
 export const isAdmin = dismiss;
