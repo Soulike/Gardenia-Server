@@ -1,6 +1,6 @@
 import {Session} from 'koa-session';
 
-export function isValid(session: Readonly<Session>): boolean
+export function isSessionValid(session: Readonly<Session>): boolean
 {
     return typeof session.username === 'string';
 }

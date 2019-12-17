@@ -123,10 +123,10 @@ export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, s
 
 export async function getRepositories(start: number, end: number, session: Readonly<Session>, username?: RepositoryClass['username']): Promise<ServiceResponse<RepositoryClass[]>>
 {
-    let repositories: Array<RepositoryClass> = [];
+    let repositories: Array<RepositoryClass>;
     if (username)
     {
-        if (!SessionFunction.isValid(session) || !SessionFunction.isRequestedBySessionOwner(session, username))
+        if (!SessionFunction.isSessionValid(session) || !SessionFunction.isRequestedBySessionOwner(session, username))
         {
             repositories = await RepositoryTable.select({isPublic: true, username}, start, end - start);
         }

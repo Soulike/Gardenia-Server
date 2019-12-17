@@ -1,7 +1,7 @@
 import {Session} from 'koa-session';
-import {isRequestedBySessionOwner, isValid} from '../Session';
+import {isRequestedBySessionOwner, isSessionValid} from '../Session';
 
-describe(`${isValid.name}`, () =>
+describe(`${isSessionValid.name}`, () =>
 {
     let session: Session;
 
@@ -21,18 +21,18 @@ describe(`${isValid.name}`, () =>
     it('should be valid when session contains valid "username" value', function ()
     {
         session.username = 'hello';
-        expect(isValid(session)).toBe(true);
+        expect(isSessionValid(session)).toBe(true);
     });
 
     it('should be invalid when session does not contain "username" key', function ()
     {
-        expect(isValid(session)).toBe(false);
+        expect(isSessionValid(session)).toBe(false);
     });
 
     it('should be invalid when session contains invalid "username" value', function ()
     {
         session.username = 2;
-        expect(isValid(session)).toBe(false);
+        expect(isSessionValid(session)).toBe(false);
     });
 });
 

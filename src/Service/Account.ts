@@ -40,7 +40,7 @@ export async function register(account: Readonly<AccountClass>, profile: Readonl
 export async function checkSession(session: Readonly<Session>): Promise<ServiceResponse<{ isValid: boolean }>>
 {
     return new ServiceResponse<{ isValid: boolean }>(200, {},
-        new ResponseBody(true, '', {isValid: SessionFunction.isValid(session)}));
+        new ResponseBody(true, '', {isValid: SessionFunction.isSessionValid(session)}));
 }
 
 export async function logout(): Promise<ServiceResponse<void>>
