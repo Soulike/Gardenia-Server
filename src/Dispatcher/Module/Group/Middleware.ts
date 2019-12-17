@@ -2,19 +2,19 @@ import {IRouteHandler} from '../../Interface';
 import * as ParameterValidator from './ParameterValidator';
 import {InvalidSessionError, WrongParameterError} from '../../Class';
 import {Group as GroupService} from '../../../Service';
+import {Session as SessionFunction} from '../../../Function';
 
 export const add: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.add(ctx.request.body))
         {
             throw new WrongParameterError();
-        }
-        const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
         }
         const {group} = ctx.request.body;
         ctx.state.serviceResponse = await GroupService.add(group, ctx.session);
@@ -25,14 +25,13 @@ export const dismiss: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.dismiss(ctx.request.body))
         {
             throw new WrongParameterError();
-        }
-        const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
         }
         const {group} = ctx.request.body;
         ctx.state.serviceResponse = await GroupService.dismiss(group, ctx.session);
@@ -69,6 +68,10 @@ export const addAccounts: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.addAccounts(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -82,6 +85,10 @@ export const removeAccounts: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.removeAccounts(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -108,6 +115,10 @@ export const addAdmins: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.addAdmins(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -121,6 +132,10 @@ export const removeAdmins: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.removeAdmins(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -147,6 +162,10 @@ export const removeRepositories: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.removeRepositories(ctx.request.body))
         {
             throw new WrongParameterError();

@@ -1,7 +1,8 @@
 import {Profile} from '../../../Service';
 import {IRouteHandler} from '../../Interface';
 import * as ParameterValidator from './ParameterValidator';
-import {WrongParameterError} from '../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {Session as SessionFunction} from '../../../Function';
 
 export const get: IRouteHandler = () =>
 {
@@ -20,6 +21,10 @@ export const set: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.set(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -33,6 +38,10 @@ export const uploadAvatar: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (typeof ctx.request.files === 'undefined' || !ParameterValidator.uploadAvatar(ctx.request.files))
         {
             throw new WrongParameterError();

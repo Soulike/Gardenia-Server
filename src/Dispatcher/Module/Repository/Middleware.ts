@@ -1,25 +1,22 @@
 import {IRouteHandler} from '../../Interface';
-import {ResponseBody} from '../../../Class';
 import {Repository as RepositoryService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {WrongParameterError} from '../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {Session as SessionFunction} from '../../../Function';
 
 export const create: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.create(ctx.request.body))
         {
             throw new WrongParameterError();
         }
-        const {username: usernameInSession} = ctx.session;
-        const {username, name, description, isPublic} = ctx.request.body;
-        if (username !== usernameInSession)
-        {
-            ctx.response.status = 403;
-            ctx.response.body = new ResponseBody(false, '不允许创建在其他人名下的仓库');
-            return;
-        }
+        const {name, description, isPublic} = ctx.request.body;
         ctx.state.serviceResponse = await RepositoryService.create({name, description, isPublic}, ctx.session);
     };
 };
@@ -28,6 +25,10 @@ export const del: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.del(ctx.request.body))
         {
             throw new WrongParameterError();

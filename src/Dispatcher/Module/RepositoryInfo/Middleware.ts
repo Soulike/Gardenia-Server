@@ -1,7 +1,8 @@
 import {IRouteHandler} from '../../Interface';
 import {RepositoryInfo} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {WrongParameterError} from '../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {Session as SessionFunction} from '../../../Function';
 
 export const repository: IRouteHandler = () =>
 {
@@ -98,6 +99,10 @@ export const setName: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.setName(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -111,6 +116,10 @@ export const setDescription: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.setDescription(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -124,6 +133,10 @@ export const setIsPublic: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.setIsPublic(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -150,6 +163,10 @@ export const addToGroup: IRouteHandler = () =>
 {
     return async ctx =>
     {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
         if (!ParameterValidator.addToGroup(ctx.request.body))
         {
             throw new WrongParameterError();
