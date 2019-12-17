@@ -1,8 +1,8 @@
 import {Account, Group, Profile, ResponseBody, ServiceResponse} from '../../Class';
 import {checkPassword, checkSession, getAdministratingGroups, getGroups, login, logout, register} from '../Account';
 import {Session} from 'koa-session';
-import {InvalidSessionError} from '../../Dispatcher/Class';
 import {Account as AccountTable} from '../../Database';
+import {Session as SessionFunction} from '../../Function';
 
 const fakeAccount = new Account('barsrharsh', 'A'.repeat(64));
 
@@ -16,6 +16,13 @@ const databaseMock = {
             Parameters<typeof AccountTable.getGroupsByUsername>>(),
         getAdministratingGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getAdministratingGroupsByUsername>,
             Parameters<typeof AccountTable.getAdministratingGroupsByUsername>>(),
+    },
+};
+
+const functionMock = {
+    Session: {
+        isSessionValid: jest.fn<ReturnType<typeof SessionFunction.isSessionValid>,
+            Parameters<typeof SessionFunction.isSessionValid>>(),
     },
 };
 
@@ -101,26 +108,22 @@ describe(`${register.name}`, () =>
 
 describe(`${checkSession.name}`, () =>
 {
-    it('should check valid session', async function ()
+    beforeEach(() =>
     {
-        const response = await checkSession({username: fakeAccount.username} as unknown as Session);
-        expect(response).toEqual(new ServiceResponse<{ isValid: boolean }>(200, {},
-            new ResponseBody(true, '', {isValid: true})));
+        jest.resetAllMocks().resetModules();
+        jest.mock('../../Function', () => functionMock);
     });
 
-    it('should check invalid session', async function ()
+    it('should check session', async function ()
     {
-        let response = await checkSession({} as unknown as Session);
+        const fakeSession = {username: 'faegaeg'} as unknown as Session;
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        const {checkSession} = await import('../Account');
+        const response = await checkSession(fakeSession);
         expect(response).toEqual(new ServiceResponse<{ isValid: boolean }>(200, {},
-            new ResponseBody(true, '', {isValid: false})));
-
-        response = await checkSession({username: 111} as unknown as Session);
-        expect(response).toEqual(new ServiceResponse<{ isValid: boolean }>(200, {},
-            new ResponseBody(true, '', {isValid: false})));
-
-        response = await checkSession({username: undefined} as unknown as Session);
-        expect(response).toEqual(new ServiceResponse<{ isValid: boolean }>(200, {},
-            new ResponseBody(true, '', {isValid: false})));
+            new ResponseBody(true, '', {isValid: true})));
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
     });
 });
 
@@ -211,22 +214,14 @@ describe(`${checkPassword.name}`, () =>
         jest.mock('../../Database', () => databaseMock);
     });
 
-    it('should throw error when session is invalid', async function ()
-    {
-        databaseMock.Account.selectByUsername.mockResolvedValue(null);
-        await expect(
-            checkPassword(fakeAccount, {} as unknown as Session))
-            .rejects.toBeInstanceOf(InvalidSessionError);
-        expect(databaseMock.Account.selectByUsername.mock.calls.length).toBe(0);
-    });
-
     it('should work when account does not exist', async function ()
     {
+        const fakeSession = {username: fakeAccount.username} as unknown as Session;
         databaseMock.Account.selectByUsername.mockResolvedValue(null);
         const {checkPassword} = await import('../Account');
         const result = await checkPassword(
             {hash: fakeAccount.hash},
-            {username: fakeAccount.username} as unknown as Session);
+            fakeSession);
         expect(result).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true, '', {isCorrect: false})));
         expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
@@ -234,11 +229,12 @@ describe(`${checkPassword.name}`, () =>
 
     it('should work when password is correct', async function ()
     {
+        const fakeSession = {username: fakeAccount.username} as unknown as Session;
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {checkPassword} = await import('../Account');
         const result = await checkPassword(
             {hash: fakeAccount.hash},
-            {username: fakeAccount.username} as unknown as Session);
+            fakeSession);
         expect(result).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true, '', {isCorrect: true})));
         expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
@@ -246,11 +242,12 @@ describe(`${checkPassword.name}`, () =>
 
     it('should work when password is wrong', async function ()
     {
+        const fakeSession = {username: fakeAccount.username} as unknown as Session;
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
         const {checkPassword} = await import('../Account');
         const result = await checkPassword(
             {hash: 'c'.repeat(64)},
-            {username: fakeAccount.username} as unknown as Session);
+            fakeSession);
         expect(result).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true, '', {isCorrect: false})));
         expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);

@@ -2,7 +2,6 @@ import {Account as AccountClass, Group, Profile as ProfileClass, ResponseBody, S
 import {Account as AccountTable} from '../Database';
 import {Session} from 'koa-session';
 import {Session as SessionFunction} from '../Function';
-import {InvalidSessionError} from '../Dispatcher/Class';
 
 export async function login(account: Readonly<AccountClass>): Promise<ServiceResponse<void>>
 {
@@ -79,10 +78,6 @@ export async function getAdministratingGroups(account: Readonly<Pick<AccountClas
 export async function checkPassword(account: Readonly<Pick<AccountClass, 'hash'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isCorrect: boolean }>>
 {
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
     const {hash} = account;
     const accountInDatabase = await AccountTable.selectByUsername(username);
     if (accountInDatabase === null)

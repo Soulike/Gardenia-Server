@@ -1,7 +1,6 @@
 import {get, set, updateAvatar} from '../Profile';
 import {Account, Profile as ProfileClass, Profile, ResponseBody, ServiceResponse} from '../../Class';
 import {Session} from 'koa-session';
-import {InvalidSessionError} from '../../Dispatcher/Class';
 import {File} from 'formidable';
 import path from 'path';
 import os from 'os';
@@ -34,14 +33,6 @@ describe(`${get.name}`, () =>
         jest.resetModules();
         jest.resetAllMocks();
         jest.mock('../../Database', () => databaseMock);
-    });
-
-    it('should check session', async function ()
-    {
-        databaseMock.Profile.selectByUsername.mockResolvedValue(fakeProfile);
-        const {get} = await import('../Profile');
-        await expect(get({} as unknown as Session)).rejects.toEqual(new InvalidSessionError());
-        expect(databaseMock.Profile.selectByUsername.mock.calls.length).toBe(0);
     });
 
     it('should get profile by session', async function ()
@@ -99,12 +90,6 @@ describe(`${set.name}`, () =>
         databaseMock.Profile.update.mockResolvedValue(undefined);
     });
 
-    it('should check session', async function ()
-    {
-        await expect(set({}, {} as unknown as Session)).rejects.toBeInstanceOf(InvalidSessionError);
-        expect(databaseMock.Profile.update.mock.calls.length).toBe(0);
-    });
-
     it('should set profile', async function ()
     {
         const fakeAccount = new Account('vaegaegawegaqg', 'a'.repeat(64));
@@ -136,21 +121,6 @@ describe(`${updateAvatar.name}`, () =>
         databaseMock.Profile.update.mockResolvedValue(undefined);
         fseMock.move.mockResolvedValue(undefined);
         fseMock.remove.mockResolvedValue(undefined);
-    });
-
-    it('should check session', async function ()
-    {
-        const fakeFile: File = {
-            size: 0,
-            path: path.join('gaegaeg', 'baqbaegh'),
-            name: 'vagaegae',
-            type: '',
-            lastModifiedDate: new Date(1998, 1, 20),
-            hash: 'v'.repeat(64),
-            toJSON: () => ({}),
-        };
-        await expect(updateAvatar(fakeFile, {} as unknown as Session)).rejects.toBeInstanceOf(InvalidSessionError);
-        expect(databaseMock.Profile.update.mock.calls.length).toBe(0);
     });
 
     it('should modify avatar', async function ()

@@ -3,7 +3,6 @@ import {Account, Repository as RepositoryClass, Repository, ResponseBody, Servic
 import {Session} from 'koa-session';
 import {EventEmitter} from 'events';
 import path from 'path';
-import {InvalidSessionError} from '../../Dispatcher/Class';
 import {Repository as RepositoryTable} from '../../Database';
 import {Git} from '../../Function';
 import fs from 'fs';
@@ -213,38 +212,6 @@ describe(`${create.name}`, () =>
             username: fakeRepository.username,
             name: fakeRepository.name,
         });
-
-        expect(databaseMock.Repository.insert.mock.calls.length).toBe(0);
-
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-
-        expect(fsMock.promises.mkdir.mock.calls.length).toBe(0);
-
-        expect(fseMock.remove.mock.calls.length).toBe(0);
-
-        expect(cpMock.spawn.mock.calls.length).toBe(0);
-    });
-
-    it('should check session', async function ()
-    {
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(null);
-        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
-        fsMock.promises.mkdir.mockResolvedValue(undefined);
-        cpMock.spawn.mockImplementation(() =>
-        {
-            const event = new EventEmitter();
-            process.nextTick(() =>
-            {
-                event.emit('exit');
-            });
-            return event;
-        });
-        databaseMock.Repository.insert.mockResolvedValue(undefined);
-        fseMock.remove.mockResolvedValue(undefined);
-        const {create} = await import('../Repository');
-
-        await expect(create(fakeRepository, {} as unknown as Session)).rejects.toEqual(new InvalidSessionError());
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(0);
 
         expect(databaseMock.Repository.insert.mock.calls.length).toBe(0);
 
@@ -502,31 +469,6 @@ describe(`${del.name}`, () =>
 
         expect(fseMock.remove.mock.calls.length).toBe(1);
         expect(fseMock.remove.mock.calls[0][0]).toBe(tempPath);
-    });
-
-    it('should check session', async function ()
-    {
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        databaseMock.Repository.deleteByUsernameAndName.mockResolvedValue(undefined);
-        fsMock.promises.rename.mockResolvedValue(undefined);
-        jest.mock('../../Function', () => functionMock);
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('fs', () => fsMock);
-        const {del} = await import('../Repository');
-
-        await expect(del(fakeRepository, {} as unknown as Session)).rejects.toEqual(new InvalidSessionError());
-
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls.length).toBe(0);
-
-        expect(functionMock.Git.generateRepositoryPath.mock.calls.length).toBe(0);
-
-        expect(fsMock.promises.mkdtemp.mock.calls.length).toBe(0);
-
-        expect(fsMock.promises.rename.mock.calls.length).toBe(0);
-
-        expect(databaseMock.Repository.deleteByUsernameAndName.mock.calls.length).toBe(0);
-
-        expect(fseMock.remove.mock.calls.length).toBe(0);
     });
 
     it('should check repository existence', async function ()

@@ -6,16 +6,11 @@ import {spawn} from 'child_process';
 import {Git, Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
 import fse from 'fs-extra';
-import {InvalidSessionError} from '../Dispatcher/Class';
 
 export async function create(repository: Readonly<Omit<RepositoryClass, 'username'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {name} = repository;
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
     // 检查是否有同名仓库
     if ((await RepositoryTable.selectByUsernameAndName({username, name})) !== null)
     {
@@ -74,10 +69,6 @@ export async function create(repository: Readonly<Omit<RepositoryClass, 'usernam
 export async function del(repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
     const {name} = repository;
     // 检查仓库是否存在
     if ((await RepositoryTable.selectByUsernameAndName({username, name})) === null)

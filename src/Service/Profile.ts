@@ -1,7 +1,6 @@
 import {Account, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
-import {InvalidSessionError} from '../Dispatcher/Class';
 import {File} from 'formidable';
 import imagemin from 'imagemin';
 import imageminWebp from 'imagemin-webp';
@@ -14,7 +13,8 @@ export async function get(session: Readonly<Session>, account?: Readonly<Pick<Ac
 {
     if (typeof account === 'undefined' && typeof session.username !== 'string')
     {
-        throw new InvalidSessionError();
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '用户不存在'));
     }
     const {username} = account || session;
     const profile = await ProfileTable.selectByUsername(username);
@@ -30,10 +30,6 @@ export async function get(session: Readonly<Session>, account?: Readonly<Pick<Ac
 export async function set(profile: Readonly<Partial<Omit<ProfileClass, 'avatar' | 'username'>>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
     await ProfileTable.update(profile, {username});
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
@@ -42,10 +38,6 @@ export async function set(profile: Readonly<Partial<Omit<ProfileClass, 'avatar' 
 export async function updateAvatar(avatar: Readonly<File>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
-    if (typeof username !== 'string')
-    {
-        throw new InvalidSessionError();
-    }
     /*
     * 1. 将头像转换到 webp 临时文件
     * 2. 更新数据库为新路径
