@@ -3,8 +3,9 @@ import {Account, Group, Profile, ResponseBody, ServiceResponse} from '../../../.
 import {ParameterizedContext} from 'koa';
 import {IContext, IState} from '../../../Interface';
 import {RouterContext} from '@koa/router';
-import {WrongParameterError} from '../../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../../Class';
 import {Account as AccountService} from '../../../../Service';
+import {Session as SessionFunction} from '../../../../Function';
 import 'koa-body';
 import 'jest-extended';
 
@@ -37,6 +38,13 @@ const ServiceMock = {
             Parameters<typeof AccountService.getAdministratingGroups>>(),
         checkPassword: jest.fn<ReturnType<typeof AccountService.checkPassword>,
             Parameters<typeof AccountService.checkPassword>>(),
+    },
+};
+
+const functionMock = {
+    Session: {
+        isSessionValid: jest.fn<ReturnType<typeof SessionFunction.isSessionValid>,
+            Parameters<typeof SessionFunction.isSessionValid>>(),
     },
 };
 
@@ -185,60 +193,79 @@ describe('checkPassword', () =>
 {
     beforeEach(() =>
     {
-        jest.resetAllMocks();
+        jest.resetAllMocks().resetModules();
         jest.mock('../ParameterValidator', () => ParameterValidatorMock);
         jest.mock('../../../../Service', () => ServiceMock);
+        jest.mock('../../../../Function', () => functionMock);
+    });
+
+    it('should check session before calling service', async function ()
+    {
+        const fakeSession = {fafaef: 'faefgaefg'};
+        const fakeContext = {
+            session: fakeSession,
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        functionMock.Session.isSessionValid.mockReturnValue(false);
+        const {checkPassword} = await import('../Middleware');
+        await expect(checkPassword()(fakeContext, nextMock)).rejects.toEqual(new InvalidSessionError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(ParameterValidatorMock.checkPassword).not.toBeCalled();
+        expect(ServiceMock.Account.checkPassword).not.toBeCalled();
     });
 
     it('should validate body before calling service', async function ()
     {
+        const fakeSession = {fafaef: 'faefgaefg'};
+        const fakeBody: Pick<Account, 'hash'> = {
+            hash: 'a'.repeat(64),
+        };
         const fakeContext = {
             request: {
-                body: <Pick<Account, 'hash'>>{
-                    hash: 'a'.repeat(64),
-                },
+                body: fakeBody,
             },
             state: <IState>{
                 serviceResponse: {},
             },
-            session: {
-                fafaef: 'faefgaefg',
-            },
+            session: fakeSession,
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
-        ParameterValidatorMock.checkPassword.mockReturnValueOnce(false);
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        ParameterValidatorMock.checkPassword.mockReturnValue(false);
         const {checkPassword} = await import('../Middleware');
-        await expect(checkPassword()(fakeContext, nextMock)).rejects.toBeInstanceOf(WrongParameterError);
+        await expect(checkPassword()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(ParameterValidatorMock.checkPassword).toBeCalledTimes(1);
+        expect(ParameterValidatorMock.checkPassword).toBeCalledWith(fakeBody);
         expect(ServiceMock.Account.checkPassword).not.toBeCalled();
-
-        ParameterValidatorMock.checkPassword.mockReturnValueOnce(true);
-        await expect(checkPassword()(fakeContext, nextMock)).toResolve();
-        expect(ServiceMock.Account.checkPassword).toBeCalledTimes(1);
-        expect(ServiceMock.Account.checkPassword).toHaveBeenCalledAfter(ParameterValidatorMock.checkPassword);
     });
 
     it('should call service and set ctx.state.serviceResponse', async function ()
     {
+        const fakeSession = {fafaef: 'faefgaefg'};
+        const fakeBody: Pick<Account, 'hash'> = {
+            hash: 'a'.repeat(64),
+        };
         const fakeContext = {
             request: {
-                body: <Pick<Account, 'hash'>>{
-                    hash: 'a'.repeat(64),
-                },
+                body: fakeBody,
             },
             state: <IState>{
                 serviceResponse: {},
             },
-            session: {
-                fafaef: 'faefgaefg',
-            },
+            session: fakeSession,
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
         const fakeServiceResponse: ServiceResponse<{ isCorrect: boolean }> = new ServiceResponse(200, {},
             new ResponseBody(true, '', {isCorrect: true}));
+        functionMock.Session.isSessionValid.mockReturnValue(true);
         ParameterValidatorMock.checkPassword.mockReturnValue(true);
         ServiceMock.Account.checkPassword.mockResolvedValue(fakeServiceResponse);
         const {checkPassword} = await import('../Middleware');
         await checkPassword()(fakeContext, nextMock);
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
         expect(ServiceMock.Account.checkPassword).toBeCalledTimes(1);
-        expect(ServiceMock.Account.checkPassword).toBeCalledWith(fakeContext.request.body, fakeContext.session);
+        expect(ServiceMock.Account.checkPassword).toBeCalledWith(fakeBody, fakeSession);
         expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
     });
 });
@@ -275,7 +302,7 @@ describe('getGroups', () =>
 {
     beforeEach(() =>
     {
-        jest.resetAllMocks();
+        jest.resetAllMocks().resetModules();
         jest.mock('../ParameterValidator', () => ParameterValidatorMock);
         jest.mock('../../../../Service', () => ServiceMock);
     });
@@ -292,7 +319,7 @@ describe('getGroups', () =>
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
         ParameterValidatorMock.getGroups.mockReturnValueOnce(false);
         const {getGroups} = await import('../Middleware');
-        await expect(getGroups()(fakeContext, nextMock)).rejects.toBeInstanceOf(WrongParameterError);
+        await expect(getGroups()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
         expect(ServiceMock.Account.getGroups).not.toBeCalled();
 
         ParameterValidatorMock.getGroups.mockReturnValueOnce(true);
@@ -346,7 +373,8 @@ describe('getAdministratingGroups', () =>
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
         ParameterValidatorMock.getAdministratingGroups.mockReturnValueOnce(false);
         const {getAdministratingGroups} = await import('../Middleware');
-        await expect(getAdministratingGroups()(fakeContext, nextMock)).rejects.toBeInstanceOf(WrongParameterError);
+        await expect(getAdministratingGroups()(fakeContext, nextMock)).rejects
+            .toEqual(new WrongParameterError());
         expect(ServiceMock.Account.getAdministratingGroups).not.toBeCalled();
 
         ParameterValidatorMock.getAdministratingGroups.mockReturnValueOnce(true);
