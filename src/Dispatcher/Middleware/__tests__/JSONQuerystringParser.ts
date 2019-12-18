@@ -32,6 +32,25 @@ describe(`${JSONQuerystringParser.name}`, () =>
         JSONParseMock.mockRestore();
     });
 
+    it('should throw error if ctx.request.body.json is "null"', async function ()
+    {
+        const fakeContext = {
+            request: {
+                query: {json: 'null'},
+                body: {},
+            },
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const JSONParseMock = jest.spyOn(JSON, 'parse');
+        nextMock.mockResolvedValue(undefined);
+        await expect((JSONQuerystringParser())(fakeContext, nextMock))
+            .rejects.toEqual(new WrongParameterError());
+        expect(fakeContext.request.body).toEqual({});
+        expect(nextMock).not.toBeCalled();
+        expect(JSONParseMock).toBeCalledTimes(1);
+        expect(JSONParseMock).toBeCalledWith('null');
+        JSONParseMock.mockRestore();
+    });
+
     it('should throw WrongParameterError if json is invalid', async function ()
     {
         const fakeContext = {

@@ -10,6 +10,7 @@ const JSONQuerystringParser: IRouteHandler = () =>
     return async (ctx, next) =>
     {
         const {json} = ctx.request.query;
+        let parseResult = null;
         if (typeof json === 'undefined') // 如果没有请求字符串，跳过
         {
             ctx.request.body = {};
@@ -17,8 +18,7 @@ const JSONQuerystringParser: IRouteHandler = () =>
         }
         try
         {
-            ctx.request.body = JSON.parse(json);
-            await next();
+            parseResult = JSON.parse(json);
         }
         catch (e)
         {
@@ -31,6 +31,13 @@ const JSONQuerystringParser: IRouteHandler = () =>
                 throw e;
             }
         }
+        // 解析结果是 null，必然是请求参数错误
+        if (parseResult === null)
+        {
+            throw new WrongParameterError();
+        }
+        ctx.request.body = parseResult;
+        await next();
     };
 };
 
