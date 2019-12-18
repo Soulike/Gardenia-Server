@@ -58,7 +58,7 @@ describe('bodyParser', () =>
     {
         // 请求体是 null 则抛出错误
         const requestBody = 'null';
-        const {body} = await superagent.post(URL).type('application/json').send(requestBody);
+        const {body} = await superagent.post(URL).set('Content-Type', 'application/json').send(requestBody);
         expect(body).toEqual(new WrongParameterError());
         expect(middlewareMock).not.toBeCalled();  // 不应当执行 next
     });

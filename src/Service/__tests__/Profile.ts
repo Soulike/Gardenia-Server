@@ -67,6 +67,15 @@ describe(`${get.name}`, () =>
         expect(databaseMock.Profile.selectByUsername.mock.calls.pop()).toEqual([fakeProfile.username]);
     });
 
+    it('should throw error if can not get account', async function ()
+    {
+        const {get} = await import('../Profile');
+        const response = await get({} as unknown as Session);
+        expect(response).toEqual(new ServiceResponse(404, {},
+            new ResponseBody(false, '用户不存在')));
+        expect(databaseMock.Profile.selectByUsername).not.toBeCalled();
+    });
+
     it('should check account existence by account', async function ()
     {
         databaseMock.Profile.selectByUsername.mockResolvedValue(null);

@@ -110,4 +110,22 @@ describe(`${JSONQuerystringParser.name}`, () =>
         expect(nextMock).toBeCalledTimes(1);
         expect(fakeContext.request.body).toEqual(fakeBody);
     });
+
+    it('should throw error if JSON.parse throws error', async function ()
+    {
+        const fakeBody = {c: 'd'};
+        const fakeContext = {
+            request: {
+                query: {json: JSON.stringify(fakeBody)},
+                body: null,
+            },
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const JSONParseMock = jest.spyOn(JSON, 'parse');
+        const JSONParseError = new Error('hello, world');
+        JSONParseMock.mockImplementation(() => {throw JSONParseError;});
+        await expect((JSONQuerystringParser())(fakeContext, nextMock)).rejects.toThrow(JSONParseError);
+        expect(nextMock).not.toBeCalled();
+        expect(fakeContext.request.body).toEqual(null);   // 解析失败不应当改变
+        JSONParseMock.mockRestore();
+    });
 });
