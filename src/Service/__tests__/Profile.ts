@@ -1,4 +1,4 @@
-import {get, set, updateAvatar} from '../Profile';
+import {get, set, uploadAvatar} from '../Profile';
 import {Account, Profile as ProfileClass, Profile, ResponseBody, ServiceResponse} from '../../Class';
 import {Session} from 'koa-session';
 import {File} from 'formidable';
@@ -118,7 +118,7 @@ describe(`${set.name}`, () =>
     });
 });
 
-describe(`${updateAvatar.name}`, () =>
+describe(`${uploadAvatar.name}`, () =>
 {
     beforeEach(() =>
     {
@@ -150,9 +150,9 @@ describe(`${updateAvatar.name}`, () =>
         const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);
         const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
 
-        const {updateAvatar} = await import('../Profile');
+        const {uploadAvatar} = await import('../Profile');
         expect(
-            await updateAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
+            await uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true)));
         expect(databaseMock.Profile.update.mock.calls.pop()).toEqual([
@@ -206,9 +206,9 @@ describe(`${updateAvatar.name}`, () =>
         };
         const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
 
-        const {updateAvatar} = await import('../Profile');
+        const {uploadAvatar} = await import('../Profile');
         await expect(
-            updateAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
+            uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).rejects.toThrow();
 
         expect(databaseMock.Profile.update.mock.calls.length).toBe(0);
@@ -262,9 +262,9 @@ describe(`${updateAvatar.name}`, () =>
         };
         const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
 
-        const {updateAvatar} = await import('../Profile');
+        const {uploadAvatar} = await import('../Profile');
         await expect(
-            updateAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
+            uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).rejects.toThrow();
 
         expect(databaseMock.Profile.update.mock.calls.pop()).toEqual([
@@ -319,9 +319,9 @@ describe(`${updateAvatar.name}`, () =>
         const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);
         const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
 
-        const {updateAvatar} = await import('../Profile');
+        const {uploadAvatar} = await import('../Profile');
         await expect(
-            updateAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
+            uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).rejects.toThrow();
 
         expect(databaseMock.Profile.update.mock.calls.length).toBe(2);

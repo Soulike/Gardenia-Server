@@ -47,6 +47,6 @@ export const uploadAvatar: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {avatar} = ctx.request.files;
-        ctx.state.serviceResponse = await Profile.updateAvatar(avatar, ctx.session);
+        ctx.state.serviceResponse = await Profile.uploadAvatar(avatar, ctx.session);
     };
 };

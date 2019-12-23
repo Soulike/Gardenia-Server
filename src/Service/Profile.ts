@@ -35,7 +35,7 @@ export async function set(profile: Readonly<Partial<Omit<ProfileClass, 'avatar' 
         new ResponseBody<void>(true));
 }
 
-export async function updateAvatar(avatar: Readonly<File>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
     /*
