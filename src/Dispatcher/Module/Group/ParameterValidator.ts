@@ -3,7 +3,7 @@ import {IParameterValidator} from '../../Interface';
 export const add: IParameterValidator = body =>
 {
     const {group} = body;
-    if (group === undefined)
+    if (group === undefined || group === null)
     {
         return false;
     }
@@ -14,7 +14,7 @@ export const add: IParameterValidator = body =>
 export const dismiss: IParameterValidator = body =>
 {
     const {group} = body;
-    if (group === undefined)
+    if (group === undefined || group === null)
     {
         return false;
     }
@@ -29,7 +29,7 @@ export const accounts = dismiss;
 export const addAccounts: IParameterValidator = body =>
 {
     const {group, usernames} = body;
-    if (typeof group === 'undefined')
+    if (typeof group === 'undefined' || group === null)
     {
         return false;
     }
@@ -64,7 +64,7 @@ export const repositories = dismiss;
 export const removeRepositories: IParameterValidator = body =>
 {
     const {group, repositories} = body;
-    if (group === undefined)
+    if (group === undefined || group === null)
     {
         return false;
     }

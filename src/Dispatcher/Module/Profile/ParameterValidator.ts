@@ -4,7 +4,7 @@ import validator from 'validator';
 export const get: IParameterValidator = body =>
 {
     const {account} = body;
-    if (typeof account === 'undefined')
+    if (typeof account === 'undefined' || account === null)
     {
         return true;
     }
@@ -21,5 +21,5 @@ export const set: IParameterValidator = body =>
 export const uploadAvatar: IParameterValidator = body =>
 {
     const {avatar} = body;
-    return typeof avatar !== 'undefined';
+    return typeof avatar !== 'undefined' && avatar !== null;
 };

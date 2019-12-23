@@ -9,6 +9,12 @@ describe(`add`, () =>
         expect(add(body)).toBeFalse();
     });
 
+    it('should handle body.group is null', async function ()
+    {
+        const body = {group: null};
+        expect(add(body)).toBeFalse();
+    });
+
     it('should handle body.group without name', async function ()
     {
         const body = {
@@ -42,6 +48,12 @@ describe(`dismiss`, () =>
         expect(dismiss(body)).toBeFalse();
     });
 
+    it('should handle body.group is null', async function ()
+    {
+        const body = {group: null};
+        expect(dismiss(body)).toBeFalse();
+    });
+
     it('should handle body.group without id', async function ()
     {
         const body = {
@@ -72,6 +84,12 @@ describe(`addAccounts`, () =>
     it('should handle body without group', function ()
     {
         const body = {usernames: ['fafaef', 'gsrhsrh']};
+        expect(addAccounts(body)).toBeFalse();
+    });
+
+    it('should handle body.group is null', async function ()
+    {
+        const body = {group: null};
         expect(addAccounts(body)).toBeFalse();
     });
 
@@ -132,9 +150,21 @@ describe(`removeRepositories`, () =>
         expect(removeRepositories(body)).toBeFalse();
     });
 
+    it('should handle body.group is null', async function ()
+    {
+        const body = {group: null};
+        expect(removeRepositories(body)).toBeFalse();
+    });
+
     it('should handle body without repositories', function ()
     {
         const body = {group: {id: 2}};
+        expect(removeRepositories(body)).toBeFalse();
+    });
+
+    it('should handle body.repositories is null', async function ()
+    {
+        const body = {group: {id: 2}, repositories: null};
         expect(removeRepositories(body)).toBeFalse();
     });
 

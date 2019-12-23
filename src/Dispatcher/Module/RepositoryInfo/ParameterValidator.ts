@@ -3,7 +3,8 @@ import {IParameterValidator} from '../../Interface';
 export const repository: IParameterValidator = body =>
 {
     const {account, repository} = body;
-    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    if (typeof account === 'undefined' || account === null
+        || typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -21,7 +22,8 @@ export const branch = repository;
 export const lastCommit: IParameterValidator = body =>
 {
     const {account, repository, commitHash, filePath} = body;
-    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    if (typeof account === 'undefined' || account === null
+        || typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -36,7 +38,8 @@ export const lastCommit: IParameterValidator = body =>
 export const directory: IParameterValidator = body =>
 {
     const {account, repository, commitHash, directoryPath} = body;
-    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    if (typeof account === 'undefined' || account === null
+        || typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -51,7 +54,8 @@ export const directory: IParameterValidator = body =>
 export const commitCount: IParameterValidator = body =>
 {
     const {account, repository, commitHash} = body;
-    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    if (typeof account === 'undefined' || account === null
+        || typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -65,7 +69,8 @@ export const commitCount: IParameterValidator = body =>
 export const fileInfo: IParameterValidator = body =>
 {
     const {account, repository, filePath, commitHash} = body;
-    if (typeof account === 'undefined' || typeof repository === 'undefined')
+    if (typeof account === 'undefined' || account === null
+        || typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -82,7 +87,8 @@ export const rawFile = fileInfo;
 export const setName: IParameterValidator = body =>
 {
     const {repository, newRepository} = body;
-    if (typeof repository === 'undefined' || typeof newRepository === 'undefined')
+    if (typeof newRepository === 'undefined' || newRepository === null
+        || typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -95,7 +101,7 @@ export const setName: IParameterValidator = body =>
 export const setDescription: IParameterValidator = body =>
 {
     const {repository} = body;
-    if (typeof repository === 'undefined')
+    if (typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -107,7 +113,7 @@ export const setDescription: IParameterValidator = body =>
 export const setIsPublic: IParameterValidator = body =>
 {
     const {repository} = body;
-    if (typeof repository === 'undefined')
+    if (typeof repository === 'undefined' || repository === null)
     {
         return false;
     }
@@ -119,7 +125,7 @@ export const setIsPublic: IParameterValidator = body =>
 export const groups: IParameterValidator = body =>
 {
     const {repository} = body;
-    if (repository === undefined)
+    if (repository === undefined || repository === null)
     {
         return false;
     }
@@ -130,7 +136,8 @@ export const groups: IParameterValidator = body =>
 export const addToGroup: IParameterValidator = body =>
 {
     const {repository, group} = body;
-    if (repository === undefined || group === undefined)
+    if (repository === undefined || repository === null
+        || group === undefined || group === null)
     {
         return false;
     }
