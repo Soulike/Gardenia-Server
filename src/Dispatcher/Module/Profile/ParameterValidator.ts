@@ -1,5 +1,5 @@
 import {IParameterValidator} from '../../Interface';
-import validator from 'validator';
+import {Account, Profile} from '../../../Class';
 
 export const get: IParameterValidator = body =>
 {
@@ -9,17 +9,17 @@ export const get: IParameterValidator = body =>
         return true;
     }
     const {username} = account;
-    return typeof username === 'string';
+    return Account.validate({username, hash: 'a'.repeat(64)});
 };
 
 export const set: IParameterValidator = body =>
 {
     const {email, nickname} = body;
-    return typeof email === 'string' && validator.isEmail(email) && typeof nickname === 'string';
+    return Profile.validate({email, nickname, avatar: '', username: ''});
 };
 
 export const uploadAvatar: IParameterValidator = body =>
 {
     const {avatar} = body;
-    return typeof avatar !== 'undefined' && avatar !== null;
+    return typeof avatar !== 'undefined' && avatar !== null;    // 这里的 avatar 是二进制文件
 };

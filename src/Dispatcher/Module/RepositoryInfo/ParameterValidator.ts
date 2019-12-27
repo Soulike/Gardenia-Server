@@ -1,4 +1,5 @@
 import {IParameterValidator} from '../../Interface';
+import {Account, Group, Repository} from '../../../Class';
 
 export const repository: IParameterValidator = body =>
 {
@@ -12,8 +13,8 @@ export const repository: IParameterValidator = body =>
     {
         const {username} = account;
         const {name} = repository;
-        return typeof username === 'string'
-            || typeof name === 'string';
+        return Account.validate({username, hash: 'a'.repeat(64)})
+            && Repository.validate({name, isPublic: true, description: '', username: ''});
     }
 };
 
@@ -29,8 +30,8 @@ export const lastCommit: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return typeof username === 'string'
-        && typeof name === 'string'
+    return Account.validate({username, hash: 'a'.repeat(64)})
+        && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof commitHash === 'string'
         && (typeof filePath === 'undefined' || typeof filePath === 'string');
 };
@@ -45,8 +46,8 @@ export const directory: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return typeof username === 'string'
-        && typeof name === 'string'
+    return Account.validate({username, hash: 'a'.repeat(64)})
+        && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof commitHash === 'string'
         && typeof directoryPath === 'string';
 };
@@ -61,8 +62,8 @@ export const commitCount: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return typeof username === 'string'
-        && typeof name === 'string'
+    return Account.validate({username, hash: 'a'.repeat(64)})
+        && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof commitHash === 'string';
 };
 
@@ -76,8 +77,8 @@ export const fileInfo: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return typeof username === 'string'
-        && typeof name === 'string'
+    return Account.validate({username, hash: 'a'.repeat(64)})
+        && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof filePath === 'string'
         && typeof commitHash === 'string';
 };
@@ -94,8 +95,8 @@ export const setName: IParameterValidator = body =>
     }
     const {name} = repository;
     const {name: newName} = newRepository;
-    return typeof name === 'string'
-        && typeof newName === 'string';
+    return Repository.validate({name, isPublic: true, description: '', username: ''})
+        && Repository.validate({name: newName, isPublic: true, description: '', username: ''});
 };
 
 export const setDescription: IParameterValidator = body =>
@@ -106,8 +107,7 @@ export const setDescription: IParameterValidator = body =>
         return false;
     }
     const {name, description} = repository;
-    return typeof name === 'string'
-        && typeof description === 'string';
+    return Repository.validate({name, description, username: '', isPublic: true});
 };
 
 export const setIsPublic: IParameterValidator = body =>
@@ -118,8 +118,7 @@ export const setIsPublic: IParameterValidator = body =>
         return false;
     }
     const {name, isPublic} = repository;
-    return typeof name === 'string'
-        && typeof isPublic === 'boolean';
+    return Repository.validate({name, isPublic, username: '', description: ''});
 };
 
 export const groups: IParameterValidator = body =>
@@ -130,7 +129,7 @@ export const groups: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return typeof username === 'string' && typeof name === 'string';
+    return Repository.validate({username, name, description: '', isPublic: true});
 };
 
 export const addToGroup: IParameterValidator = body =>
@@ -143,7 +142,6 @@ export const addToGroup: IParameterValidator = body =>
     }
     const {username, name} = repository;
     const {id} = group;
-    return typeof username === 'string'
-        && typeof name === 'string'
-        && typeof id === 'number';
+    return Repository.validate({username, name, isPublic: true, description: ''})
+        && Group.validate({id, name: ''});
 };
