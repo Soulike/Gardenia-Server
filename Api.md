@@ -589,7 +589,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 ### Group 模块（`/group`）
 
-### `/add`
+#### `/add`
 
 - 功能：创建小组
 - 方法：POST
@@ -604,7 +604,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 小组名已存在
 - 其他说明：无
 
-### `/dismiss`
+#### `/dismiss`
 
 - 功能：解散小组
 - 方法：POST
