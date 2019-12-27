@@ -6,7 +6,6 @@ import {ParameterizedContext} from 'koa';
 import {RouterContext} from '@koa/router';
 import {Profile, ResponseBody, ServiceResponse} from '../../../../Class';
 import {InvalidSessionError, WrongParameterError} from '../../../Class';
-import {get, set} from '../Middleware';
 
 const functionMock = {
     Session: {
@@ -31,7 +30,7 @@ const serviceMock = {
 
 const nextMock = jest.fn();
 
-describe(`${get}`, () =>
+describe(`get`, () =>
 {
     beforeEach(() =>
     {
@@ -89,7 +88,7 @@ describe(`${get}`, () =>
     });
 });
 
-describe(`${set}`, () =>
+describe(`set`, () =>
 {
     beforeEach(() =>
     {
