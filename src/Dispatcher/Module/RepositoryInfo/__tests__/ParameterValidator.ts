@@ -1,5 +1,17 @@
-import {Account, Repository} from '../../../../Class';
-import {commitCount, directory, fileInfo, lastCommit, rawFile, repository} from '../ParameterValidator';
+import {Account, Group, Repository} from '../../../../Class';
+import {
+    addToGroup,
+    commitCount,
+    directory,
+    fileInfo,
+    groups,
+    lastCommit,
+    rawFile,
+    repository,
+    setDescription,
+    setIsPublic,
+    setName,
+} from '../ParameterValidator';
 import 'jest-extended';
 
 describe('repository', () =>
@@ -776,5 +788,395 @@ describe('rawFile', () =>
             filePath: 255235,
         };
         expect(rawFile(fakeBody)).toBeFalse();
+    });
+});
+
+describe('setName', () =>
+{
+    it('should handle body without repository', function ()
+    {
+        const fakeBody: {
+            newRepository: Pick<Repository, 'name'>,
+        } = {
+            newRepository: {
+                name: 'faefeaf',
+            },
+        };
+        expect(setName(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository (null)', function ()
+    {
+        const fakeBody: {
+            repository: null,
+            newRepository: Pick<Repository, 'name'>,
+        } = {
+            repository: null,
+            newRepository: {
+                name: 'faefeaf',
+            },
+        };
+        expect(setName(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body without newRepository', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name'>,
+        } = {
+            repository: {
+                name: 'faefaef',
+            },
+        };
+        expect(setName(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with newRepository (null)', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name'>,
+            newRepository: null,
+        } = {
+            repository: {
+                name: 'faefaef',
+            },
+            newRepository: null,
+        };
+        expect(setName(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.name (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'name'>, any>,
+            newRepository: Pick<Repository, 'name'>,
+        } = {
+            repository: {
+                name: 643,
+            },
+            newRepository: {
+                name: 'faefeaf',
+            },
+        };
+        expect(setName(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with newRepository.name (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name'>,
+            newRepository: Record<keyof Pick<Repository, 'name'>, any>,
+        } = {
+            repository: {
+                name: 'faefaef',
+            },
+            newRepository: {
+                name: false,
+            },
+        };
+        expect(setName(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name'>,
+            newRepository: Pick<Repository, 'name'>,
+        } = {
+            repository: {
+                name: 'faefaef',
+            },
+            newRepository: {
+                name: 'faefeaf',
+            },
+        };
+        expect(setName(fakeBody)).toBeTrue();
+    });
+});
+
+describe('setDescription', () =>
+{
+    it('should handle body without repository', function ()
+    {
+        const fakeBody: {} = {};
+        expect(setDescription(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository (null)', function ()
+    {
+        const fakeBody: { repository: null, } = {repository: null};
+        expect(setDescription(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.name (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'name'>, any> & Pick<Repository, 'description'>,
+        } = {
+            repository: {
+                name: 111,
+                description: 'fgaegae',
+            },
+        };
+        expect(setDescription(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.description (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'description'>, any> & Pick<Repository, 'name'>,
+        } = {
+            repository: {
+                name: 'faefea',
+                description: 111,
+            },
+        };
+        expect(setDescription(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name' | 'description'>,
+        } = {
+            repository: {
+                name: 'faefea',
+                description: 'fgaegae',
+            },
+        };
+        expect(setDescription(fakeBody)).toBeTrue();
+    });
+});
+
+describe('setIsPublic', () =>
+{
+    it('should handle body without repository', function ()
+    {
+        const fakeBody: {} = {};
+        expect(setIsPublic(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository (null)', function ()
+    {
+        const fakeBody: { repository: null, } = {repository: null};
+        expect(setIsPublic(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.name (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'name'>, any> & Pick<Repository, 'isPublic'>,
+        } = {
+            repository: {
+                name: 111,
+                isPublic: false,
+            },
+        };
+        expect(setIsPublic(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.isPublic (not a boolean)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'isPublic'>, any> & Pick<Repository, 'name'>,
+        } = {
+            repository: {
+                name: 'faefea',
+                isPublic: 111,
+            },
+        };
+        expect(setIsPublic(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name' | 'isPublic'>,
+        } = {
+            repository: {
+                name: 'faefea',
+                isPublic: true,
+            },
+        };
+        expect(setIsPublic(fakeBody)).toBeTrue();
+    });
+});
+
+describe('groups', () =>
+{
+    it('should handle body without repository', function ()
+    {
+        const fakeBody: {} = {};
+        expect(groups(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository (null)', function ()
+    {
+        const fakeBody: { repository: null, } = {repository: null};
+        expect(groups(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.username (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'username'>, any> & Pick<Repository, 'name'>,
+        } = {
+            repository: {
+                username: 111,
+                name: 'faefgae',
+            },
+        };
+        expect(groups(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.name (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'name'>, any> & Pick<Repository, 'username'>,
+        } = {
+            repository: {
+                username: 'feaf',
+                name: false,
+            },
+        };
+        expect(groups(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'username' | 'name'>,
+        } = {
+            repository: {
+                username: 'feaf',
+                name: 'faefgae',
+            },
+        };
+        expect(groups(fakeBody)).toBeTrue();
+    });
+});
+
+describe('addToGroup', () =>
+{
+    it('should handle body without repository', function ()
+    {
+        const fakeBody: {
+            group: Pick<Group, 'id'>,
+        } = {
+            group: {
+                id: 2,
+            },
+        };
+        expect(addToGroup(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository (null)', function ()
+    {
+        const fakeBody: {
+            repository: null,
+            group: Pick<Group, 'id'>,
+        } = {
+            repository: null,
+            group: {
+                id: 2,
+            },
+        };
+        expect(addToGroup(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body without group', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'username' | 'name'>,
+        } = {
+            repository: {
+                username: 'faefae',
+                name: 'feafaef',
+            },
+        };
+        expect(addToGroup(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with group (null)', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'username' | 'name'>,
+            group: null,
+        } = {
+            repository: {
+                username: 'faefae',
+                name: 'feafaef',
+            },
+            group: null,
+        };
+        expect(addToGroup(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.username (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'username'>, any> & Pick<Repository, 'name'>,
+            group: Pick<Group, 'id'>,
+        } = {
+            repository: {
+                username: 111,
+                name: 'feafaef',
+            },
+            group: {
+                id: 2,
+            },
+        };
+        expect(addToGroup(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with repository.name (not a string)', function ()
+    {
+        const fakeBody: {
+            repository: Record<keyof Pick<Repository, 'name'>, any> & Pick<Repository, 'username'>,
+            group: Pick<Group, 'id'>,
+        } = {
+            repository: {
+                username: 'faefae',
+                name: false,
+            },
+            group: {
+                id: 2,
+            },
+        };
+        expect(addToGroup(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with group.id (not a number)', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'username' | 'name'>,
+            group: Record<keyof Pick<Group, 'id'>, any>,
+        } = {
+            repository: {
+                username: 'faefae',
+                name: 'feafaef',
+            },
+            group: {
+                id: 'gaegae',
+            },
+        };
+        expect(addToGroup(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body', function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'username' | 'name'>,
+            group: Pick<Group, 'id'>,
+        } = {
+            repository: {
+                username: 'faefae',
+                name: 'feafaef',
+            },
+            group: {
+                id: 2,
+            },
+        };
+        expect(addToGroup(fakeBody)).toBeTrue();
     });
 });
