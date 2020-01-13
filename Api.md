@@ -520,7 +520,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 #### `/setDescription`
 
-- 功能：修改仓库名
+- 功能：修改仓库描述
 - 方法：POST
 - 请求参数：
 ```ts
