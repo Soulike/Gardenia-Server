@@ -4,8 +4,8 @@ import {RepositoryInfo as RepositoryInfoService} from '../../../../Service';
 import {ParameterizedContext} from 'koa';
 import {IContext, IState} from '../../../Interface';
 import {RouterContext} from '@koa/router';
-import {WrongParameterError} from '../../../Class';
-import {Account, Commit, Repository, ResponseBody, ServiceResponse} from '../../../../Class';
+import {InvalidSessionError, WrongParameterError} from '../../../Class';
+import {Account, Commit, Group, Repository, ResponseBody, ServiceResponse} from '../../../../Class';
 import {ObjectType} from '../../../../CONSTANT';
 import {Readable} from 'stream';
 
@@ -501,6 +501,383 @@ describe('rawFile', () =>
         expect(serviceMock.RepositoryInfo.rawFile).toBeCalledTimes(1);
         expect(serviceMock.RepositoryInfo.rawFile)
             .toBeCalledWith(fakeBody.account, fakeBody.repository, fakeBody.filePath, fakeBody.commitHash, fakeSession);
+        expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
+    });
+});
+
+describe('setName', () =>
+{
+    beforeEach(() =>
+    {
+        jest.resetAllMocks()
+            .resetModules()
+            .mock('../../../../Function', () => functionMock)
+            .mock('../../../../Service', () => serviceMock)
+            .mock('../ParameterValidator', () => parameterValidatorMock);
+    });
+
+    it('should validate session', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeContext = {
+            session: fakeSession,
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {setName} = await import('../Middleware');
+        await expect(setName()(fakeContext, nextMock)).rejects.toEqual(new InvalidSessionError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setName).not.toBeCalled();
+        expect(serviceMock.RepositoryInfo.setName).not.toBeCalled();
+    });
+
+    it('should validate body', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.setName.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeBody = {a: 1};
+        const fakeContext = {
+            session: fakeSession,
+            request: {body: fakeBody},
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {setName} = await import('../Middleware');
+        await expect(setName()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setName).toBeCalledTimes(1);
+        expect(parameterValidatorMock.setName).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.setName).not.toBeCalled();
+    });
+
+    it('should call service', async function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name'>,
+            newRepository: Pick<Repository, 'name'>,
+        } = {
+            repository: {name: 'faef'},
+            newRepository: {name: 'faefg'},
+        };
+        const fakeSession = {b: 2};
+        const fakeContext = {
+            request: {body: fakeBody},
+            session: fakeSession,
+            state: <IState>{
+                serviceResponse: {},
+            },
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const fakeServiceResponse = new ServiceResponse<void>(
+            200, {},
+            new ResponseBody(true, ''));
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.setName.mockReturnValue(true);
+        serviceMock.RepositoryInfo.setName.mockResolvedValue(fakeServiceResponse);
+        const {setName} = await import('../Middleware');
+        await setName()(fakeContext, nextMock);
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setName).toBeCalledTimes(1);
+        expect(parameterValidatorMock.setName).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.setName).toBeCalledTimes(1);
+        expect(serviceMock.RepositoryInfo.setName)
+            .toBeCalledWith(fakeBody.repository, fakeBody.newRepository, fakeSession);
+        expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
+    });
+});
+
+describe('setDescription', () =>
+{
+    beforeEach(() =>
+    {
+        jest.resetAllMocks()
+            .resetModules()
+            .mock('../../../../Function', () => functionMock)
+            .mock('../../../../Service', () => serviceMock)
+            .mock('../ParameterValidator', () => parameterValidatorMock);
+    });
+
+    it('should validate session', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeContext = {
+            session: fakeSession,
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {setDescription} = await import('../Middleware');
+        await expect(setDescription()(fakeContext, nextMock)).rejects.toEqual(new InvalidSessionError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setDescription).not.toBeCalled();
+        expect(serviceMock.RepositoryInfo.setDescription).not.toBeCalled();
+    });
+
+    it('should validate body', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.setDescription.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeBody = {a: 1};
+        const fakeContext = {
+            session: fakeSession,
+            request: {body: fakeBody},
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {setDescription} = await import('../Middleware');
+        await expect(setDescription()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setDescription).toBeCalledTimes(1);
+        expect(parameterValidatorMock.setDescription).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.setDescription).not.toBeCalled();
+    });
+
+    it('should call service', async function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name' | 'description'>,
+        } = {
+            repository: {name: 'faef', description: 'feafea'},
+        };
+        const fakeSession = {b: 2};
+        const fakeContext = {
+            request: {body: fakeBody},
+            session: fakeSession,
+            state: <IState>{
+                serviceResponse: {},
+            },
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const fakeServiceResponse = new ServiceResponse<void>(
+            200, {},
+            new ResponseBody(true, ''));
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.setDescription.mockReturnValue(true);
+        serviceMock.RepositoryInfo.setDescription.mockResolvedValue(fakeServiceResponse);
+        const {setDescription} = await import('../Middleware');
+        await setDescription()(fakeContext, nextMock);
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setDescription).toBeCalledTimes(1);
+        expect(parameterValidatorMock.setDescription).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.setDescription).toBeCalledTimes(1);
+        expect(serviceMock.RepositoryInfo.setDescription)
+            .toBeCalledWith(fakeBody.repository, fakeSession);
+        expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
+    });
+});
+
+describe('setIsPublic', () =>
+{
+    beforeEach(() =>
+    {
+        jest.resetAllMocks()
+            .resetModules()
+            .mock('../../../../Function', () => functionMock)
+            .mock('../../../../Service', () => serviceMock)
+            .mock('../ParameterValidator', () => parameterValidatorMock);
+    });
+
+    it('should validate session', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeContext = {
+            session: fakeSession,
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {setIsPublic} = await import('../Middleware');
+        await expect(setIsPublic()(fakeContext, nextMock)).rejects.toEqual(new InvalidSessionError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setIsPublic).not.toBeCalled();
+        expect(serviceMock.RepositoryInfo.setIsPublic).not.toBeCalled();
+    });
+
+    it('should validate body', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.setIsPublic.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeBody = {a: 1};
+        const fakeContext = {
+            session: fakeSession,
+            request: {body: fakeBody},
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {setIsPublic} = await import('../Middleware');
+        await expect(setIsPublic()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setIsPublic).toBeCalledTimes(1);
+        expect(parameterValidatorMock.setIsPublic).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.setIsPublic).not.toBeCalled();
+    });
+
+    it('should call service', async function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'name' | 'isPublic'>,
+        } = {
+            repository: {name: 'faef', isPublic: false},
+        };
+        const fakeSession = {b: 2};
+        const fakeContext = {
+            request: {body: fakeBody},
+            session: fakeSession,
+            state: <IState>{
+                serviceResponse: {},
+            },
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const fakeServiceResponse = new ServiceResponse<void>(
+            200, {},
+            new ResponseBody(true, ''));
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.setIsPublic.mockReturnValue(true);
+        serviceMock.RepositoryInfo.setIsPublic.mockResolvedValue(fakeServiceResponse);
+        const {setIsPublic} = await import('../Middleware');
+        await setIsPublic()(fakeContext, nextMock);
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.setIsPublic).toBeCalledTimes(1);
+        expect(parameterValidatorMock.setIsPublic).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.setIsPublic).toBeCalledTimes(1);
+        expect(serviceMock.RepositoryInfo.setIsPublic)
+            .toBeCalledWith(fakeBody.repository, fakeSession);
+        expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
+    });
+});
+
+describe('groups', () =>
+{
+    beforeEach(() =>
+    {
+        jest.resetAllMocks()
+            .resetModules()
+            .mock('../../../../Function', () => functionMock)
+            .mock('../../../../Service', () => serviceMock)
+            .mock('../ParameterValidator', () => parameterValidatorMock);
+    });
+
+    it('should validate body', async function ()
+    {
+        parameterValidatorMock.groups.mockReturnValue(false);
+        const fakeBody = {a: 1};
+        const fakeContext = {
+            request: {body: fakeBody},
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {groups} = await import('../Middleware');
+        await expect(groups()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
+        expect(parameterValidatorMock.groups).toBeCalledTimes(1);
+        expect(parameterValidatorMock.groups).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.groups).not.toBeCalled();
+    });
+
+    it('should call service', async function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'username' | 'name'>,
+        } = {
+            repository: {username: 'feaf', name: 'faef'},
+        };
+        const fakeSession = {b: 2};
+        const fakeContext = {
+            request: {body: fakeBody},
+            session: fakeSession,
+            state: <IState>{
+                serviceResponse: {},
+            },
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const fakeServiceResponse = new ServiceResponse<Group[]>(
+            200, {},
+            new ResponseBody(true, '',
+                [new Group(1, 'feaf')]));
+        parameterValidatorMock.groups.mockReturnValue(true);
+        serviceMock.RepositoryInfo.groups.mockResolvedValue(fakeServiceResponse);
+        const {groups} = await import('../Middleware');
+        await groups()(fakeContext, nextMock);
+        expect(parameterValidatorMock.groups).toBeCalledTimes(1);
+        expect(parameterValidatorMock.groups).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.groups).toBeCalledTimes(1);
+        expect(serviceMock.RepositoryInfo.groups)
+            .toBeCalledWith(fakeBody.repository, fakeSession);
+        expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
+    });
+});
+
+describe('addToGroup', () =>
+{
+    beforeEach(() =>
+    {
+        jest.resetAllMocks()
+            .resetModules()
+            .mock('../../../../Function', () => functionMock)
+            .mock('../../../../Service', () => serviceMock)
+            .mock('../ParameterValidator', () => parameterValidatorMock);
+    });
+
+    it('should validate session', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeContext = {
+            session: fakeSession,
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {addToGroup} = await import('../Middleware');
+        await expect(addToGroup()(fakeContext, nextMock)).rejects.toEqual(new InvalidSessionError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.addToGroup).not.toBeCalled();
+        expect(serviceMock.RepositoryInfo.addToGroup).not.toBeCalled();
+    });
+
+    it('should validate body', async function ()
+    {
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.addToGroup.mockReturnValue(false);
+        const fakeSession = {b: 1};
+        const fakeBody = {a: 1};
+        const fakeContext = {
+            session: fakeSession,
+            request: {body: fakeBody},
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const {addToGroup} = await import('../Middleware');
+        await expect(addToGroup()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.addToGroup).toBeCalledTimes(1);
+        expect(parameterValidatorMock.addToGroup).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.addToGroup).not.toBeCalled();
+    });
+
+    it('should call service', async function ()
+    {
+        const fakeBody: {
+            repository: Pick<Repository, 'username' | 'name'>,
+            group: Pick<Group, 'id'>,
+        } = {
+            repository: {name: 'faef', username: 'fafe'},
+            group: {id: 2},
+        };
+        const fakeSession = {b: 2};
+        const fakeContext = {
+            request: {body: fakeBody},
+            session: fakeSession,
+            state: <IState>{
+                serviceResponse: {},
+            },
+        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
+        const fakeServiceResponse = new ServiceResponse<void>(
+            200, {},
+            new ResponseBody(true, ''));
+        functionMock.Session.isSessionValid.mockReturnValue(true);
+        parameterValidatorMock.addToGroup.mockReturnValue(true);
+        serviceMock.RepositoryInfo.addToGroup.mockResolvedValue(fakeServiceResponse);
+        const {addToGroup} = await import('../Middleware');
+        await addToGroup()(fakeContext, nextMock);
+        expect(functionMock.Session.isSessionValid).toBeCalledTimes(1);
+        expect(functionMock.Session.isSessionValid).toBeCalledWith(fakeSession);
+        expect(parameterValidatorMock.addToGroup).toBeCalledTimes(1);
+        expect(parameterValidatorMock.addToGroup).toBeCalledWith(fakeBody);
+        expect(serviceMock.RepositoryInfo.addToGroup).toBeCalledTimes(1);
+        expect(serviceMock.RepositoryInfo.addToGroup)
+            .toBeCalledWith(fakeBody.repository, fakeBody.group, fakeSession);
         expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
     });
 });
