@@ -21,14 +21,18 @@ export async function executeTransaction<T extends Client | PoolClient, R>(clien
     }
 }
 
-export function generateParameterizedStatementAndValuesArray(obj: Readonly<{ [key: string]: any }>, connection: 'AND' | ',')
+export function generateParameterizedStatementAndValuesArray(parameters: Readonly<{ [key: string]: any }>, connection: 'AND' | ',')
 {
+    if (Object.keys(parameters).length === 0)
+    {
+        throw new Error(`Empty parameter object`);
+    }
     const values: any[] = [];
     const parameterizedStatements: string[] = [];    // "a"=$1,"b"=$2
-    Object.keys(obj).forEach((key, index) =>
+    Object.keys(parameters).forEach((key, index) =>
     {
         parameterizedStatements.push(`"${key}"=$${index + 1}`);
-        values.push(obj[key]);
+        values.push(parameters[key]);
     });
     return {
         values,
@@ -36,15 +40,19 @@ export function generateParameterizedStatementAndValuesArray(obj: Readonly<{ [ke
     };
 }
 
-export function generateColumnNamesAndValuesArrayAndParameterString(obj: Readonly<any>)
+export function generateColumnNamesAndValuesArrayAndParameterString(parameters: Readonly<{ [key: string]: any }>)
 {
+    if (Object.keys(parameters).length === 0)
+    {
+        throw new Error(`Empty parameter object`);
+    }
     const values: any[] = [];
     const columnNames: string[] = [];
     const parameterStrings: string[] = [];
-    Object.keys(obj).forEach((key, index) =>
+    Object.keys(parameters).forEach((key, index) =>
     {
         columnNames.push(`"${key}"`);
-        values.push(obj[key]);
+        values.push(parameters[key]);
         parameterStrings.push(`$${index + 1}`);
     });
     return {

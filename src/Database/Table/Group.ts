@@ -49,22 +49,25 @@ export async function deleteById(id: Group['id']): Promise<void>
 
 export async function update(group: Readonly<Partial<Group>>, primaryKey: Readonly<Pick<Group, 'id'>>): Promise<void>
 {
-    const client = await pool.connect();
-    try
+    if (Object.keys(group).length !== 0)
     {
-        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(group, ',');
-        await executeTransaction(client, async (client) =>
+        const client = await pool.connect();
+        try
         {
-            await client.query(
-                `UPDATE "groups"
+            const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(group, ',');
+            await executeTransaction(client, async (client) =>
+            {
+                await client.query(
+                    `UPDATE "groups"
                      SET ${parameterizedStatement}
                      WHERE "id" = $${values.length + 1}`,
-                [...values, primaryKey.id]);
-        });
-    }
-    finally
-    {
-        client.release();
+                    [...values, primaryKey.id]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 }
 

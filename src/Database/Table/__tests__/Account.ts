@@ -68,6 +68,12 @@ describe(`${update.name}`, () =>
         await update(modifiedFakeAccount, {username: modifiedFakeAccount.username});
         expect(await selectByUsername(fakeAccount.username)).toStrictEqual(modifiedFakeAccount);
     });
+
+    it('should handle empty object', async function ()
+    {
+        await update({}, {username: fakeAccount.username});
+        expect(await selectByUsername(fakeAccount.username)).toEqual(fakeAccount);
+    });
 });
 
 describe(`${insert.name}`, () =>

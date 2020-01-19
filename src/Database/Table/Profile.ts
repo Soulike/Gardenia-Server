@@ -8,22 +8,25 @@ import {Profile as ProfileClass} from '../../Class';
 
 export async function update(profile: Readonly<Partial<ProfileClass>>, primaryKey: Readonly<Pick<ProfileClass, 'username'>>): Promise<void>
 {
-    const client = await pool.connect();
-    try
+    if (Object.keys(profile).length !== 0)
     {
-        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(profile, ',');
-        await executeTransaction(client, async client =>
+        const client = await pool.connect();
+        try
         {
-            await client.query(
-                `UPDATE profiles
+            const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(profile, ',');
+            await executeTransaction(client, async client =>
+            {
+                await client.query(
+                    `UPDATE profiles
                      SET ${parameterizedStatement}
                      WHERE "username" = $${values.length + 1}`,
-                [...values, primaryKey.username]);
-        });
-    }
-    finally
-    {
-        client.release();
+                    [...values, primaryKey.username]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 }
 

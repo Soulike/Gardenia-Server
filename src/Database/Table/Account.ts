@@ -25,22 +25,25 @@ export async function selectByUsername(username: AccountClass['username']): Prom
 
 export async function update(account: Readonly<Partial<AccountClass>>, primaryKey: Readonly<Pick<AccountClass, 'username'>>): Promise<void>
 {
-    const client = await pool.connect();
-    try
+    if (Object.keys(account).length !== 0)
     {
-        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(account, ',');
-        await executeTransaction(client, async (client) =>
+        const client = await pool.connect();
+        try
         {
-            await client.query(
-                `UPDATE accounts
+            const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(account, ',');
+            await executeTransaction(client, async (client) =>
+            {
+                await client.query(
+                    `UPDATE accounts
                      SET ${parameterizedStatement}
                      WHERE "username" = $${values.length + 1}`,
-                [...values, primaryKey.username]);
-        });
-    }
-    finally
-    {
-        client.release();
+                    [...values, primaryKey.username]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 }
 

@@ -53,7 +53,7 @@ describe(`${update.name}`, () =>
         await insert(fakeProfile);
     });
 
-    afterAll(async () =>
+    afterEach(async () =>
     {
         await deleteByUsername(fakeProfile.username);
     });
@@ -70,6 +70,12 @@ describe(`${update.name}`, () =>
             ...modifiedFakeProfile,
         });
         expect(await selectByUsername(fakeProfile.username)).toStrictEqual(fakeProfileCopy);
+    });
+
+    it('should handle empty object', async function ()
+    {
+        await update({}, {username: fakeProfile.username});
+        expect(await selectByUsername(fakeProfile.username)).toEqual(fakeProfile);
     });
 });
 

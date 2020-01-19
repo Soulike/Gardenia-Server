@@ -102,6 +102,12 @@ describe(`${update.name}`, () =>
         expect(await selectById(fakeGroupId))
             .toStrictEqual(modifiedFakeGroup);
     });
+
+    it('should handle empty object', async function ()
+    {
+        await update({}, {id: fakeGroupId});
+        expect(await selectById(fakeGroupId)).toEqual({...fakeGroup, id: fakeGroupId});
+    });
 });
 
 describe(`${selectById.name}`, () =>

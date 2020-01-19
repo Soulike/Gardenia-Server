@@ -45,22 +45,25 @@ export async function deleteByUsernameAndName(repository: Readonly<Pick<Reposito
 
 export async function update(repository: Readonly<Partial<RepositoryClass>>, primaryKey: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
 {
-    const client = await pool.connect();
-    try
+    if (Object.keys(repository).length !== 0)
     {
-        const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, ',');
-        await executeTransaction(client, async client =>
+        const client = await pool.connect();
+        try
         {
-            await client.query(`UPDATE repositories
+            const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, ',');
+            await executeTransaction(client, async client =>
+            {
+                await client.query(`UPDATE repositories
                                 SET ${parameterizedStatement}
                                 WHERE "username" = $${values.length + 1}
                                   AND "name" = $${values.length + 2}`,
-                [...values, primaryKey.username, primaryKey.name]);
-        });
-    }
-    finally
-    {
-        client.release();
+                    [...values, primaryKey.username, primaryKey.name]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
     }
 }
 

@@ -25,6 +25,16 @@ describe(`${generateParameterizedStatementAndValuesArray.name}`, () =>
         const expectedStatement = '"a"=$1 , "b"=$2 , "c"=$3 , "d"=$4';
         expect(parameterizedStatement).toBe(expectedStatement);
     });
+
+    it('should throw error when parameter object is empty', function ()
+    {
+        expect(
+            () => generateParameterizedStatementAndValuesArray({}, ','))
+            .toThrow();
+        expect(
+            () => generateParameterizedStatementAndValuesArray({}, 'AND'))
+            .toThrow();
+    });
 });
 
 describe(`${generateColumnNamesAndValuesArrayAndParameterString.name}`, () =>
@@ -39,5 +49,13 @@ describe(`${generateColumnNamesAndValuesArrayAndParameterString.name}`, () =>
         expect(values).toEqual(objValues);
         expect(columnNames).toBe(expectedColumnNames);
         expect(parameterString).toBe(expectedParameterString);
+    });
+
+    it('should throw error when parameter object is empty', function ()
+    {
+        expect(() => generateColumnNamesAndValuesArrayAndParameterString({}))
+            .toThrow();
+        expect(() => generateColumnNamesAndValuesArrayAndParameterString({}))
+            .toThrow();
     });
 });

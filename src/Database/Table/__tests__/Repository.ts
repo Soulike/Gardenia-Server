@@ -121,6 +121,14 @@ describe(`${update.name}`, () =>
         expect(await selectByUsernameAndName(modifiedFakeRepository)).toStrictEqual(modifiedFakeRepository);
         await deleteByUsernameAndName(modifiedFakeRepository);
     });
+
+    it('should handle empty object', async function ()
+    {
+        await update({}, {
+            username: fakeRepository.username, name: fakeRepository.name,
+        });
+        expect(await selectByUsernameAndName(fakeRepository)).toEqual(fakeRepository);
+    });
 });
 
 describe(`${selectByUsernameAndName.name}`, () =>
