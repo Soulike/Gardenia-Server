@@ -15,7 +15,17 @@ export const get: IParameterValidator = body =>
 export const set: IParameterValidator = body =>
 {
     const {email, nickname} = body;
-    return Profile.validate({email, nickname, avatar: '', username: ''});
+    if (email !== undefined
+        && !Profile.validate({email, nickname: '', username: '', avatar: ''}))
+    {
+        return false;
+    }
+    else if (nickname !== undefined
+        && !Profile.validate({nickname, email: 'a@b.com', username: '', avatar: ''}))
+    {
+        return false;
+    }
+    return true;
 };
 
 export const uploadAvatar: IParameterValidator = body =>

@@ -1,5 +1,6 @@
 import 'jest-extended';
 import {get, set, uploadAvatar} from '../ParameterValidator';
+import {Profile} from '../../../../Class';
 
 describe(`get`, () =>
 {
@@ -24,40 +25,51 @@ describe(`get`, () =>
 
 describe(`set`, () =>
 {
-    it('should handle email is not a string', function ()
+    it('should handle body with only nickname (string)', async function ()
     {
-        const fakeBody = {
-            email: 123,
-            nickname: 'gaegaeg',
-        };
-        expect(set(fakeBody)).toBeFalse();
-    });
-
-    it('should handle email is not a valid email', function ()
-    {
-        const fakeBody = {
-            email: '123',
-            nickname: 'gaegaeg',
-        };
-        expect(set(fakeBody)).toBeFalse();
-    });
-
-    it('should handle nickname is not a string', function ()
-    {
-        const fakeBody = {
-            email: '123',
-            nickname: 1111,
-        };
-        expect(set(fakeBody)).toBeFalse();
-    });
-
-    it('should handle nickname is string and email is a valid email', function ()
-    {
-        const fakeBody = {
-            email: '123@b.com',
-            nickname: '1111',
-        };
+        const fakeBody: Partial<Omit<Profile, 'avatar' | 'username'>> =
+            {nickname: 'afaef'};
         expect(set(fakeBody)).toBeTrue();
+    });
+
+    it('should handle body with only email (valid)', async function ()
+    {
+        const fakeBody: Partial<Omit<Profile, 'avatar' | 'username'>> =
+            {email: 'a@b.com'};
+        expect(set(fakeBody)).toBeTrue();
+    });
+
+    it('should handle body with only nickname (not a string)', async function ()
+    {
+        const fakeBody =
+            {nickname: 2};
+        expect(set(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with only email (invalid)', async function ()
+    {
+        const fakeBody =
+            {email: 2323};
+        expect(set(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with email (invalid) and nickname (string)', async function ()
+    {
+        const fakeBody =
+            {email: 4745756, nickname: 'dfaf'};
+        expect(set(fakeBody)).toBeFalse();
+    });
+
+    it('should handle body with email and nickname', async function ()
+    {
+        const fakeBody: Partial<Omit<Profile, 'avatar' | 'username'>> =
+            {email: 'a@b.com', nickname: 'dfaf'};
+        expect(set(fakeBody)).toBeTrue();
+    });
+
+    it('should handle empty body', async function ()
+    {
+        expect(set({})).toBeTrue();
     });
 });
 
