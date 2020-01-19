@@ -4,7 +4,6 @@ import {Session} from 'koa-session';
 import {File} from 'formidable';
 import path from 'path';
 import os from 'os';
-import imageminWebp from 'imagemin-webp';
 import {SERVER} from '../../CONFIG';
 import {Profile as ProfileTable} from '../../Database';
 
@@ -148,39 +147,28 @@ describe(`${uploadAvatar.name}`, () =>
             toJSON: () => ({}),
         };
         const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);
-        const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
+        const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(fakeFile.path)}.webp`);
 
         const {uploadAvatar} = await import('../Profile');
         expect(
             await uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true)));
-        expect(databaseMock.Profile.update.mock.calls.pop()).toEqual([
-            {avatar: `/avatar/${fakeAccount.username}.webp`}, {username: fakeAccount.username},
-        ]);
+        expect(databaseMock.Profile.update).toBeCalledWith(
+            {avatar: `/avatar/${fakeAccount.username}.webp`},
+            {username: fakeAccount.username},
+        );
 
-        expect(JSON.stringify(imageminMock.mock.calls.pop())).toBe(JSON.stringify(
-            [
-                [fakeFile.path],
-                {
-                    destination: tempAvatarPath,
-                    plugins: [
-                        imageminWebp({
-                            quality: 100,
-                            method: 6,
-                            resize: {
-                                width: 250,
-                                height: 250,
-                            },
-                        }),
-                    ],
-                },
-            ],
-        ));
+        expect(imageminMock).toBeCalledWith(
+            [fakeFile.path],
+            {
+                destination: os.tmpdir(),
+                plugins: expect.anything(),
+            });
 
-        expect(fseMock.move.mock.calls.pop()).toEqual([tempAvatarPath, avatarPath, {overwrite: true}]);
+        expect(fseMock.move).toBeCalledWith(tempAvatarPath, avatarPath, {overwrite: true});
 
-        expect(fseMock.remove.mock.calls.length).toBe(2);
+        expect(fseMock.remove).toBeCalledTimes(2);
         expect(fseMock.remove.mock.calls).toEqual(expect.arrayContaining(
             [
                 [fakeFile.path],
@@ -204,40 +192,26 @@ describe(`${uploadAvatar.name}`, () =>
             hash: 'v'.repeat(64),
             toJSON: () => ({}),
         };
-        const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
+        const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(fakeFile.path)}.webp`);
 
         const {uploadAvatar} = await import('../Profile');
         await expect(
             uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).rejects.toThrow();
 
-        expect(databaseMock.Profile.update.mock.calls.length).toBe(0);
+        expect(databaseMock.Profile.update).toBeCalledTimes(0);
 
-        expect(JSON.stringify(imageminMock.mock.calls.pop())).toBe(JSON.stringify(
-            [
-                [fakeFile.path],
-                {
-                    destination: tempAvatarPath,
-                    plugins: [
-                        imageminWebp({
-                            quality: 100,
-                            method: 6,
-                            resize: {
-                                width: 250,
-                                height: 250,
-                            },
-                        }),
-                    ],
-                },
-            ],
-        ));
+        expect(imageminMock).toBeCalledWith(
+            [fakeFile.path],
+            {
+                destination: os.tmpdir(),
+                plugins: expect.anything(),
+            });
 
-        expect(fseMock.move.mock.calls.length).toBe(0);
+        expect(fseMock.move).toBeCalledTimes(0);
 
-        expect([
-            fseMock.remove.mock.calls.pop(),
-            fseMock.remove.mock.calls.pop()],
-        ).toEqual(expect.arrayContaining(
+        expect(fseMock.remove).toBeCalledTimes(2);
+        expect(fseMock.remove.mock.calls).toEqual(expect.arrayContaining(
             [
                 [fakeFile.path],
                 [tempAvatarPath],
@@ -260,39 +234,27 @@ describe(`${uploadAvatar.name}`, () =>
             hash: 'c'.repeat(64),
             toJSON: () => ({}),
         };
-        const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
-
+        const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(fakeFile.path)}.webp`);
         const {uploadAvatar} = await import('../Profile');
         await expect(
             uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).rejects.toThrow();
 
-        expect(databaseMock.Profile.update.mock.calls.pop()).toEqual([
-            {avatar: `/avatar/${fakeAccount.username}.webp`}, {username: fakeAccount.username},
-        ]);
-
-        expect(JSON.stringify(imageminMock.mock.calls.pop())).toEqual(
-            JSON.stringify([
-                [fakeFile.path],
-                {
-                    destination: tempAvatarPath,
-                    plugins: [
-                        imageminWebp({
-                            quality: 100,
-                            method: 6,
-                            resize: {
-                                width: 250,
-                                height: 250,
-                            },
-                        }),
-                    ],
-                },
-            ]),
+        expect(databaseMock.Profile.update).toBeCalledWith(
+            {avatar: `/avatar/${fakeAccount.username}.webp`},
+            {username: fakeAccount.username},
         );
 
-        expect(fseMock.move.mock.calls.length).toBe(0);
+        expect(imageminMock).toBeCalledWith(
+            [fakeFile.path],
+            {
+                destination: os.tmpdir(),
+                plugins: expect.anything(),
+            });
 
-        expect(fseMock.remove.mock.calls.length).toBe(2);
+        expect(fseMock.move).toBeCalledTimes(0);
+
+        expect(fseMock.remove).toBeCalledTimes(2);
         expect(fseMock.remove.mock.calls).toEqual(expect.arrayContaining(
             [
                 [fakeFile.path],
@@ -317,46 +279,32 @@ describe(`${uploadAvatar.name}`, () =>
             toJSON: () => ({}),
         };
         const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);
-        const tempAvatarPath = path.join(os.tmpdir(), `${fakeAccount.username}.webp`);
-
+        const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(fakeFile.path)}.webp`);
         const {uploadAvatar} = await import('../Profile');
         await expect(
             uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).rejects.toThrow();
 
-        expect(databaseMock.Profile.update.mock.calls.length).toBe(2);
-        expect(databaseMock.Profile.update.mock.calls[0]).toEqual([
-            {avatar: `/avatar/${fakeAccount.username}.webp`}, {username: fakeAccount.username},
-        ]);
-        expect(databaseMock.Profile.update.mock.calls[1]).toEqual([
-            {avatar: ''}, {username: fakeAccount.username},
-        ]);
-
-        expect(JSON.stringify(imageminMock.mock.calls.pop())).toBe(
-            JSON.stringify([
-                [fakeFile.path],
-                {
-                    destination: tempAvatarPath,
-                    plugins: [
-                        imageminWebp({
-                            quality: 100,
-                            method: 6,
-                            resize: {
-                                width: 250,
-                                height: 250,
-                            },
-                        }),
-                    ],
-                },
-            ]),
+        expect(databaseMock.Profile.update).toBeCalledTimes(2);
+        expect(databaseMock.Profile.update).toHaveBeenNthCalledWith(
+            1,
+            {avatar: `/avatar/${fakeAccount.username}.webp`},
+            {username: fakeAccount.username},
         );
+        expect(databaseMock.Profile.update).toHaveBeenNthCalledWith(2,
+            {avatar: ''}, {username: fakeAccount.username});
 
-        expect(fseMock.move.mock.calls.pop()).toEqual([tempAvatarPath, avatarPath, {overwrite: true}]);
+        expect(imageminMock).toBeCalledWith(
+            [fakeFile.path],
+            {
+                destination: os.tmpdir(),
+                plugins: expect.anything(),
+            });
 
-        expect([
-            fseMock.remove.mock.calls.pop(),
-            fseMock.remove.mock.calls.pop(),
-            fseMock.remove.mock.calls.pop()]).toEqual(expect.arrayContaining(
+        expect(fseMock.move).toBeCalledWith(tempAvatarPath, avatarPath, {overwrite: true});
+
+        expect(fseMock.remove).toBeCalledTimes(3);
+        expect(fseMock.remove.mock.calls).toEqual(expect.arrayContaining(
             [
                 [fakeFile.path],
                 [tempAvatarPath],

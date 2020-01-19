@@ -44,12 +44,12 @@ export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Ses
     * 3. 将 webp 临时文件移动到新路径
     * */
     const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${username}.webp`);
-    const tempAvatarPath = path.join(os.tmpdir(), `${username}.webp`);
     const {path: avatarUploadPath} = avatar;
+    const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(avatarUploadPath)}.webp`);
     try
     {
         await imagemin([avatarUploadPath], {
-            destination: tempAvatarPath,
+            destination: os.tmpdir(),
             plugins: [
                 imageminWebp({
                     quality: 100,
