@@ -146,7 +146,8 @@ describe(`${uploadAvatar.name}`, () =>
             hash: 'v'.repeat(64),
             toJSON: () => ({}),
         };
-        const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);
+        const avatarFileName = `${fakeAccount.username}_${fakeFile.hash}.webp`;
+        const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', avatarFileName);
         const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(fakeFile.path)}.webp`);
 
         const {uploadAvatar} = await import('../Profile');
@@ -155,7 +156,7 @@ describe(`${uploadAvatar.name}`, () =>
         ).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true)));
         expect(databaseMock.Profile.update).toBeCalledWith(
-            {avatar: `/avatar/${fakeAccount.username}.webp`},
+            {avatar: `/avatar/${avatarFileName}`},
             {username: fakeAccount.username},
         );
 
@@ -234,6 +235,7 @@ describe(`${uploadAvatar.name}`, () =>
             hash: 'c'.repeat(64),
             toJSON: () => ({}),
         };
+        const avatarFileName = `${fakeAccount.username}_${fakeFile.hash}.webp`;
         const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(fakeFile.path)}.webp`);
         const {uploadAvatar} = await import('../Profile');
         await expect(
@@ -241,7 +243,7 @@ describe(`${uploadAvatar.name}`, () =>
         ).rejects.toThrow();
 
         expect(databaseMock.Profile.update).toBeCalledWith(
-            {avatar: `/avatar/${fakeAccount.username}.webp`},
+            {avatar: `/avatar/${avatarFileName}`},
             {username: fakeAccount.username},
         );
 
@@ -278,21 +280,19 @@ describe(`${uploadAvatar.name}`, () =>
             hash: 'e'.repeat(64),
             toJSON: () => ({}),
         };
-        const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${fakeAccount.username}.webp`);
+        const avatarFileName = `${fakeAccount.username}_${fakeFile.hash}.webp`;
+        const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', avatarFileName);
         const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(fakeFile.path)}.webp`);
         const {uploadAvatar} = await import('../Profile');
         await expect(
             uploadAvatar(fakeFile, {username: fakeAccount.username} as unknown as Session),
         ).rejects.toThrow();
 
-        expect(databaseMock.Profile.update).toBeCalledTimes(2);
-        expect(databaseMock.Profile.update).toHaveBeenNthCalledWith(
-            1,
-            {avatar: `/avatar/${fakeAccount.username}.webp`},
+        expect(databaseMock.Profile.update).toBeCalledTimes(1);
+        expect(databaseMock.Profile.update).toHaveBeenCalledWith(
+            {avatar: `/avatar/${avatarFileName}`},
             {username: fakeAccount.username},
         );
-        expect(databaseMock.Profile.update).toHaveBeenNthCalledWith(2,
-            {avatar: ''}, {username: fakeAccount.username});
 
         expect(imageminMock).toBeCalledWith(
             [fakeFile.path],

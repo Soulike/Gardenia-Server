@@ -43,8 +43,9 @@ export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Ses
     * 2. 更新数据库为新路径
     * 3. 将 webp 临时文件移动到新路径
     * */
-    const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', `${username}.webp`);
-    const {path: avatarUploadPath} = avatar;
+    const {path: avatarUploadPath, hash: fileHash} = avatar;
+    const avatarFileName = `${username}_${fileHash}.webp`;
+    const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', avatarFileName);
     const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(avatarUploadPath)}.webp`);
     try
     {
@@ -55,22 +56,21 @@ export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Ses
                     quality: 100,
                     method: 6,
                     resize: {
-                        width: 250,
-                        height: 250,
+                        width: 500,
+                        height: 500,
                     },
                 }),
             ],
         });
-        await ProfileTable.update({avatar: `/avatar/${username}.webp`}, {username});
+        await ProfileTable.update({avatar: `/avatar/${avatarFileName}`}, {username});
         try
         {
             await fse.move(tempAvatarPath, avatarPath, {overwrite: true});
         }
-        catch (e)   // 如果最后的 move 失败，用户会恢复为无头像状态
+        catch (e)   // 如果最后的 move 失败，用户头像不变
         {
             await Promise.all([
                 fse.remove(avatarPath),
-                ProfileTable.update({avatar: ''}, {username}),
             ]);
             throw e;
         }
