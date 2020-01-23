@@ -1,7 +1,7 @@
 import {Account, Group, Profile, ResponseBody, ServiceResponse} from '../../Class';
 import {checkPassword, checkSession, getAdministratingGroups, getGroups, login, logout, register} from '../Account';
 import {Session} from 'koa-session';
-import {Account as AccountTable} from '../../Database';
+import {Account as AccountTable, Profile as ProfileTable} from '../../Database';
 import {Session as SessionFunction} from '../../Function';
 
 const fakeAccount = new Account('barsrharsh', 'A'.repeat(64));
@@ -16,6 +16,10 @@ const databaseMock = {
             Parameters<typeof AccountTable.getGroupsByUsername>>(),
         getAdministratingGroupsByUsername: jest.fn<ReturnType<typeof AccountTable.getAdministratingGroupsByUsername>,
             Parameters<typeof AccountTable.getAdministratingGroupsByUsername>>(),
+    },
+    Profile: {
+        selectByEmail: jest.fn<ReturnType<typeof ProfileTable.selectByEmail>,
+            Parameters<typeof ProfileTable.selectByEmail>>(),
     },
 };
 
@@ -78,21 +82,41 @@ describe(`${register.name}`, () =>
     it('should check account existence', async function ()
     {
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
-        databaseMock.Account.create.mockResolvedValue(undefined);
         const {register} = await import('../Account');
         const response = await register(fakeAccount,
             new Profile(fakeAccount.username, 'ghwrhwh', 'a@b.com', ''));
         expect(response).toEqual(new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名已存在')));
-        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
-        expect(databaseMock.Account.create.mock.calls.length).toBe(0);
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(1);
+        expect(databaseMock.Account.selectByUsername).toBeCalledWith(fakeAccount.username);
+        expect(databaseMock.Profile.selectByEmail).not.toBeCalled();
+        expect(databaseMock.Account.create).not.toBeCalled();
+    });
+
+    it('should check email existence', async function ()
+    {
+        const fakeProfile = new Profile('faf', 'fae', 'a@b.com', '');
+        databaseMock.Account.selectByUsername.mockResolvedValue(null);
+        databaseMock.Account.create.mockResolvedValue(undefined);
+        databaseMock.Profile.selectByEmail.mockResolvedValue(fakeProfile);
+        const {register} = await import('../Account');
+        const response = await register(fakeAccount,
+            new Profile(fakeAccount.username, 'ghwrhwh', 'a@b.com', ''));
+        expect(response).toEqual(new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, '邮箱已被使用')));
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(1);
+        expect(databaseMock.Account.selectByUsername).toBeCalledWith(fakeAccount.username);
+        expect(databaseMock.Profile.selectByEmail).toBeCalledTimes(1);
+        expect(databaseMock.Profile.selectByEmail).toBeCalledWith(fakeProfile.email);
+        expect(databaseMock.Account.create).not.toBeCalled();
     });
 
     it('should create account and profile', async function ()
     {
         databaseMock.Account.selectByUsername.mockResolvedValue(null);
         databaseMock.Account.create.mockResolvedValue(undefined);
-        const fakeProfile = new Profile(fakeAccount.username, 'gfaefaehwrhwh', 'a@b.com', '');
+        databaseMock.Profile.selectByEmail.mockResolvedValue(null);
+        const fakeProfile = new Profile(fakeAccount.username, 'gfaefaehwrhwh', 'asa@b.com', '');
         const {register} = await import('../Account');
         const response = await register(fakeAccount,
             {
@@ -101,8 +125,12 @@ describe(`${register.name}`, () =>
                 email: fakeProfile.email,
             });
         expect(response).toEqual(new ServiceResponse<void>(200, {}, new ResponseBody<void>(true)));
-        expect(databaseMock.Account.selectByUsername.mock.calls.pop()).toEqual([fakeAccount.username]);
-        expect(databaseMock.Account.create.mock.calls.pop()).toEqual([fakeAccount, fakeProfile]);
+        expect(databaseMock.Account.selectByUsername).toBeCalledTimes(1);
+        expect(databaseMock.Account.selectByUsername).toBeCalledWith(fakeAccount.username);
+        expect(databaseMock.Profile.selectByEmail).toBeCalledTimes(1);
+        expect(databaseMock.Profile.selectByEmail).toBeCalledWith(fakeProfile.email);
+        expect(databaseMock.Account.create).toBeCalledTimes(1);
+        expect(databaseMock.Account.create).toBeCalledWith(fakeAccount, fakeProfile);
     });
 });
 

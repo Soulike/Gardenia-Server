@@ -47,6 +47,23 @@ export async function selectByUsername(username: ProfileClass['username']): Prom
     }
 }
 
+export async function selectByEmail(email: ProfileClass['email']): Promise<ProfileClass | null>
+{
+    const {rows, rowCount} = await pool.query(
+            `SELECT *
+             FROM profiles
+             WHERE "email" = $1`,
+        [email]);
+    if (rowCount === 0)
+    {
+        return null;
+    }
+    else
+    {
+        return ProfileClass.from(rows[0]);
+    }
+}
+
 export async function deleteByUsername(username: ProfileClass['username']): Promise<void>
 {
     const client = await pool.connect();

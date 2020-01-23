@@ -167,6 +167,8 @@ export enum ObjectType
 - 响应体：无
 - 响应消息：
   - 用户名已存在
+  - 邮箱已被使用
+- 其他说明：无
 
 #### `/checkSession`
 
@@ -263,7 +265,8 @@ export enum ObjectType
 - 方法：POST
 - 请求体：`Partial<Omit<Profile, 'avatar' | 'username'>>`
 - 响应体：无
-- 响应消息：无
+- 响应消息：
+  - 邮箱已被使用
 - 其他说明：
   - 修改 Session 对应的账号资料
 

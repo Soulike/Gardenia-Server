@@ -30,6 +30,16 @@ export async function get(session: Readonly<Session>, account?: Readonly<Pick<Ac
 export async function set(profile: Readonly<Partial<Omit<ProfileClass, 'avatar' | 'username'>>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
+    const {email} = profile;
+    if (typeof email === 'string')
+    {
+        const profileByEmail = await ProfileTable.selectByEmail(email);
+        if (profileByEmail !== null)
+        {
+            return new ServiceResponse<void>(200, {},
+                new ResponseBody(false, '邮箱已被使用'));
+        }
+    }
     await ProfileTable.update(profile, {username});
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));

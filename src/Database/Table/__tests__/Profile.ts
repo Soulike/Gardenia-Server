@@ -1,5 +1,5 @@
 import {Account, Profile} from '../../../Class';
-import {deleteByUsername, insert, selectByUsername, update} from '../Profile';
+import {deleteByUsername, insert, selectByEmail, selectByUsername, update} from '../Profile';
 import * as AccountTable from '../Account';
 import pool from '../../Pool';
 import {executeTransaction} from '../../Function';
@@ -40,6 +40,34 @@ describe(`${selectByUsername.name}`, () =>
     {
         const nonexistentFakeProfile = new Profile('bekr35q3', 'bsrbsrhbrsh', 'b@c.com', '');
         const profile = await selectByUsername(nonexistentFakeProfile.username);
+        expect(profile).toBeNull();
+    });
+});
+
+describe(`${selectByEmail.name}`, () =>
+{
+    const fakeProfile = new Profile(fakeAccount.username, 'bvahersahrs', 'gsgsegs@gsehsh.com', '');
+
+    beforeAll(async () =>
+    {
+        await insert(fakeProfile);
+    });
+
+    afterAll(async () =>
+    {
+        await deleteByUsername(fakeProfile.username);
+    });
+
+    it('should select profile', async function ()
+    {
+        const profile = await selectByEmail(fakeProfile.email);
+        expect(profile).toStrictEqual(fakeProfile);
+    });
+
+    it('should return null when profile does not exists', async function ()
+    {
+        const nonexistentFakeProfile = new Profile('bekr35q3', 'bsrbsrhbrsh', 'b@casvav.com', '');
+        const profile = await selectByEmail(nonexistentFakeProfile.email);
         expect(profile).toBeNull();
     });
 });

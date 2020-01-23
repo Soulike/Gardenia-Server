@@ -1,5 +1,5 @@
 import {Account as AccountClass, Group, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
-import {Account as AccountTable} from '../Database';
+import {Account as AccountTable, Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
 import {Session as SessionFunction} from '../Function';
 
@@ -28,12 +28,20 @@ export async function login(account: Readonly<AccountClass>): Promise<ServiceRes
 export async function register(account: Readonly<AccountClass>, profile: Readonly<Omit<ProfileClass, 'username'>>): Promise<ServiceResponse<void>>
 {
     const {username} = account;
+    const {email} = profile;
     if ((await AccountTable.selectByUsername(username)) !== null) // 检查用户名是不是已经存在了
     {
-        return new ServiceResponse<void>(200, {}, new ResponseBody<void>(false, '用户名已存在'));
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, '用户名已存在'));
+    }
+    if ((await ProfileTable.selectByEmail(email)) !== null)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, '邮箱已被使用'));
     }
     await AccountTable.create(account, {username: account.username, ...profile});
-    return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody<void>(true));
 }
 
 export async function checkSession(session: Readonly<Session>): Promise<ServiceResponse<{ isValid: boolean }>>

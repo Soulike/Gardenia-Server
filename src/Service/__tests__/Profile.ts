@@ -13,6 +13,8 @@ const databaseMock = {
     Profile: {
         selectByUsername: jest.fn<ReturnType<typeof ProfileTable.selectByUsername>,
             Parameters<typeof ProfileTable.selectByUsername>>(),
+        selectByEmail: jest.fn<ReturnType<typeof ProfileTable.selectByEmail>,
+            Parameters<typeof ProfileTable.selectByEmail>>(),
         update: jest.fn<ReturnType<typeof ProfileTable.update>,
             Parameters<typeof ProfileTable.update>>(),
     },
@@ -100,6 +102,7 @@ describe(`${set.name}`, () =>
 
     it('should set profile', async function ()
     {
+        databaseMock.Profile.selectByEmail.mockResolvedValue(null);
         const fakeAccount = new Account('vaegaegawegaqg', 'a'.repeat(64));
         const fakeProfile: Partial<Omit<Profile, 'avatar' | 'username'>> = {
             email: 'vaev@gsrh.com',
@@ -110,10 +113,33 @@ describe(`${set.name}`, () =>
             await set(fakeProfile, {username: fakeAccount.username} as unknown as Session),
         ).toEqual(new ServiceResponse(200, {},
             new ResponseBody(true)));
-        expect(databaseMock.Profile.update.mock.calls.pop()).toEqual([
+        expect(databaseMock.Profile.selectByEmail).toBeCalledTimes(1);
+        expect(databaseMock.Profile.selectByEmail).toBeCalledWith(fakeProfile.email);
+        expect(databaseMock.Profile.update).toBeCalledTimes(1);
+        expect(databaseMock.Profile.update).toBeCalledWith(
             fakeProfile,
             {username: fakeAccount.username},
-        ]);
+        );
+    });
+
+    it('should check email existence', async function ()
+    {
+        const fakeAccount = new Account('vaegaegawegaqg', 'a'.repeat(64));
+        const fakeProfile: ProfileClass = {
+            avatar: '',
+            username: 'agaegaeg',
+            email: 'vaev@gsrh.com',
+            nickname: 'abkjaekjlbgaek',
+        };
+        databaseMock.Profile.selectByEmail.mockResolvedValue(fakeProfile);
+        const {set} = await import('../Profile');
+        expect(
+            await set(fakeProfile, {username: fakeAccount.username} as unknown as Session),
+        ).toEqual(new ServiceResponse(200, {},
+            new ResponseBody(false, '邮箱已被使用')));
+        expect(databaseMock.Profile.selectByEmail).toBeCalledTimes(1);
+        expect(databaseMock.Profile.selectByEmail).toBeCalledWith(fakeProfile.email);
+        expect(databaseMock.Profile.update).toBeCalledTimes(0);
     });
 });
 

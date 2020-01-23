@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS  "profiles"
 (
     "username" VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE PRIMARY KEY,
     "nickname" VARCHAR(255),
-    "email"    VARCHAR(255) NOT NULL,
+    "email"    VARCHAR(255) NOT NULL UNIQUE,
     "avatar"   VARCHAR(255)
 );
 
