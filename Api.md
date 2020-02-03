@@ -830,3 +830,130 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 删除失败：您不是小组的管理员
 - 其他说明：
   - 只有小组的管理员可以执行本操作
+
+### Star 模块（`/star`）
+
+#### `/add`
+
+- 功能：添加收藏仓库
+- 方法：POST
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库已经被收藏，则返回成功
+  - 如果仓库是不可访问的，返回仓库不存在
+
+#### `/remove`
+
+- 功能：删除收藏仓库
+- 方法：POST
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库已经被删除收藏，则返回成功
+  - 如果仓库是不可访问的，也执行删除
+
+#### `/getStaredRepositories`
+
+- 功能：获取收藏的仓库
+- 方法：GET
+- 请求体：无
+- 响应体：
+```ts
+{
+    repositories: Repository[],
+}
+```
+- 响应消息：无
+- 其他说明：无
+
+#### `/getStaredRepositoriesAmount`
+
+- 功能：获取收藏的仓库数量
+- 方法：GET
+- 请求体：无
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息：无
+- 其他说明：无
+
+#### `/isStaredRepository`
+
+- 功能：获取仓库是否被收藏
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+}
+```
+- 响应体：
+```ts
+{
+    isStared: boolean,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库是不可访问的，返回仓库不存在
+
+#### `/getRepositoryStarAmount`
+
+- 功能：获取仓库被收藏数
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：  
+  - 如果仓库是不可访问的，返回仓库不存在
+
+#### `/getRepositoryStarUsers`
+
+- 功能：获取仓库收藏账号列表
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+}
+```
+- 响应体：
+```ts
+{
+    users: Profile[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库是不可访问的，返回仓库不存在
