@@ -53,4 +53,14 @@ CREATE TABLE IF NOT EXISTS  "repository_group"
     UNIQUE ("repository_username", "repository_name", "group_id")
 );
 
+CREATE TABLE IF NOT EXISTS "stars"
+(
+    "username"            VARCHAR(255),
+    "repository_username" VARCHAR(255),
+    "repository_name"     VARCHAR(255),
+    PRIMARY KEY ("username", "repository_username", "repository_name"),
+    FOREIGN KEY ("username") REFERENCES "accounts" ("username") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("repository_username", "repository_name") REFERENCES "repositories" ("username", "name") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 COMMIT;
