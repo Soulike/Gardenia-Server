@@ -12,7 +12,7 @@ export async function add(repository: Pick<Repository, 'username' | 'name'>, use
             new ResponseBody(false, '仓库不存在'));
     }
     const star = new Star(username, repository.username, repository.name);
-    if ((await StarTable.select(star)).length === 0)
+    if ((await StarTable.count(star)) === 0)
     {
         await StarTable.insert(star);
     }
@@ -29,7 +29,7 @@ export async function remove(repository: Pick<Repository, 'username' | 'name'>, 
             new ResponseBody(false, '仓库不存在'));
     }
     const star = new Star(username, repository.username, repository.name);
-    if ((await StarTable.select(star)).length !== 0)
+    if ((await StarTable.count(star)) !== 0)
     {
         await StarTable.del(star);
     }
