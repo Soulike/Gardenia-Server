@@ -53,7 +53,7 @@ export async function advertise(repository: Readonly<Pick<RepositoryClass, 'user
     if (service === 'git-receive-pack'
         && !(await Repository.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
     {
-        return new ServiceResponse<string>(403, {}, '权限不足');
+        return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
     const repositoryPath = Git.generateRepositoryPath(repository);
@@ -80,7 +80,7 @@ export async function rpc(repository: Readonly<Pick<RepositoryClass, 'username' 
     if (command === 'receive-pack'
         && !(await Repository.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
     {
-        return new ServiceResponse<string>(403, {}, '权限不足');
+        return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
     const repositoryPath = Git.generateRepositoryPath(repository);

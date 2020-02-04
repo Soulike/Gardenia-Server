@@ -235,7 +235,7 @@ describe(`${advertise.name}`, () =>
         const {username, name} = fakeRepository;
         const {advertise} = await import('../Git');
         expect(await advertise({username, name}, fakeService, fakeHeaders))
-            .toEqual(new ServiceResponse<string | void>(403, {}, '权限不足'));
+            .toEqual(new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'}));
         expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
         expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({username, name});
         expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledTimes(1);
@@ -367,7 +367,7 @@ describe(`${rpc.name}`, () =>
         const command = 'receive-pack';
         const {rpc} = await import('../Git');
         expect(await rpc({username, name}, command, fakeHeaders, fakeParameterStream))
-            .toEqual(new ServiceResponse<string>(403, {}, '权限不足'));
+            .toEqual(new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'}));
         expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledTimes(1);
         expect(databaseMock.Repository.selectByUsernameAndName).toBeCalledWith({username, name});
         expect(functionMock.Repository.repositoryIsAvailableToTheRequest).toBeCalledTimes(1);
