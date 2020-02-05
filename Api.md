@@ -871,7 +871,12 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取收藏的仓库
 - 方法：GET
-- 请求体：无
+- 请求体：
+```ts
+{
+    account?: Pick<Account, 'username'>,  // 优先级高于从会话获取
+}
+```
 - 响应体：
 ```ts
 {
@@ -885,7 +890,12 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取收藏的仓库数量
 - 方法：GET
-- 请求体：无
+- 请求体：
+```ts
+{
+    account?: Pick<Account, 'username'>,  // 优先级高于从会话获取
+}
+```
 - 响应体：
 ```ts
 {

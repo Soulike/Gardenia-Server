@@ -67,7 +67,7 @@ export async function isStaredRepository(repository: Pick<Repository, 'username'
         new ResponseBody(true, '', {isStared: amount !== 0}));
 }
 
-export async function getRepositoryStarAmount(repository: Pick<Repository, 'username' | 'name'>, username: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function getRepositoryStarAmount(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
@@ -84,7 +84,7 @@ export async function getRepositoryStarAmount(repository: Pick<Repository, 'user
         new ResponseBody(true, '', {amount}));
 }
 
-export async function getRepositoryStarUsers(repository: Pick<Repository, 'username' | 'name'>, username: Account['username']): Promise<ServiceResponse<{ users: Profile[] } | void>>
+export async function getRepositoryStarUsers(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ users: Profile[] } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
