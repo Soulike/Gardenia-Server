@@ -5,4 +5,4 @@ export * from './Commit';
 export * from './Account';
 export * from './Profile';
 export * from './Group';
-export * from './Star';
+export * from './AccountRepository';

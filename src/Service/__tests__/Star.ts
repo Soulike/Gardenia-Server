@@ -1,6 +1,6 @@
 import {Profile as ProfileTable, Repository as RepositoryTable, Star as StarTable} from '../../Database';
 import {Repository as RepositoryFunction} from '../../Function';
-import {Repository, ResponseBody, ServiceResponse, Star} from '../../Class';
+import {AccountRepository, Repository, ResponseBody, ServiceResponse} from '../../Class';
 import {add, remove} from '../Star';
 
 const databaseMock = {
@@ -91,7 +91,7 @@ describe(`${add.name}`, () =>
                 new ResponseBody(true)));
         expect(databaseMock.Star.count).toBeCalledTimes(1);
         expect(databaseMock.Star.count)
-            .toBeCalledWith(new Star(fakeUsername, fakeRepository.username, fakeRepository.name));
+            .toBeCalledWith(new AccountRepository(fakeUsername, fakeRepository.username, fakeRepository.name));
         expect(databaseMock.Star.insert).not.toBeCalled();
     });
 
@@ -110,7 +110,7 @@ describe(`${add.name}`, () =>
                 new ResponseBody(true)));
         expect(databaseMock.Star.insert).toBeCalledTimes(1);
         expect(databaseMock.Star.insert)
-            .toBeCalledWith(new Star(fakeUsername, fakeRepository.username, fakeRepository.name));
+            .toBeCalledWith(new AccountRepository(fakeUsername, fakeRepository.username, fakeRepository.name));
     });
 });
 
@@ -152,7 +152,7 @@ describe(`${remove.name}`, () =>
                 new ResponseBody(true)));
         expect(databaseMock.Star.count).toBeCalledTimes(1);
         expect(databaseMock.Star.count)
-            .toBeCalledWith(new Star(fakeUsername, fakeRepository.username, fakeRepository.name));
+            .toBeCalledWith(new AccountRepository(fakeUsername, fakeRepository.username, fakeRepository.name));
         expect(databaseMock.Star.del).not.toBeCalled();
     });
 
@@ -170,6 +170,6 @@ describe(`${remove.name}`, () =>
                 new ResponseBody(true)));
         expect(databaseMock.Star.del).toBeCalledTimes(1);
         expect(databaseMock.Star.del)
-            .toBeCalledWith(new Star(fakeUsername, fakeRepository.username, fakeRepository.name));
+            .toBeCalledWith(new AccountRepository(fakeUsername, fakeRepository.username, fakeRepository.name));
     });
 });

@@ -1,7 +1,7 @@
 import {Account} from './Account';
 import {Repository} from './Repository';
 
-export class Star
+export class AccountRepository
 {
     public readonly username: Account['username'];
     public readonly repository_username: Repository['username'];
@@ -14,17 +14,17 @@ export class Star
         this.repository_name = repository_name;
     }
 
-    public static from(obj: Readonly<Record<keyof Star, any>>): Star
+    public static from(obj: Readonly<Record<keyof AccountRepository, any>>): AccountRepository
     {
         const {username, repository_name, repository_username} = obj;
-        if (!Star.validate({username, repository_name, repository_username}))
+        if (!AccountRepository.validate({username, repository_name, repository_username}))
         {
-            throw new TypeError(`Source object is not a ${Star.name} instance`);
+            throw new TypeError(`Source object is not a ${AccountRepository.name} instance`);
         }
-        return new Star(username, repository_username, repository_name);
+        return new AccountRepository(username, repository_username, repository_name);
     }
 
-    private static validate(obj: Readonly<Record<keyof Star, any>>): boolean
+    private static validate(obj: Readonly<Record<keyof AccountRepository, any>>): boolean
     {
         const {username, repository_name, repository_username} = obj;
         return Account.validate({username, hash: 'a'.repeat(64)})

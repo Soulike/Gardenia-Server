@@ -1,4 +1,4 @@
-import {Account, Profile, Repository, ResponseBody, ServiceResponse, Star} from '../Class';
+import {Account, AccountRepository, Profile, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable, Repository as RepositoryTable, Star as StarTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 
@@ -11,7 +11,7 @@ export async function add(repository: Pick<Repository, 'username' | 'name'>, use
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const star = new Star(username, repository.username, repository.name);
+    const star = new AccountRepository(username, repository.username, repository.name);
     if ((await StarTable.count(star)) === 0)
     {
         await StarTable.insert(star);
@@ -28,7 +28,7 @@ export async function remove(repository: Pick<Repository, 'username' | 'name'>, 
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const star = new Star(username, repository.username, repository.name);
+    const star = new AccountRepository(username, repository.username, repository.name);
     if ((await StarTable.count(star)) !== 0)
     {
         await StarTable.del(star);
@@ -62,7 +62,7 @@ export async function getStaredRepositoriesAmount(username: Account['username'])
 
 export async function isStaredRepository(repository: Pick<Repository, 'username' | 'name'>, username: Account['username']): Promise<ServiceResponse<{ isStared: boolean }>>
 {
-    const amount = await StarTable.count(new Star(username, repository.username, repository.name));
+    const amount = await StarTable.count(new AccountRepository(username, repository.username, repository.name));
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {isStared: amount !== 0}));
 }

@@ -1,4 +1,4 @@
-import {Star} from '../../Class';
+import {AccountRepository} from '../../Class';
 import {
     executeTransaction,
     generateColumnNamesAndValuesArrayAndParameterString,
@@ -6,7 +6,7 @@ import {
 } from '../Function';
 import pool from '../Pool';
 
-export async function insert(star: Readonly<Star>): Promise<void>
+export async function insert(star: Readonly<AccountRepository>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -23,7 +23,7 @@ export async function insert(star: Readonly<Star>): Promise<void>
     }
 }
 
-export async function del(star: Readonly<Star>): Promise<void>
+export async function del(star: Readonly<AccountRepository>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -42,16 +42,16 @@ export async function del(star: Readonly<Star>): Promise<void>
     }
 }
 
-export async function select(star: Readonly<Partial<Star>>): Promise<Star[]>
+export async function select(star: Readonly<Partial<AccountRepository>>): Promise<AccountRepository[]>
 {
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(star, 'AND');
     const {rows} = await pool.query(
         `SELECT * FROM stars WHERE ${parameterizedStatement}`,
         values);
-    return rows.map(row => Star.from(row));
+    return rows.map(row => AccountRepository.from(row));
 }
 
-export async function count(star: Readonly<Partial<Star>>): Promise<number>
+export async function count(star: Readonly<Partial<AccountRepository>>): Promise<number>
 {
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(star, 'AND');
     const {rows} = await pool.query(

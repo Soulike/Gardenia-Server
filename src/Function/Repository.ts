@@ -1,6 +1,7 @@
 import {Account, Repository as RepositoryClass} from '../Class';
 import * as Authentication from './Authentication';
 import {Account as AccountTable} from '../Database';
+import {redis} from '../Singleton';
 
 export function repositoryIsAvailableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): boolean
 {
@@ -24,6 +25,15 @@ export function repositoryIsAvailableToTheViewer(repository: Readonly<Repository
         }
     }
     return isAvailable;
+}
+
+export function repositoryIsModifiableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): boolean
+{
+    if (repository === null)
+    {
+        return false;
+    }
+    return repository.username === viewer.username;
 }
 
 /**
@@ -72,4 +82,39 @@ export function generateRefsServiceResponse(service: string, RPCCallOutput: stri
     const serverAdvert = `# service=${service}`;
     const length = serverAdvert.length + 4;
     return `${length.toString(16).padStart(4, '0')}${serverAdvert}0000${RPCCallOutput}`;
+}
+
+export function generateCollaborateCode(repository: Pick<RepositoryClass, 'username' | 'name'>): string
+{
+    const {username, name} = repository;
+    return `${username}_${name}_${Date.now()}`;
+}
+
+export async function setCollaborateCode(code: string, repository: Pick<RepositoryClass, 'username' | 'name'>): Promise<void>
+{
+    const result = await redis.set(code, JSON.stringify(repository), 'EX', 10 * 60);
+    if (result !== 'OK')
+    {
+        throw new Error(result);
+    }
+}
+
+export async function getCollaborateCodeRepository(code: string): Promise<Pick<RepositoryClass, 'username' | 'name'> | null>
+{
+    const result = await redis.get(code);
+    if (result === null)
+    {
+        return null;
+    }
+    const {username, name} = JSON.parse(result);
+    if (!RepositoryClass.validate(new RepositoryClass(username, name, '', true)))
+    {
+        return null;
+    }
+    return {username, name};
+}
+
+export async function deleteCollaborateCode(code: string): Promise<void>
+{
+    await redis.del(code);
 }

@@ -1,4 +1,4 @@
-import {Account, Repository, Star} from '../../../Class';
+import {Account, AccountRepository, Repository} from '../../../Class';
 import {Account as AccountTable, Repository as RepositoryTable} from '../../../Database';
 import {count, del, insert, select} from '../Star';
 
@@ -7,7 +7,7 @@ describe(`${insert.name}`, () =>
     const fakeAccount = new Account('feafae', 'gaeg');
     const fakeRepositoryAccount = new Account('feafaaefeage', 'gaeg');
     const fakeRepository = new Repository(fakeRepositoryAccount.username, 'gaegae', '', false);
-    const fakeStar = new Star(fakeAccount.username, fakeRepository.username, fakeRepository.name);
+    const fakeStar = new AccountRepository(fakeAccount.username, fakeRepository.username, fakeRepository.name);
 
     beforeEach(async () =>
     {
@@ -35,7 +35,7 @@ describe(`${del.name}`, () =>
     const fakeAccount = new Account('agaesgseag', 'gaeg');
     const fakeRepositoryAccount = new Account('jntdrjmdftk', 'gaeg');
     const fakeRepository = new Repository(fakeRepositoryAccount.username, 'sagaesg', '', false);
-    const fakeStar = new Star(fakeAccount.username, fakeRepository.username, fakeRepository.name);
+    const fakeStar = new AccountRepository(fakeAccount.username, fakeRepository.username, fakeRepository.name);
 
     beforeEach(async () =>
     {
@@ -52,7 +52,7 @@ describe(`${del.name}`, () =>
         await AccountTable.deleteByUsername(fakeRepositoryAccount.username);
     });
 
-    it('should delete Star instance', async function ()
+    it('should delete AccountRepository instance', async function ()
     {
         await del(fakeStar);
         expect(await select(fakeStar)).toEqual([]);
@@ -69,8 +69,8 @@ describe(`${select.name}`, () =>
         new Repository(fakeRepositoryAccount.username, 'saerhsrh', '', false),
     ];
     const fakeStars = [
-        new Star(fakeAccount.username, fakeRepositories[0].username, fakeRepositories[0].name),
-        new Star(fakeAccount.username, fakeRepositories[2].username, fakeRepositories[2].name),
+        new AccountRepository(fakeAccount.username, fakeRepositories[0].username, fakeRepositories[0].name),
+        new AccountRepository(fakeAccount.username, fakeRepositories[2].username, fakeRepositories[2].name),
     ];
 
     beforeAll(async () =>
@@ -91,7 +91,7 @@ describe(`${select.name}`, () =>
         await AccountTable.deleteByUsername(fakeRepositoryAccount.username);
     });
 
-    it('should select Star instance', async function ()
+    it('should select AccountRepository instance', async function ()
     {
         expect(await select({username: fakeAccount.username}))
             .toEqual(fakeStars);
@@ -108,8 +108,8 @@ describe(`${count.name}`, () =>
         new Repository(fakeRepositoryAccount.username, 'hjeje5', '', false),
     ];
     const fakeStars = [
-        new Star(fakeAccount.username, fakeRepositories[0].username, fakeRepositories[0].name),
-        new Star(fakeAccount.username, fakeRepositories[2].username, fakeRepositories[2].name),
+        new AccountRepository(fakeAccount.username, fakeRepositories[0].username, fakeRepositories[0].name),
+        new AccountRepository(fakeAccount.username, fakeRepositories[2].username, fakeRepositories[2].name),
     ];
 
     beforeAll(async () =>
@@ -130,7 +130,7 @@ describe(`${count.name}`, () =>
         await AccountTable.deleteByUsername(fakeRepositoryAccount.username);
     });
 
-    it('should count Star instance', async function ()
+    it('should count AccountRepository instance', async function ()
     {
         expect(await count({username: fakeAccount.username}))
             .toEqual(fakeStars.length);
