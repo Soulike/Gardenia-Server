@@ -2,9 +2,9 @@ import {Account, Repository as RepositoryClass} from '../Class';
 import * as Authentication from './Authentication';
 import {Account as AccountTable} from '../Database';
 
-export function repositoryIsAvailableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<Pick<Account, 'username'>>): boolean
+export function repositoryIsAvailableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): boolean
 {
-    let isAvailable = false;
+    let isAvailable: boolean;
     if (repository === null)
     {
         isAvailable = false;

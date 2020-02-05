@@ -35,6 +35,9 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
         expect(
             repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
         ).toBe(true);
+        expect(
+            repositoryIsAvailableToTheViewer(fakeRepository, {username: undefined}),
+        ).toBe(true);
     });
 
     it('private repository is only available to owner', function ()
@@ -47,6 +50,9 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
         );
         expect(
             repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
+        ).toBe(false);
+        expect(
+            repositoryIsAvailableToTheViewer(fakeRepository, {username: undefined}),
         ).toBe(false);
         expect(
             repositoryIsAvailableToTheViewer(fakeRepository, fakeAccount),
