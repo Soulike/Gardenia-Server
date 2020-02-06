@@ -42,6 +42,11 @@ export async function add(code: string, username: Account['username']): Promise<
             new ResponseBody(false, '用户不存在'));
     }
     const {username: repositoryUsername, name: repositoryName} = repository;
+    if (username === repositoryUsername)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '不能添加自己为合作者'));
+    }
     await CollaborateTable.insert(
         new AccountRepository(username, repositoryUsername, repositoryName));
     return new ServiceResponse<void>(200, {},

@@ -1010,6 +1010,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - 邀请码无效
   - 用户不存在
+  - 不能添加自己为合作者
 - 其他说明：无
 
 #### `/remove`
