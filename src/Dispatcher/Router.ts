@@ -6,6 +6,7 @@ import profileDispatcher from './Module/Profile';
 import gitDispatcher from './Module/Git';
 import groupDispatcher from './Module/Group';
 import starDispatcher from './Module/Star';
+import collaborateDispatcher from './Module/Collaborate';
 import http from 'http';
 import {IContext, IState} from './Interface';
 
@@ -21,5 +22,6 @@ profileDispatcher(router);
 gitDispatcher(router);
 groupDispatcher(router);
 starDispatcher(router);
+collaborateDispatcher(router);
 
 export default router;

@@ -967,3 +967,146 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：
   - 如果仓库是不可访问的，返回仓库不存在
+
+### Collaborate 模块（`/collaborate`）
+
+#### `/generateCode`
+
+- 功能：生成仓库合作邀请码
+- 方法：GET
+- 请求体：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username' | 'name'>
+    }
+}
+```
+- 响应体：
+```ts
+{
+    code: string,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 只有仓库创建者可以生成邀请码
+  - 生成代码格式：`[username]_[repositoryName]_[Date.now()]`
+  - 代码有效时间 10 分钟
+  - 一个代码只能被一人使用，用后作废
+
+#### `/add`
+
+- 功能：仓库添加合作者
+- 方法：POST
+- 请求体：
+```ts
+{
+    code: string,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 邀请码无效
+  - 用户不存在
+- 其他说明：无
+
+#### `/remove`
+
+- 功能：仓库删除合作者
+- 方法：POST
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    account: Pick<Account, 'username'>
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+  - 用户不存在
+- 其他说明：
+  - 如果被移除的用户不是合作者，也返回成功
+  - 只有可修改仓库的人有权限
+
+#### `/getCollaborators`
+
+- 功能：获取仓库合作者列表
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>, 
+}
+```
+- 响应体：
+```ts
+{
+    collaborators: Profile[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/getCollaboratorsAmount`
+
+- 功能：获取仓库合作者数量
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>, 
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/getCollaboratingRepositories`
+
+- 功能：获取作为合作者的仓库列表
+- 方法：GET
+- 请求体：
+```ts
+{
+    account?: Pick<Account, 'username'>,  // 优先级高于从会话获取
+}
+```
+- 响应体：
+```ts
+{
+    repositories: Repository[]
+}
+```
+- 响应消息：
+  - 用户不存在
+- 其他说明：无
+
+#### `/getCollaboratingRepositoriesAmount`
+
+- 功能：获取作为合作者的仓库数量
+- 方法：GET
+- 请求体：
+```ts
+{
+    account?: Pick<Account, 'username'>,  // 优先级高于从会话获取
+}
+```
+- 响应体：
+```ts
+{
+    amount: number
+}
+```
+- 响应消息：
+  - 用户不存在
+- 其他说明：无
