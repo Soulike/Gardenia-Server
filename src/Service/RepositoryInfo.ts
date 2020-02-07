@@ -14,7 +14,7 @@ export async function repository(account: Readonly<Pick<Account, 'username'>>, r
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -29,7 +29,7 @@ export async function branch(account: Readonly<Pick<Account, 'username'>>, repos
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -46,7 +46,7 @@ export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, r
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -72,7 +72,7 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -123,7 +123,7 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -148,7 +148,7 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -199,7 +199,7 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {});
     }
@@ -232,7 +232,7 @@ export async function setName(repository: Readonly<Pick<RepositoryClass, 'name'>
     const {username} = session;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -270,7 +270,7 @@ export async function setDescription(repository: Readonly<Pick<RepositoryClass, 
     const {name: repositoryName, description} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -285,7 +285,7 @@ export async function setIsPublic(repository: Readonly<Pick<RepositoryClass, 'na
     const {username} = session;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
@@ -299,7 +299,7 @@ export async function groups(repository: Readonly<Pick<RepositoryClass, 'usernam
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '仓库不存在'));
@@ -314,7 +314,7 @@ export async function addToGroup(repository: Readonly<Pick<RepositoryClass, 'use
     const {username: repositoryUsername} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     const {username: usernameInSession} = session;
-    if (!Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));

@@ -96,7 +96,7 @@ describe(`${repository.name}`, () =>
 
     it('should return repository info when repository is available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {repository} = await import('../RepositoryInfo');
 
@@ -117,7 +117,7 @@ describe(`${repository.name}`, () =>
 
     it('should not return repository info when repository is not available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {repository} = await import('../RepositoryInfo');
 
@@ -164,7 +164,7 @@ describe(`${branch.name}`, () =>
 
     it('should return repository branches when repository is available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {branch} = await import('../RepositoryInfo');
         expect(
@@ -196,7 +196,7 @@ describe(`${branch.name}`, () =>
 
     it('should not return repository branches when repository is not available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         const {branch} = await import('../RepositoryInfo');
 
@@ -245,7 +245,7 @@ describe(`${lastCommit.name}`, () =>
 
     it('should return repository last commit when repository is available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getLastCommitInfo.mockResolvedValue(fakeCommit);
         const {lastCommit} = await import('../RepositoryInfo');
@@ -276,7 +276,7 @@ describe(`${lastCommit.name}`, () =>
 
     it('should not return repository last commit when repository is not available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getLastCommitInfo.mockResolvedValue(fakeCommit);
         const {lastCommit} = await import('../RepositoryInfo');
@@ -300,7 +300,7 @@ describe(`${lastCommit.name}`, () =>
 
     it(`should handle reject from ${Git.getLastCommitInfo.name}`, async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getLastCommitInfo.mockRejectedValue(new Error());
         const {lastCommit} = await import('../RepositoryInfo');
@@ -453,7 +453,7 @@ describe(`${directory.name}`, () =>
 
     it('should return repository directory info when repository is available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockResolvedValue([...sortedCommitInfoListCopy]);
         const {directory} = await import('../RepositoryInfo');
@@ -495,7 +495,7 @@ describe(`${directory.name}`, () =>
 
     it('should not return repository directory info when repository is available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockResolvedValue([...sortedCommitInfoListCopy]);
         const {directory} = await import('../RepositoryInfo');
@@ -524,7 +524,7 @@ describe(`${directory.name}`, () =>
 
     it('should check directory path existence', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockRejectedValue(new Error());
         const {directory} = await import('../RepositoryInfo');
@@ -564,7 +564,7 @@ describe(`${directory.name}`, () =>
 
     it('should sort directory content array', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getFileCommitInfoList.mockResolvedValue([...fakeCommitInfoList]);
         const {directory} = await import('../RepositoryInfo');
@@ -626,7 +626,7 @@ describe(`${commitCount.name}`, () =>
     it('should return repository commit count when repository is available to the viewer', async function ()
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         functionMock.Git.getCommitCount.mockResolvedValue(fakeCommitCount);
         const {commitCount} = await import('../RepositoryInfo');
         expect(
@@ -663,7 +663,7 @@ describe(`${commitCount.name}`, () =>
 
     it('should not return repository commit count when repository is not available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getCommitCount.mockResolvedValue(fakeCommitCount);
         const {commitCount} = await import('../RepositoryInfo');
@@ -686,7 +686,7 @@ describe(`${commitCount.name}`, () =>
 
     it('should check commit hash existence', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.getCommitCount.mockRejectedValue(new Error());
         const {commitCount} = await import('../RepositoryInfo');
@@ -750,7 +750,7 @@ describe(`${fileInfo.name}`, () =>
 
     it('should return repository file info when repository is available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -809,7 +809,7 @@ describe(`${fileInfo.name}`, () =>
 
     it('should not return repository file info when repository is not available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -843,7 +843,7 @@ describe(`${fileInfo.name}`, () =>
 
     it('should check object existence', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(false);
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -890,7 +890,7 @@ describe(`${fileInfo.name}`, () =>
 
     it('should check commit hash existence', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockRejectedValue(new Error());
         functionMock.Git.isBinaryObject.mockResolvedValue(false);
@@ -933,7 +933,7 @@ describe(`${fileInfo.name}`, () =>
 
     it('should check whether file is binary', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         functionMock.Git.isBinaryObject.mockResolvedValue(true);
@@ -1012,7 +1012,7 @@ describe(`${rawFile.name}`, () =>
 
     it('should return repository raw file stream when repository is available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         const {rawFile} = await import('../RepositoryInfo');
@@ -1049,7 +1049,7 @@ describe(`${rawFile.name}`, () =>
 
     it('should not return repository raw file stream when repository is not available to the viewer', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(true);
         const {rawFile} = await import('../RepositoryInfo');
@@ -1076,7 +1076,7 @@ describe(`${rawFile.name}`, () =>
 
     it('should check object existence', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockResolvedValue(false);
         const {rawFile} = await import('../RepositoryInfo');
@@ -1107,7 +1107,7 @@ describe(`${rawFile.name}`, () =>
 
     it('should check commit hash existence', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
         functionMock.Git.objectExists.mockRejectedValue(new Error());
         const {rawFile} = await import('../RepositoryInfo');
@@ -1171,7 +1171,7 @@ describe(`${setName.name}`, () =>
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         fseMock.copy.mockResolvedValue(undefined);
         databaseMock.Repository.update.mockResolvedValue(undefined);
         fseMock.remove.mockResolvedValue(undefined);
@@ -1224,7 +1224,7 @@ describe(`${setName.name}`, () =>
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         fseMock.copy.mockResolvedValue(undefined);
         databaseMock.Repository.update.mockResolvedValue(undefined);
         fseMock.remove.mockResolvedValue(undefined);
@@ -1261,7 +1261,7 @@ describe(`${setName.name}`, () =>
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeNewRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         fseMock.copy.mockResolvedValue(undefined);
         databaseMock.Repository.update.mockResolvedValue(undefined);
         fseMock.remove.mockResolvedValue(undefined);
@@ -1302,7 +1302,7 @@ describe(`${setName.name}`, () =>
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         fseMock.copy.mockRejectedValue(new Error());
         databaseMock.Repository.update.mockResolvedValue(undefined);
         fseMock.remove.mockResolvedValue(undefined);
@@ -1349,7 +1349,7 @@ describe(`${setName.name}`, () =>
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(fakeOldRepository);
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValueOnce(null);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         fseMock.copy.mockResolvedValue(undefined);
         databaseMock.Repository.update.mockRejectedValue(new Error());
         fseMock.remove.mockResolvedValue(undefined);
@@ -1422,7 +1422,7 @@ describe(`${setDescription.name}`, () =>
     it('should set description', async function ()
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeOldRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         const {setDescription} = await import('../RepositoryInfo');
         expect(
             await setDescription(
@@ -1452,7 +1452,7 @@ describe(`${setDescription.name}`, () =>
     it('should handle inaccessible repository', async function ()
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeOldRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         const {setDescription} = await import('../RepositoryInfo');
         expect(
             await setDescription(
@@ -1503,7 +1503,7 @@ describe(`${setIsPublic.name}`, () =>
     it('should set isPublic', async function ()
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeOldRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         const {setIsPublic} = await import('../RepositoryInfo');
         expect(
             await setIsPublic(
@@ -1533,7 +1533,7 @@ describe(`${setIsPublic.name}`, () =>
     it('should handle inaccessible repository', async function ()
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeOldRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         const {setIsPublic} = await import('../RepositoryInfo');
         expect(
             await setIsPublic(
@@ -1580,7 +1580,7 @@ describe(`${groups.name}`, () =>
     it('should get groups', async function ()
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
 
         const {groups} = await import('../RepositoryInfo');
         expect(
@@ -1609,7 +1609,7 @@ describe(`${groups.name}`, () =>
     it('should handle inaccessible repository', async function ()
     {
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
 
         const {groups} = await import('../RepositoryInfo');
         expect(
@@ -1655,7 +1655,7 @@ describe(`${addToGroup.name}`, () =>
 
     it('should add repository to group', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
         databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
         databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
@@ -1696,7 +1696,7 @@ describe(`${addToGroup.name}`, () =>
 
     it('should handle inaccessible repository', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(false);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
         databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
         databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
         databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
@@ -1726,7 +1726,7 @@ describe(`${addToGroup.name}`, () =>
 
     it('should handle nonexistent group', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Group.selectById.mockResolvedValue(null);
         databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
         databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
@@ -1758,7 +1758,7 @@ describe(`${addToGroup.name}`, () =>
 
     it('should handle request that add repeated repository to group', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
         databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(fakeGroup);
         databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
@@ -1794,7 +1794,7 @@ describe(`${addToGroup.name}`, () =>
 
     it('should handle request from session with insufficient permission', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
         databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
         databaseMock.Group.getAccountsById.mockResolvedValue([fakeAccount]);
@@ -1831,7 +1831,7 @@ describe(`${addToGroup.name}`, () =>
 
     it('should handle request from user that not belong to the group', async function ()
     {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Group.selectById.mockResolvedValue(fakeGroup);
         databaseMock.Repository.getGroupByUsernameAndNameAndGroupId.mockResolvedValue(null);
         databaseMock.Group.getAccountsById.mockResolvedValue([]);   // 小组里没有访问账号

@@ -1,39 +1,63 @@
-import {Account, Repository as RepositoryClass} from '../Class';
+import {Account, AccountRepository, Repository as RepositoryClass} from '../Class';
 import * as Authentication from './Authentication';
-import {Account as AccountTable} from '../Database';
+import {Account as AccountTable, Collaborate as CollaborateTable} from '../Database';
 import {redis} from '../Singleton';
 
-export function repositoryIsAvailableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): boolean
+export async function repositoryIsAvailableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): Promise<boolean>
 {
-    let isAvailable: boolean;
     if (repository === null)
     {
-        isAvailable = false;
+        return false;
     }
     else    // repository !== null
     {
         const {isPublic} = repository;
         if (isPublic)
         {
-            isAvailable = true;
+            return true;
         }
         else    // !isPublic
         {
-            const {username} = repository;
+            const {username, name} = repository;
             const {username: usernameOfViewer} = viewer;
-            isAvailable = username === usernameOfViewer;
+            if (usernameOfViewer === undefined) // username !== usernameOfViewer
+            {
+                return false;
+            }
+            else if (username === usernameOfViewer)
+            {
+                return true;
+            }
+            else    // usernameOfViewer !== undefined
+            {
+                const amount = await CollaborateTable.count(new AccountRepository(usernameOfViewer, username, name));
+                return amount === 1;
+            }
         }
     }
-    return isAvailable;
 }
 
-export function repositoryIsModifiableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): boolean
+export async function repositoryIsModifiableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): Promise<boolean>
 {
     if (repository === null)
     {
         return false;
     }
-    return repository.username === viewer.username;
+    const {username, name} = repository;
+    const {username: usernameOfViewer} = viewer;
+    if (repository.username === viewer.username)
+    {
+        return true;
+    }
+    else if (usernameOfViewer === undefined)    // repository.username !== viewer.username
+    {
+        return false;
+    }
+    else    // usernameOfView !== undefined
+    {
+        const amount = await CollaborateTable.count(new AccountRepository(usernameOfViewer, username, name));
+        return amount === 1;
+    }
 }
 
 /**
@@ -54,7 +78,7 @@ export async function repositoryIsAvailableToTheRequest(repository: Readonly<Rep
     // 用户存在 && 密码正确 && 仓库对该账号可见
     return (accountInDatabase !== null
         && accountInDatabase.hash === accountFromHeader.hash
-        && repositoryIsAvailableToTheViewer(repository, {username: accountInDatabase.username}));
+        && await repositoryIsAvailableToTheViewer(repository, {username: accountInDatabase.username}));
 }
 
 /**
@@ -68,10 +92,10 @@ export async function repositoryIsModifiableToTheRequest(repository: Readonly<Re
         return false;
     }
     const accountInDatabase = await AccountTable.selectByUsername(accountFromHeader.username);
-    // 用户存在 && 密码正确 && 仓库是该账号的仓库
+    // 用户存在 && 密码正确 && 仓库对该账号可修改
     return (accountInDatabase !== null
         && accountInDatabase.hash === accountFromHeader.hash
-        && repository.username === accountInDatabase.username);
+        && await repositoryIsModifiableToTheViewer(repository, {username: accountInDatabase.username}));
 }
 
 /**

@@ -63,7 +63,7 @@ describe(`${add.name}`, () =>
         databaseMock.Repository.selectByUsernameAndName
             .mockResolvedValue(fakeRepository);
         functionMock.Repository.repositoryIsAvailableToTheViewer
-            .mockReturnValue(false);
+            .mockResolvedValue(false);
         const {add} = await import('../Star');
         expect(await add(
             {name: fakeRepository.name, username: fakeRepository.username},
@@ -82,7 +82,7 @@ describe(`${add.name}`, () =>
         const fakeRepository = new Repository('afe', 'fae', '', false);
         const fakeUsername = 'faegaeg';
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Star.count.mockResolvedValue(1);
         const {add} = await import('../Star');
         expect(await add({username: fakeRepository.username, name: fakeRepository.name},
@@ -100,7 +100,7 @@ describe(`${add.name}`, () =>
         const fakeRepository = new Repository('afe', 'fae', '', false);
         const fakeUsername = 'faegaeg';
         databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockReturnValue(true);
+        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
         databaseMock.Star.count.mockResolvedValue(0);
         databaseMock.Star.insert.mockResolvedValue();
         const {add} = await import('../Star');

@@ -4,8 +4,8 @@ import {
     repositoryIsAvailableToTheViewer,
     repositoryIsModifiableToTheRequest,
 } from '../Repository';
-import {Account, Repository} from '../../Class';
-import {Account as AccountTable} from '../../Database';
+import {Account, AccountRepository, Repository} from '../../Class';
+import {Account as AccountTable, Collaborate as CollaborateTable} from '../../Database';
 import * as Authentication from '../Authentication';
 
 const authenticationMock = {
@@ -17,6 +17,10 @@ const databaseMock = {
         selectByUsername: jest.fn<ReturnType<typeof AccountTable.selectByUsername>,
             Parameters<typeof AccountTable.selectByUsername>>(),
     },
+    Collaborate: {
+        count: jest.fn<ReturnType<typeof CollaborateTable.count>,
+            Parameters<typeof CollaborateTable.count>>(),
+    },
 };
 
 describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
@@ -24,7 +28,15 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
     const fakeAccount = new Account('fafgaefg', 'i'.repeat(64));
     const fakeViewer = new Account('faafawfaefgaefg', 'i'.repeat(64));
 
-    it('public repository is available to any one', function ()
+    beforeEach(() =>
+    {
+        jest
+            .resetAllMocks()
+            .resetModules()
+            .mock('../../Database', () => databaseMock);
+    });
+
+    it('public repository is available to any one', async function ()
     {
         const fakeRepository = new Repository(
             fakeAccount.username,
@@ -33,14 +45,14 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
             true,
         );
         expect(
-            repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
+            await repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
         ).toBe(true);
         expect(
-            repositoryIsAvailableToTheViewer(fakeRepository, {username: undefined}),
+            await repositoryIsAvailableToTheViewer(fakeRepository, {username: undefined}),
         ).toBe(true);
     });
 
-    it('private repository is only available to owner', function ()
+    it('private repository is available to owner', async function ()
     {
         const fakeRepository = new Repository(
             fakeAccount.username,
@@ -49,23 +61,55 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
             false,
         );
         expect(
-            repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
+            await repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
         ).toBe(false);
         expect(
-            repositoryIsAvailableToTheViewer(fakeRepository, {username: undefined}),
+            await repositoryIsAvailableToTheViewer(fakeRepository, {username: undefined}),
         ).toBe(false);
         expect(
-            repositoryIsAvailableToTheViewer(fakeRepository, fakeAccount),
+            await repositoryIsAvailableToTheViewer(fakeRepository, fakeAccount),
         ).toBe(true);
     });
 
-    it('nonexistent repository is unavailable', function ()
+    it('private repository is available to collaborator', async function ()
+    {
+        const fakeRepository = new Repository(
+            'gashbsrhsrh',
+            'faibjfafawfbaei',
+            'fbifafuagqfi',
+            false,
+        );
+        databaseMock.Collaborate.count.mockResolvedValue(1);
+        const {repositoryIsAvailableToTheViewer} = await import('../Repository');
+        expect(
+            await repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
+        ).toBe(true);
+        expect(databaseMock.Collaborate.count).toBeCalledTimes(1);
+        expect(databaseMock.Collaborate.count).toBeCalledWith(new AccountRepository(fakeViewer.username, fakeRepository.username, fakeRepository.name));
+    });
+
+    it('private repository is not available to others', async function ()
+    {
+        const fakeRepository = new Repository(
+            fakeAccount.username,
+            'faibjfafawfbaei',
+            'fbifafuagqfi',
+            false,
+        );
+        databaseMock.Collaborate.count.mockResolvedValue(0);
+        const {repositoryIsAvailableToTheViewer} = await import('../Repository');
+        expect(
+            await repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
+        ).toBe(false);
+    });
+
+    it('nonexistent repository is unavailable', async function ()
     {
         expect(
-            repositoryIsAvailableToTheViewer(null, fakeViewer),
+            await repositoryIsAvailableToTheViewer(null, fakeViewer),
         ).toBe(false);
         expect(
-            repositoryIsAvailableToTheViewer(null, fakeAccount),
+            await repositoryIsAvailableToTheViewer(null, fakeAccount),
         ).toBe(false);
     });
 });
@@ -123,10 +167,34 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
             ]);
     });
 
-    it('should return false when repository is private and not requested by owner', async function ()
+    it('should return true when repository is private and requested by collaborator', async function ()
+    {
+        authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(fakeAccount);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
+        databaseMock.Collaborate.count.mockResolvedValue(1);
+        const fakeRepository = new Repository(
+            'gwshsrhsrhsr',
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
+            false);
+        const {repositoryIsAvailableToTheRequest} = await import('../Repository');
+        expect(await repositoryIsAvailableToTheRequest(fakeRepository, fakeHeader)).toBe(true);
+        expect(databaseMock.Account.selectByUsername.mock.calls).toEqual([
+            [fakeAccount.username],
+        ]);
+        expect(authenticationMock.getAccountFromAuthenticationHeader.mock.calls)
+            .toEqual([
+                [fakeHeader],
+            ]);
+        expect(databaseMock.Collaborate.count).toBeCalledTimes(1);
+        expect(databaseMock.Collaborate.count).toBeCalledWith(new AccountRepository(fakeAccount.username, fakeRepository.username, fakeRepository.name));
+    });
+
+    it('should return false when repository is private and not requested by owner and collaborator', async function ()
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(fakeViewer);
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
+        databaseMock.Collaborate.count.mockResolvedValue(0);
         const fakeRepository = new Repository(
             fakeAccount.username,
             'fgiabuebgiaeugb',
@@ -141,6 +209,8 @@ describe(`${repositoryIsAvailableToTheRequest.name}`, () =>
             .toEqual([
                 [fakeHeader],
             ]);
+        expect(databaseMock.Collaborate.count).toBeCalledTimes(1);
+        expect(databaseMock.Collaborate.count).toBeCalledWith(new AccountRepository(fakeViewer.username, fakeRepository.username, fakeRepository.name));
     });
 
     it('should return false when no authentication info and repository is private', async function ()
@@ -222,7 +292,7 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
         jest.mock('../../Database', () => databaseMock);
     });
 
-    it('only owner can modify the repository', async function ()
+    it('owner can modify the repository', async function ()
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(fakeAccount);
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeAccount);
@@ -242,10 +312,34 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
             ]);
     });
 
+    it('collaborator can modify the repository', async function ()
+    {
+        authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(fakeViewer);
+        databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
+        databaseMock.Collaborate.count.mockResolvedValue(1);
+        const fakeRepository = new Repository(
+            'gfaegaegaege',
+            'fgiabuebgiaeugb',
+            'fiabubgiaugbi7qag98aiua',
+            true);
+        const {repositoryIsModifiableToTheRequest} = await import('../Repository');
+        expect(await repositoryIsModifiableToTheRequest(fakeRepository, fakeHeader)).toBe(true);
+        expect(databaseMock.Account.selectByUsername.mock.calls).toEqual([
+            [fakeViewer.username],
+        ]);
+        expect(authenticationMock.getAccountFromAuthenticationHeader.mock.calls)
+            .toEqual([
+                [fakeHeader],
+            ]);
+        expect(databaseMock.Collaborate.count).toBeCalledTimes(1);
+        expect(databaseMock.Collaborate.count).toBeCalledWith(new AccountRepository(fakeViewer.username, fakeRepository.username, fakeRepository.name));
+    });
+
     it('other can not modify the repository', async function ()
     {
         authenticationMock.getAccountFromAuthenticationHeader.mockReturnValue(fakeViewer);
         databaseMock.Account.selectByUsername.mockResolvedValue(fakeViewer);
+        databaseMock.Collaborate.count.mockResolvedValue(0);
         const fakeRepository = new Repository(
             fakeAccount.username,
             'fgiabuebgiaeugb',
@@ -262,6 +356,8 @@ describe(`${repositoryIsModifiableToTheRequest.name}`, () =>
             .toEqual([
                 [fakeHeader],
             ]);
+        expect(databaseMock.Collaborate.count).toBeCalledTimes(1);
+        expect(databaseMock.Collaborate.count).toBeCalledWith(new AccountRepository(fakeViewer.username, fakeRepository.username, fakeRepository.name));
     });
 
     it('should return false when no authentication info', async function ()
