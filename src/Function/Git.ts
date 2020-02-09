@@ -1,11 +1,12 @@
-import {Commit, Repository} from '../Class';
+import {BlockDiff, Commit, FileDiff, Repository} from '../Class';
 import {execPromise} from './Promisify';
-import {ObjectType} from '../CONSTANT';
+import {ObjectType, REGEX} from '../CONSTANT';
 import path from 'path';
 import {GIT} from '../CONFIG';
 import {Promisify} from './index';
 import {Readable} from 'stream';
 import {spawn} from 'child_process';
+import {splitToLines} from './String';
 
 export async function getAllBranches(repositoryPath: string): Promise<string[]>
 {
@@ -229,4 +230,115 @@ export async function doUpdateServerInfo(repositoryPath: string): Promise<void>
             return resolve();
         });
     });
+}
+
+export async function getDiffFiles(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<string[]>
+{
+    const result = await execPromise(`git diff ${baseCommitHash}..${targetCommitHash} --name-only`, {cwd: repositoryPath});
+    const files = result.split('\n');
+    return files.filter(file => file.length !== 0);
+}
+
+async function getFileGitDiffOutput(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<string>
+{
+    return await execPromise(`git diff ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath});
+}
+
+function getFileGitDiffOutputLines(gitDiffOutput: string): string[]
+{
+    return gitDiffOutput.split('\n').filter(line =>
+    {
+        if (line.length !== 0)
+        {
+            return line !== '\\ No newline at end of file'
+                && line !== '\\ No newline at end of file\n';
+        }
+        else
+        {
+            return false;
+        }
+    });
+}
+
+function getInfoStringLineIndexesFromFileGitDiffOutputLines(gitDiffOutputLines: string[]): number[]
+{
+    const infoStringLineIndexes: number[] = [];
+    for (let i = 0; i < gitDiffOutputLines.length; i++)
+    {
+        if (REGEX.BLOCK_DIFF_INFO.test(gitDiffOutputLines[i]))
+        {
+            infoStringLineIndexes.push(i);
+        }
+    }
+    return infoStringLineIndexes;
+}
+
+export async function getFileDiffInfo(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<FileDiff>
+{
+    const gitDiffOutput = await getFileGitDiffOutput(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const gitDiffOutputLines = getFileGitDiffOutputLines(gitDiffOutput);
+    // 确定 @@ @@ 行的下标，用于切割数组
+    let infoStringLineIndexes: number[] = [];
+    // -1 和 length 用于切割数组
+    infoStringLineIndexes.push(-1);
+    infoStringLineIndexes.push(...getInfoStringLineIndexesFromFileGitDiffOutputLines(gitDiffOutputLines));
+    infoStringLineIndexes.push(gitDiffOutputLines.length);
+    // 把 @@ @@ 行之间的内容切割出来重组成字符串
+    let codeBetweenInfoStringLines: string[] = [];
+    for (let i = 1; i < infoStringLineIndexes.length; i++)
+    {
+        codeBetweenInfoStringLines.push(
+            gitDiffOutputLines.slice(
+                infoStringLineIndexes[i - 1] + 1,   // +1 是因为 1 行是 @@ 本身
+                infoStringLineIndexes[i])
+                .join('\n'),
+        );
+    }
+    // 把 git diff 输出开头的文件信息取出来，并从原数组中删除
+    const diffMetaInfo = codeBetweenInfoStringLines[0];
+    codeBetweenInfoStringLines = codeBetweenInfoStringLines.slice(1);
+    infoStringLineIndexes = infoStringLineIndexes.slice(1, -1);  // 去掉切割用的项
+    const blockAmount = infoStringLineIndexes.length;
+    const blockDiffs: BlockDiff[] = [];
+    // 一个 @@ @@ 行搭配一段代码确认一个代码块
+    for (let i = 0; i < blockAmount; i++)
+    {
+        const info = gitDiffOutputLines[infoStringLineIndexes[i]];
+        const code = codeBetweenInfoStringLines[i];
+        blockDiffs.push(new BlockDiff(info, code));
+    }
+    return new FileDiff(
+        filePath,
+        diffMetaInfo.includes('new file'),
+        diffMetaInfo.includes('deleted'),
+        blockDiffs,
+    );
+}
+
+export async function getRepositoryCommitHistory(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
+{
+    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cr' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+    ]);
+    const hashes = splitToLines(hashesString);
+    const committerNames = splitToLines(committerNamesString);
+    const committerEmails = splitToLines(committerEmailsString);
+    const commitTimes = splitToLines(commitTimesString);
+    const commitMessages = splitToLines(commitMessagesString);
+    const length = hashes.length;
+    const commits: Commit[] = [];
+    for (let i = 0; i < length; i++)
+    {
+        commits.push(new Commit(
+            hashes[i],
+            committerNames[i],
+            committerEmails[i],
+            commitTimes[i],
+            commitMessages[i]));
+    }
+    return commits;
 }

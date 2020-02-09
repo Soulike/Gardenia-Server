@@ -4,5 +4,6 @@ import * as Session from './Session';
 import * as Authentication from './Authentication';
 import * as Repository from './Repository';
 import * as Group from './Group';
+import * as String from './String';
 
-export {Git, Promisify, Session, Authentication, Repository, Group};
+export {Git, Promisify, Session, Authentication, Repository, Group, String};

@@ -6,6 +6,5 @@ export * from './Account';
 export * from './Profile';
 export * from './Group';
 export * from './AccountRepository';
-export * from './BlockDiffInfo';
-export * from './BlockDiff';
 export * from './FileDiff';
+export * from './BlockDiff';
