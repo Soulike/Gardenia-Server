@@ -88,6 +88,28 @@ class Group
 }
 ```
 
+### `BlockDiff`
+
+```ts
+class BlockDiff
+{
+    public readonly info: string;
+    public readonly code: string;
+}
+```
+
+### `FileDiff`
+
+```ts
+class FileDiff
+{
+    public readonly path: string;
+    public readonly isNew: boolean;
+    public readonly isDeleted: boolean;
+    public readonly blockDiffs: BlockDiff[];
+}
+```
+
 ---
 
 ## 常量
@@ -611,6 +633,136 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 其他说明：
   - 仅仓库所有者可以执行本操作
   - 仅当是小组的成员是可以执行本操作
+
+#### `/commitHistoryBetweenCommits`
+
+- 功能：获取两个提交之间的提交历史
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    baseCommitHash: string,
+    targetCommitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+
+#### `/commitHistory`
+
+- 功能：获取仓库某个提交以来的提交历史
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    targetCommitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+
+#### `/fileCommitHistoryBetweenCommits`
+
+- 功能：获取某个文件两个提交之间的提交历史
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    filePath: string,
+    baseCommitHash: string,
+    targetCommitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+
+#### `/fileCommitHistory`
+
+- 功能：获取某个文件某个提交以来的提交历史
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    filePath: string,
+    targetCommitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/diff`
+
+- 功能：获取两个提交之间的差异信息
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    baseCommitHash: string,
+    targetCommitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    diff: FileDiff[],
+}
+```
+- 响应消息
+  - 仓库不存在
+- 其他说明：无
+
+#### `/fileDiff`
+
+- 功能：获取某个文件在两个提交之间的差异信息
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    filePath: string,
+    baseCommitHash: string,
+    targetCommitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    diff: FileDiff,
+}
+```
+- 响应消息
+  - 仓库不存在
+- 其他说明：无
 
 ### Group 模块（`/group`）
 

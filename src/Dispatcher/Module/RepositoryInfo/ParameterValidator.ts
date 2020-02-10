@@ -145,3 +145,58 @@ export const addToGroup: IParameterValidator = body =>
     return Repository.validate({username, name, isPublic: true, description: ''})
         && Group.validate({id, name: ''});
 };
+
+export const commitHistoryBetweenCommits: IParameterValidator = body =>
+{
+    const {repository, baseCommitHash, targetCommitHash} = body;
+    if (repository === undefined
+        || typeof baseCommitHash !== 'string'
+        || typeof targetCommitHash !== 'string')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const commitHistory: IParameterValidator = body =>
+{
+    const {repository, targetCommitHash} = body;
+    if (repository === undefined
+        || typeof targetCommitHash !== 'string')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
+{
+    const {repository, filePath, baseCommitHash, targetCommitHash} = body;
+    if (repository === undefined
+        || typeof filePath !== 'string'
+        || typeof baseCommitHash !== 'string'
+        || typeof targetCommitHash !== 'string')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const fileCommitHistory: IParameterValidator = body =>
+{
+    const {repository, filePath, targetCommitHash} = body;
+    if (repository === undefined
+        || typeof filePath !== 'string'
+        || typeof targetCommitHash !== 'string')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const diff: IParameterValidator = commitHistoryBetweenCommits;
+export const fileDiff: IParameterValidator = fileCommitHistoryBetweenCommits;

@@ -175,3 +175,87 @@ export const addToGroup: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryInfo.addToGroup(repository, group, ctx.session);
     };
 };
+
+export const commitHistoryBetweenCommits: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.commitHistoryBetweenCommits(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitHistoryBetweenCommits(repository, baseCommitHash, targetCommitHash, username);
+    };
+};
+
+export const commitHistory: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.commitHistory(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, targetCommitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitHistory(repository, targetCommitHash, username);
+    };
+};
+
+export const fileCommitHistoryBetweenCommits: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.fileCommitHistoryBetweenCommits(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, filePath, baseCommitHash, targetCommitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistoryBetweenCommits(repository, filePath, baseCommitHash, targetCommitHash, username);
+    };
+};
+
+export const fileCommitHistory: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.fileCommitHistory(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, filePath, targetCommitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistory(repository, filePath, targetCommitHash, username);
+    };
+};
+
+export const diff: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.diff(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.diff(repository, baseCommitHash, targetCommitHash, username);
+    };
+};
+
+export const fileDiff: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.fileDiff(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, filePath, baseCommitHash, targetCommitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileDiff(repository, filePath, baseCommitHash, targetCommitHash, username);
+    };
+};

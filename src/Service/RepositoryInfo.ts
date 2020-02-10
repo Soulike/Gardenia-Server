@@ -1,5 +1,5 @@
 import {Session} from 'koa-session';
-import {Account, Commit, Group, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
+import {Account, Commit, FileDiff, Group, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
 import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Git, Repository} from '../Function';
 import {SERVER} from '../CONFIG';
@@ -346,4 +346,94 @@ export async function addToGroup(repository: Readonly<Pick<RepositoryClass, 'use
     await GroupTable.addRepositories(groupId, [repository]);
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
+}
+
+export async function commitHistoryBetweenCommits(repository: Pick<RepositoryClass, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const commits = await Git.getRepositoryCommitHistory(repositoryPath, baseCommitHash, targetCommitHash);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commits}));
+}
+
+export async function commitHistory(repository: Pick<RepositoryClass, 'username' | 'name'>, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const firstCommitHash = await Git.getFirstCommitHash(repositoryPath);
+    const commits = await Git.getRepositoryCommitHistory(repositoryPath, firstCommitHash, targetCommitHash);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commits}));
+}
+
+export async function fileCommitHistoryBetweenCommits(repository: Pick<RepositoryClass, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const commits = await Git.getFileCommitHistory(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commits}));
+}
+
+export async function fileCommitHistory(repository: Pick<RepositoryClass, 'username' | 'name'>, filePath: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const firstCommitHash = await Git.getFileFirstCommitHash(repositoryPath, filePath);
+    const commits = await Git.getFileCommitHistory(repositoryPath, filePath, firstCommitHash, targetCommitHash);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commits}));
+}
+
+export async function diff(repository: Pick<RepositoryClass, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const diffFiles = await Git.getDiffFiles(repositoryPath, baseCommitHash, targetCommitHash);
+    const fileDiffs = await Promise.all(diffFiles.map(
+        async filePath =>
+            await Git.getFileDiffInfo(repositoryPath, filePath, baseCommitHash, targetCommitHash)),
+    );
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {diff: fileDiffs}));
+}
+
+export async function fileDiff(repository: Pick<RepositoryClass, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const diff = await Git.getFileDiffInfo(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {diff}));
 }

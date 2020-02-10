@@ -3,7 +3,13 @@ import {
     ADD_TO_GROUP,
     BRANCH,
     COMMIT_COUNT,
+    COMMIT_HISTORY,
+    COMMIT_HISTORY_BETWEEN_COMMITS,
+    DIFF,
     DIRECTORY,
+    FILE_COMMIT_HISTORY,
+    FILE_COMMIT_HISTORY_BETWEEN_COMMITS,
+    FILE_DIFF,
     FILE_INFO,
     GROUPS,
     LAST_COMMIT,
@@ -19,7 +25,13 @@ import {
     addToGroup,
     branch,
     commitCount,
+    commitHistory,
+    commitHistoryBetweenCommits,
+    diff,
     directory,
+    fileCommitHistory,
+    fileCommitHistoryBetweenCommits,
+    fileDiff,
     fileInfo,
     groups,
     lastCommit,
@@ -33,16 +45,22 @@ import {IContext, IState} from '../../Interface';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.get(REPOSITORY, JSONQuerystringParser(), repository());
-    router.get(BRANCH, JSONQuerystringParser(), branch());
-    router.get(LAST_COMMIT, JSONQuerystringParser(), lastCommit());
-    router.get(DIRECTORY, JSONQuerystringParser(), directory());
-    router.get(COMMIT_COUNT, JSONQuerystringParser(), commitCount());
-    router.get(FILE_INFO, JSONQuerystringParser(), fileInfo());
-    router.get(RAW_FILE, JSONQuerystringParser(), rawFile());
-    router.post(SET_NAME, bodyParser(), setName());
-    router.post(SET_DESCRIPTION, bodyParser(), setDescription());
-    router.post(SET_IS_PUBLIC, bodyParser(), setIsPublic());
-    router.get(GROUPS, JSONQuerystringParser(), groups());
-    router.post(ADD_TO_GROUP, bodyParser(), addToGroup());
+    router.get(REPOSITORY, JSONQuerystringParser(), repository())
+        .get(BRANCH, JSONQuerystringParser(), branch())
+        .get(LAST_COMMIT, JSONQuerystringParser(), lastCommit())
+        .get(DIRECTORY, JSONQuerystringParser(), directory())
+        .get(COMMIT_COUNT, JSONQuerystringParser(), commitCount())
+        .get(FILE_INFO, JSONQuerystringParser(), fileInfo())
+        .get(RAW_FILE, JSONQuerystringParser(), rawFile())
+        .post(SET_NAME, bodyParser(), setName())
+        .post(SET_DESCRIPTION, bodyParser(), setDescription())
+        .post(SET_IS_PUBLIC, bodyParser(), setIsPublic())
+        .get(GROUPS, JSONQuerystringParser(), groups())
+        .post(ADD_TO_GROUP, bodyParser(), addToGroup())
+        .get(COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), commitHistoryBetweenCommits())
+        .get(COMMIT_HISTORY, JSONQuerystringParser(), commitHistory())
+        .get(FILE_COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), fileCommitHistoryBetweenCommits())
+        .get(FILE_COMMIT_HISTORY, JSONQuerystringParser(), fileCommitHistory())
+        .get(DIFF, JSONQuerystringParser(), diff())
+        .get(FILE_DIFF, JSONQuerystringParser(), fileDiff());
 };

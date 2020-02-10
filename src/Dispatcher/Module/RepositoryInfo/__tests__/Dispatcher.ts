@@ -66,6 +66,18 @@ const MiddlewareWrapperMock = {
         Parameters<typeof Middleware.groups>>(),
     addToGroup: jest.fn<ReturnType<typeof Middleware.addToGroup>,
         Parameters<typeof Middleware.addToGroup>>(),
+    commitHistoryBetweenCommits: jest.fn<ReturnType<typeof Middleware.commitHistoryBetweenCommits>,
+        Parameters<typeof Middleware.commitHistoryBetweenCommits>>(),
+    commitHistory: jest.fn<ReturnType<typeof Middleware.commitHistory>,
+        Parameters<typeof Middleware.commitHistory>>(),
+    fileCommitHistoryBetweenCommits: jest.fn<ReturnType<typeof Middleware.fileCommitHistoryBetweenCommits>,
+        Parameters<typeof Middleware.fileCommitHistoryBetweenCommits>>(),
+    fileCommitHistory: jest.fn<ReturnType<typeof Middleware.fileCommitHistory>,
+        Parameters<typeof Middleware.fileCommitHistory>>(),
+    diff: jest.fn<ReturnType<typeof Middleware.diff>,
+        Parameters<typeof Middleware.diff>>(),
+    fileDiff: jest.fn<ReturnType<typeof Middleware.fileDiff>,
+        Parameters<typeof Middleware.fileDiff>>(),
 };
 
 let server: Server;
