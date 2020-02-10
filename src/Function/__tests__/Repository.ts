@@ -60,6 +60,8 @@ describe(`${repositoryIsAvailableToTheViewer.name}`, () =>
             'fbifafuagqfi',
             false,
         );
+        databaseMock.Collaborate.count.mockResolvedValue(0);
+        const {repositoryIsAvailableToTheViewer} = await import('../Repository');
         expect(
             await repositoryIsAvailableToTheViewer(fakeRepository, fakeViewer),
         ).toBe(false);
