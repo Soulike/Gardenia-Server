@@ -49,6 +49,7 @@ export async function add(code: string, username: Account['username']): Promise<
     }
     await CollaborateTable.insert(
         new AccountRepository(username, repositoryUsername, repositoryName));
+    await RepositoryFunction.deleteCollaborateCode(code);
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
 }
