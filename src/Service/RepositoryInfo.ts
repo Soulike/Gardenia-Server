@@ -357,7 +357,7 @@ export async function commitHistoryBetweenCommits(repository: Pick<RepositoryCla
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = Git.generateRepositoryPath(repository);
-    const commits = await Git.getRepositoryCommitHistory(repositoryPath, baseCommitHash, targetCommitHash);
+    const commits = await Git.getRepositoryCommitHistoryBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -371,8 +371,7 @@ export async function commitHistory(repository: Pick<RepositoryClass, 'username'
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = Git.generateRepositoryPath(repository);
-    const firstCommitHash = await Git.getFirstCommitHash(repositoryPath);
-    const commits = await Git.getRepositoryCommitHistory(repositoryPath, firstCommitHash, targetCommitHash);
+    const commits = await Git.getRepositoryCommitHistory(repositoryPath, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -386,7 +385,7 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = Git.generateRepositoryPath(repository);
-    const commits = await Git.getFileCommitHistory(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const commits = await Git.getFileCommitHistoryBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -400,8 +399,7 @@ export async function fileCommitHistory(repository: Pick<RepositoryClass, 'usern
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = Git.generateRepositoryPath(repository);
-    const firstCommitHash = await Git.getFileFirstCommitHash(repositoryPath, filePath);
-    const commits = await Git.getFileCommitHistory(repositoryPath, filePath, firstCommitHash, targetCommitHash);
+    const commits = await Git.getFileCommitHistory(repositoryPath, filePath, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }

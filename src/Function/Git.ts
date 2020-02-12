@@ -316,7 +316,7 @@ export async function getFileDiffInfo(repositoryPath: string, filePath: string, 
     );
 }
 
-export async function getRepositoryCommitHistory(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
+export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
 {
     const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
@@ -348,7 +348,39 @@ export async function getRepositoryCommitHistory(repositoryPath: string, baseCom
     return commits;
 }
 
-export async function getFileCommitHistory(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
+export async function getRepositoryCommitHistory(repositoryPath: string, targetCommitHash: string): Promise<Commit[]>
+{
+    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cd' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${targetCommitHash}`, {cwd: repositoryPath}),
+    ]);
+    const hashes = splitToLines(hashesString);
+    const committerNames = splitToLines(committerNamesString);
+    const committerEmails = splitToLines(committerEmailsString);
+    const commitTimes = splitToLines(commitTimesString);
+    const commitMessages = splitToLines(commitMessagesString);
+    const commitBodies = await Promise.all(hashes.map(
+        async hash => execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${hash}`,
+            {cwd: repositoryPath})));
+    const length = hashes.length;
+    const commits: Commit[] = [];
+    for (let i = 0; i < length; i++)
+    {
+        commits.push(new Commit(
+            hashes[i],
+            committerNames[i],
+            committerEmails[i],
+            commitTimes[i],
+            commitMessages[i],
+            commitBodies[i]));
+    }
+    return commits;
+}
+
+export async function getFileCommitHistoryBetweenCommits(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
 {
     const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
@@ -356,6 +388,38 @@ export async function getFileCommitHistory(repositoryPath: string, filePath: str
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cd' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+    ]);
+    const hashes = splitToLines(hashesString);
+    const committerNames = splitToLines(committerNamesString);
+    const committerEmails = splitToLines(committerEmailsString);
+    const commitTimes = splitToLines(commitTimesString);
+    const commitMessages = splitToLines(commitMessagesString);
+    const length = hashes.length;
+    const commitBodies = await Promise.all(hashes.map(
+        async hash => execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${hash}`,
+            {cwd: repositoryPath})));
+    const commits: Commit[] = [];
+    for (let i = 0; i < length; i++)
+    {
+        commits.push(new Commit(
+            hashes[i],
+            committerNames[i],
+            committerEmails[i],
+            commitTimes[i],
+            commitMessages[i],
+            commitBodies[i]));
+    }
+    return commits;
+}
+
+export async function getFileCommitHistory(repositoryPath: string, filePath: string, targetCommitHash: string): Promise<Commit[]>
+{
+    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cd' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
     ]);
     const hashes = splitToLines(hashesString);
     const committerNames = splitToLines(committerNamesString);
