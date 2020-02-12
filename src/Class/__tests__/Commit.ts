@@ -7,12 +7,13 @@ describe(`${Commit.name}`, () =>
     const committerEmail = 'a@b.com';
     const time = (new Date()).toString();
     const message = 'dnaioy3t0h98ayt908a38';
+    const body = 'faefafaef';
 
     it(`should construct ${Commit.name} object`, function ()
     {
-        expect(new Commit(commitHash, committerName, committerEmail, time, message))
+        expect(new Commit(commitHash, committerName, committerEmail, time, message, body))
             .toEqual({
-                commitHash, committerName, committerEmail, time, message,
+                commitHash, committerName, committerEmail, time, message, body,
             } as Commit);
     });
 });
