@@ -1,5 +1,5 @@
 import {exec, ExecOptions} from 'child_process';
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 
 export async function execPromise(command: string, options?: ExecOptions): Promise<string>
 {
