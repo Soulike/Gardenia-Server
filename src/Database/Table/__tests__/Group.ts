@@ -513,7 +513,7 @@ describe(`${addRepositories.name}`, () =>
     {
         [, fakeGroupId] = await Promise.all([
             AccountTable.insert(fakeAccount),
-            insertAndReturnId(fakeGroup),
+            insertAndReturnId({name: fakeGroup.name}),
         ]);
         await Promise.all(fakeRepositories.map(repository => RepositoryTable.insert(repository)));
     });

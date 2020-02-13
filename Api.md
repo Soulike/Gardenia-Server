@@ -57,7 +57,7 @@ class Commit
     public commitHash: string;
     public committerName: string;
     public committerEmail: string;
-    public time: string;
+    public timestamp: number;
     public message: string;
 }
 ```

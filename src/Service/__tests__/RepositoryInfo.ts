@@ -229,8 +229,9 @@ describe(`${lastCommit.name}`, () =>
         'c'.repeat(64),
         'dkbuabfkae',
         'a@n.com',
-        (new Date()).toString(),
-        'dnbiuawfubgiaf');
+        Date.now(),
+        'dnbiuawfubgiaf',
+        'faefaef');
     const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
 
 
@@ -342,8 +343,8 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabfkae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbiuawfubgiaf'),
+                Date.now(),
+                'dnbiuawfubgiaf', ''),
         },
         {
             type: ObjectType.BLOB,
@@ -352,8 +353,9 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabfdkae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbiusawfubgiaf'),
+                Date.now(),
+                'dnbiusawfubgiaf',
+                ''),
         },
         {
             type: ObjectType.TREE,
@@ -362,8 +364,8 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabfadfwakae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbifawfuawfubgiaf'),
+                Date.now(),
+                'dnbifawfuawfubgiaf', ''),
         },
         {
             type: ObjectType.TREE,
@@ -372,8 +374,8 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabfafawkae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbiuafawfwfubgiaf'),
+                Date.now(),
+                'dnbiuafawfwfubgiaf', ''),
         },
         {
             type: ObjectType.BLOB,
@@ -382,8 +384,8 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabawdawfkae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbiuadawdwfubgiaf'),
+                Date.now(),
+                'dnbiuadawdwfubgiaf', ''),
         },
         {
             type: ObjectType.TREE,
@@ -392,8 +394,8 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabfkafgaegae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbiuawfgeagubgiaf'),
+                Date.now(),
+                'dnbiuawfgeagubgiaf', ''),
         },
         {
             type: ObjectType.TREE,
@@ -402,8 +404,8 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabfawfawkae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbiuawfawfubgiaf'),
+                Date.now(),
+                'dnbiuawfawfubgiaf', ''),
         },
         {
             type: ObjectType.BLOB,
@@ -412,8 +414,8 @@ describe(`${directory.name}`, () =>
                 'c'.repeat(64),
                 'dkbuabfagaegkae',
                 'a@n.com',
-                (new Date()).toString(),
-                'dnbiuagaegwfubgiaf'),
+                Date.now(),
+                'dnbiuagaegwfubgiaf', ''),
         },
     ];
     const sortedCommitInfoListCopy = [...fakeCommitInfoList];

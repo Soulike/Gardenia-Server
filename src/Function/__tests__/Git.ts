@@ -25,7 +25,7 @@ import {ObjectType} from '../../CONSTANT';
 import os from 'os';
 import {GIT} from '../../CONFIG';
 import {Readable, Writable} from 'stream';
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 
 let repositoryPath = '';
 let bareRepositoryPath = '';
@@ -136,18 +136,18 @@ describe(`${getLastCommitInfo.name}`, () =>
     it('should get commit info of a commit/branch', async function ()
     {
         const expectedCommit = await getCommitInfo(mainBranchName);
-        expectedCommit.time = '';   // 防止测试运行时间差造成失败
+        expectedCommit.timestamp = Date.now();   // 防止测试运行时间差造成失败
         const commit = await getLastCommitInfo(repositoryPath, mainBranchName);
-        commit.time = '';   // 防止测试运行时间差造成失败
+        commit.timestamp = expectedCommit.timestamp;   // 防止测试运行时间差造成失败
         expect(commit).toStrictEqual(expectedCommit);
     });
 
     it('should get commit info of a file in a commit/branch', async function ()
     {
         const expectedCommit = await getFileCommitInfo(mainBranchName, firstCommitFileName);
-        expectedCommit.time = '';   // 防止测试运行时间差造成失败
+        expectedCommit.timestamp = Date.now();   // 防止测试运行时间差造成失败
         const commit = await getLastCommitInfo(repositoryPath, mainBranchName, firstCommitFileName);
-        commit.time = '';   // 防止测试运行时间差造成失败
+        commit.timestamp = expectedCommit.timestamp;   // 防止测试运行时间差造成失败
         expect(commit).toStrictEqual(expectedCommit);
     });
 
@@ -176,11 +176,11 @@ describe(`${getFileCommitInfoList.name}`, () =>
     it('should get file commit info list at root', async function ()
     {
         const commitInfoList = await getFileCommitInfoList(repositoryPath, mainBranchName, '');
-        commitInfoList.forEach(commitInfo => commitInfo.commit.time = '');   // 防止测试运行时间差造成失败
+        commitInfoList.forEach(commitInfo => commitInfo.commit.timestamp = 0);   // 防止测试运行时间差造成失败
         const folderCommitInfo = await getFileCommitInfo(mainBranchName, firstCommitFolderName);
-        folderCommitInfo.time = '';
+        folderCommitInfo.timestamp = 0;
         const fileCommitInfo = await getFileCommitInfo(mainBranchName, firstCommitFileName);
-        fileCommitInfo.time = '';
+        fileCommitInfo.timestamp = 0;
         expect(commitInfoList).toContainEqual({
             type: ObjectType.TREE,
             path: firstCommitFolderName,
@@ -196,9 +196,9 @@ describe(`${getFileCommitInfoList.name}`, () =>
     it('should get file commit info list in folder', async function ()
     {
         const commitInfoList = await getFileCommitInfoList(repositoryPath, mainBranchName, firstCommitFileInFolderPath);
-        commitInfoList.forEach(commitInfo => commitInfo.commit.time = '');   // 防止测试运行时间差造成失败
+        commitInfoList.forEach(commitInfo => commitInfo.commit.timestamp = 0);   // 防止测试运行时间差造成失败
         const expectedCommit = await getFileCommitInfo(mainBranchName, firstCommitFileInFolderPath);
-        expectedCommit.time = '';
+        expectedCommit.timestamp = 0;
         expect(commitInfoList).toContainEqual({
             type: ObjectType.BLOB,
             path: firstCommitFileInFolderPath,
@@ -642,11 +642,12 @@ async function getCommitInfo(commitHash: string): Promise<Commit>
         promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' -1 ${commitHash}`, {cwd: repositoryPath}),
         promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' -1 ${commitHash}`, {cwd: repositoryPath}),
         promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' -1 ${commitHash}`, {cwd: repositoryPath}),
-        promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cr' -1 ${commitHash}`, {cwd: repositoryPath}),
+        promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' -1 ${commitHash}`, {cwd: repositoryPath}),
         promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' -1 ${commitHash}`, {cwd: repositoryPath}),
+        promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${commitHash}`, {cwd: repositoryPath}),
     ]);
 
-    return new Commit(info[0].stdout, info[1].stdout, info[2].stdout, info[3].stdout, info[4].stdout);
+    return new Commit(info[0].stdout, info[1].stdout, info[2].stdout, Number.parseInt(info[3].stdout), info[4].stdout, info[5].stdout);
 }
 
 async function getFileCommitInfo(commitHash: string, filePath: string): Promise<Commit>
@@ -657,7 +658,8 @@ async function getFileCommitInfo(commitHash: string, filePath: string): Promise<
         promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' -1 ${commitHash} -- ${filePath}`, {cwd: repositoryPath}),
         promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cr' -1 ${commitHash} -- ${filePath}`, {cwd: repositoryPath}),
         promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' -1 ${commitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        promisify(exec)(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${commitHash} -- ${filePath}`, {cwd: repositoryPath}),
     ]);
 
-    return new Commit(info[0].stdout, info[1].stdout, info[2].stdout, info[3].stdout, info[4].stdout);
+    return new Commit(info[0].stdout, info[1].stdout, info[2].stdout, Number.parseInt(info[3].stdout), info[4].stdout, info[5].stdout);
 }

@@ -1,5 +1,5 @@
 import {execPromise, waitForEvent} from '../Promisify';
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 
 describe(`${execPromise.name}`, () =>
 {

@@ -238,7 +238,7 @@ describe('lastCommit', () =>
         } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
         const fakeServiceResponse = new ServiceResponse(200, {},
             new ResponseBody(true, '',
-                new Commit('faef', 'feaf', 'a@n.com', 'faef', 'faef')));
+                new Commit('faef', 'feaf', 'a@n.com', Date.now(), 'faef', 'aesgesag')));
         parameterValidatorMock.lastCommit.mockReturnValue(true);
         serviceMock.RepositoryInfo.lastCommit.mockResolvedValue(fakeServiceResponse);
         const {lastCommit} = await import('../Middleware');
@@ -303,7 +303,7 @@ describe('directory', () =>
             new ResponseBody(true, '',
                 [{
                     type: ObjectType.BLOB, path: 'string', commit:
-                        new Commit('waf', 'fw', 'a@b.com', 'aef', 'fea'),
+                        new Commit('waf', 'fw', 'a@b.com', Date.now(), 'fea', 'fafaew'),
                 }]));
         parameterValidatorMock.directory.mockReturnValue(true);
         serviceMock.RepositoryInfo.directory.mockResolvedValue(fakeServiceResponse);

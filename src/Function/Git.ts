@@ -38,12 +38,12 @@ export async function getLastCommitInfo(repositoryPath: string, commitHash: stri
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cr' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
     ]);
 
-    const commit = new Commit(info[0], info[1], info[2], info[3], info[4], info[5]);
+    const commit = new Commit(info[0], info[1], info[2], Number.parseInt(info[3]), info[4], info[5]);
     if (commit.commitHash.length === 0)
     {
         throw new Error('Object does not exist');
@@ -322,7 +322,7 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cd' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
     ]);
     const hashes = splitToLines(hashesString);
@@ -341,7 +341,7 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            commitTimes[i],
+            Number.parseInt(commitTimes[i]),
             commitMessages[i],
             commitBodies[i]));
     }
@@ -354,7 +354,7 @@ export async function getRepositoryCommitHistory(repositoryPath: string, targetC
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${targetCommitHash}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${targetCommitHash}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cd' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${targetCommitHash}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${targetCommitHash}`, {cwd: repositoryPath}),
     ]);
     const hashes = splitToLines(hashesString);
@@ -373,7 +373,7 @@ export async function getRepositoryCommitHistory(repositoryPath: string, targetC
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            commitTimes[i],
+            Number.parseInt(commitTimes[i]),
             commitMessages[i],
             commitBodies[i]));
     }
@@ -386,7 +386,7 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cd' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
     ]);
     const hashes = splitToLines(hashesString);
@@ -405,7 +405,7 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            commitTimes[i],
+            Number.parseInt(commitTimes[i]),
             commitMessages[i],
             commitBodies[i]));
     }
@@ -418,7 +418,7 @@ export async function getFileCommitHistory(repositoryPath: string, filePath: str
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cd' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
     ]);
     const hashes = splitToLines(hashesString);
@@ -437,7 +437,7 @@ export async function getFileCommitHistory(repositoryPath: string, filePath: str
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            commitTimes[i],
+            Number.parseInt(commitTimes[i]),
             commitMessages[i],
             commitBodies[i]));
     }

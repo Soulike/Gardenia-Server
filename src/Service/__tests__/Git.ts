@@ -2,7 +2,7 @@ import {Repository as RepositoryTable} from '../../Database';
 import {Git, Promisify, Repository} from '../../Function';
 import {Repository as RepositoryClass, ServiceResponse} from '../../Class';
 import path from 'path';
-import EventEmitter from 'events';
+import {EventEmitter} from 'events';
 import mime from 'mime-types';
 import {advertise, file, rpc} from '../Git';
 import {Readable} from 'stream';
