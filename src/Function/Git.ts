@@ -263,7 +263,10 @@ function getFileGitDiffOutputLines(gitDiffOutput: string): string[]
                 {
                     const [, info, content] = execResult;
                     lines.push(`${info}`);
-                    lines.push(`${content}`);
+                    if (content !== undefined)
+                    {
+                        lines.push(`${content}`);
+                    }
                 }
             }
             else
@@ -381,7 +384,34 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
  * */
 export async function getRepositoryCommitHistory(repositoryPath: string, targetCommitHash: string): Promise<Commit[]>
 {
-    return await getRepositoryCommitHistoryBetweenCommits(repositoryPath, `${targetCommitHash}~`, targetCommitHash);
+    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
+        execPromise(`git log --pretty=format:'%H' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cn' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ce' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ct' ${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%s' ${targetCommitHash}`, {cwd: repositoryPath}),
+    ]);
+    const hashes = splitToLines(hashesString);
+    const committerNames = splitToLines(committerNamesString);
+    const committerEmails = splitToLines(committerEmailsString);
+    const commitTimes = splitToLines(commitTimesString);
+    const commitMessages = splitToLines(commitMessagesString);
+    const commitBodies = await Promise.all(hashes.map(
+        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
+            {cwd: repositoryPath})));
+    const length = hashes.length;
+    const commits: Commit[] = [];
+    for (let i = 0; i < length; i++)
+    {
+        commits.push(new Commit(
+            hashes[i],
+            committerNames[i],
+            committerEmails[i],
+            Number.parseInt(commitTimes[i]) * 1000,
+            commitMessages[i],
+            commitBodies[i]));
+    }
+    return commits;
 }
 
 /**
@@ -424,7 +454,34 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
  * */
 export async function getFileCommitHistory(repositoryPath: string, filePath: string, targetCommitHash: string): Promise<Commit[]>
 {
-    return await getFileCommitHistoryBetweenCommits(repositoryPath, filePath, `${targetCommitHash}~`, targetCommitHash);
+    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
+        execPromise(`git log --pretty=format:'%H' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cn' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ce' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ct' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%s' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+    ]);
+    const hashes = splitToLines(hashesString);
+    const committerNames = splitToLines(committerNamesString);
+    const committerEmails = splitToLines(committerEmailsString);
+    const commitTimes = splitToLines(commitTimesString);
+    const commitMessages = splitToLines(commitMessagesString);
+    const length = hashes.length;
+    const commitBodies = await Promise.all(hashes.map(
+        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
+            {cwd: repositoryPath})));
+    const commits: Commit[] = [];
+    for (let i = 0; i < length; i++)
+    {
+        commits.push(new Commit(
+            hashes[i],
+            committerNames[i],
+            committerEmails[i],
+            Number.parseInt(commitTimes[i]) * 1000,
+            commitMessages[i],
+            commitBodies[i]));
+    }
+    return commits;
 }
 
 /**
