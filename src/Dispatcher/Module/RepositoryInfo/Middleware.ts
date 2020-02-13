@@ -259,3 +259,31 @@ export const fileDiffBetweenCommits: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryInfo.fileDiffBetweenCommits(repository, filePath, baseCommitHash, targetCommitHash, username);
     };
 };
+
+export const commit: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.commit(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, commitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commit(repository, commitHash, username);
+    };
+};
+
+export const fileCommit: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.fileCommit(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, filePath, commitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileCommit(repository, filePath, commitHash, username);
+    };
+};

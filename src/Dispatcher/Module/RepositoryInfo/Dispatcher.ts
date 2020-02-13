@@ -2,11 +2,13 @@ import Router from '@koa/router';
 import {
     ADD_TO_GROUP,
     BRANCH,
+    COMMIT,
     COMMIT_COUNT,
     COMMIT_HISTORY,
     COMMIT_HISTORY_BETWEEN_COMMITS,
     DIFF_BETWEEN_COMMITS,
     DIRECTORY,
+    FILE_COMMIT,
     FILE_COMMIT_HISTORY,
     FILE_COMMIT_HISTORY_BETWEEN_COMMITS,
     FILE_DIFF_BETWEEN_COMMITS,
@@ -24,11 +26,13 @@ import bodyParser from '../../Middleware/bodyParser';
 import {
     addToGroup,
     branch,
+    commit,
     commitCount,
     commitHistory,
     commitHistoryBetweenCommits,
     diffBetweenCommits,
     directory,
+    fileCommit,
     fileCommitHistory,
     fileCommitHistoryBetweenCommits,
     fileDiffBetweenCommits,
@@ -62,5 +66,7 @@ export default (router: Router<IState, IContext>) =>
         .get(FILE_COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), fileCommitHistoryBetweenCommits())
         .get(FILE_COMMIT_HISTORY, JSONQuerystringParser(), fileCommitHistory())
         .get(DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), diffBetweenCommits())
-        .get(FILE_DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), fileDiffBetweenCommits());
+        .get(FILE_DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), fileDiffBetweenCommits())
+        .get(COMMIT, JSONQuerystringParser(), commit())
+        .get(FILE_COMMIT, JSONQuerystringParser(), fileCommit());
 };

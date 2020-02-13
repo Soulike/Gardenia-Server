@@ -764,6 +764,49 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
+#### `/commit`
+
+- 功能：获取某次提交的信息
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    commitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    commit: Commit,
+    diff: FileDiff[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+
+#### `/fileCommit`
+
+- 功能：获取某个文件某次提交的信息
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username', 'name'>,
+    commitHash: string,
+    filePath: string,
+}
+```
+- 响应体：
+```ts
+{
+    commit: Commit,
+    diff: FileDiff,
+}
+```
+- 响应消息：
+  - 仓库不存在
+
 ### Group 模块（`/group`）
 
 #### `/add`

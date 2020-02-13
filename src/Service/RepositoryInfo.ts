@@ -435,3 +435,37 @@ export async function fileDiffBetweenCommits(repository: Pick<RepositoryClass, '
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {diff}));
 }
+
+export async function commit(repository: Pick<RepositoryClass, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit, diff: FileDiff[] } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const [commit, diff] = await Promise.all([
+        Git.getCommitInfo(repositoryPath, commitHash),
+        Git.getCommitDiff(repositoryPath, commitHash),
+    ]);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commit, diff}));
+}
+
+export async function fileCommit(repository: Pick<RepositoryClass, 'username' | 'name'>, filePath: string, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit, diff: FileDiff } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const [commit, diff] = await Promise.all([
+        Git.getCommitInfo(repositoryPath, commitHash),
+        Git.getFileDiffInfo(repositoryPath, filePath, commitHash),
+    ]);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commit, diff}));
+}

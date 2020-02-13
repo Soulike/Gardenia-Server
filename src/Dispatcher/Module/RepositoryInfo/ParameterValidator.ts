@@ -200,3 +200,27 @@ export const fileCommitHistory: IParameterValidator = body =>
 
 export const diffBetweenCommits: IParameterValidator = commitHistoryBetweenCommits;
 export const fileDiffBetweenCommits: IParameterValidator = fileCommitHistoryBetweenCommits;
+
+export const commit: IParameterValidator = body =>
+{
+    const {repository, commitHash} = body;
+    if (repository === undefined || typeof commitHash !== 'string')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, isPublic: true, description: ''});
+};
+
+export const fileCommit: IParameterValidator = body =>
+{
+    const {repository, filePath, commitHash} = body;
+    if (repository === undefined
+        || typeof commitHash !== 'string'
+        || typeof filePath !== 'string')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, isPublic: true, description: ''});
+};
