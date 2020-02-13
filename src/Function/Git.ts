@@ -43,7 +43,7 @@ export async function getLastCommitInfo(repositoryPath: string, commitHash: stri
         execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
     ]);
 
-    const commit = new Commit(info[0], info[1], info[2], Number.parseInt(info[3]), info[4], info[5]);
+    const commit = new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
     if (commit.commitHash.length === 0)
     {
         throw new Error('Object does not exist');
@@ -341,7 +341,7 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            Number.parseInt(commitTimes[i]),
+            Number.parseInt(commitTimes[i]) * 1000,
             commitMessages[i],
             commitBodies[i]));
     }
@@ -373,7 +373,7 @@ export async function getRepositoryCommitHistory(repositoryPath: string, targetC
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            Number.parseInt(commitTimes[i]),
+            Number.parseInt(commitTimes[i]) * 1000,
             commitMessages[i],
             commitBodies[i]));
     }
@@ -405,7 +405,7 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            Number.parseInt(commitTimes[i]),
+            Number.parseInt(commitTimes[i]) * 1000,
             commitMessages[i],
             commitBodies[i]));
     }
@@ -437,12 +437,22 @@ export async function getFileCommitHistory(repositoryPath: string, filePath: str
             hashes[i],
             committerNames[i],
             committerEmails[i],
-            Number.parseInt(commitTimes[i]),
+            Number.parseInt(commitTimes[i]) * 1000,
             commitMessages[i],
             commitBodies[i]));
     }
     return commits;
 }
+
+/*export async function getCommitInfo(hash: string): Commit
+{
+
+}
+
+export async function getCommitDiff(hash: string): FileDiff[]
+{
+
+}*/
 
 export async function getFirstCommitHash(repositoryPath: string): Promise<string>
 {
