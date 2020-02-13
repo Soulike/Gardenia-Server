@@ -247,18 +247,32 @@ async function getFileGitDiffOutput(repositoryPath: string, filePath: string, ba
 
 function getFileGitDiffOutputLines(gitDiffOutput: string): string[]
 {
-    return gitDiffOutput.split('\n').filter(line =>
+    const rawLines = gitDiffOutput.split('\n');
+    const lines: string[] = [];
+    rawLines.forEach(line =>
     {
-        if (line.length !== 0)
+        if (line.length !== 0
+            && line !== '\\ No newline at end of file'
+            && line !== '\\ No newline at end of file\n')
         {
-            return line !== '\\ No newline at end of file'
-                && line !== '\\ No newline at end of file\n';
-        }
-        else
-        {
-            return false;
+            // 处理文件内容和信息在一行的情况，需要拆分
+            if (REGEX.BLOCK_DIFF_INFO_LINE.test(line))
+            {
+                const execResult = REGEX.BLOCK_DIFF_INFO_LINE.exec(line);
+                if (execResult !== null)
+                {
+                    const [, info, content] = execResult;
+                    lines.push(`${info}`);
+                    lines.push(`${content}`);
+                }
+            }
+            else
+            {
+                lines.push(line);
+            }
         }
     });
+    return lines;
 }
 
 function getInfoStringLineIndexesFromFileGitDiffOutputLines(gitDiffOutputLines: string[]): number[]
@@ -266,7 +280,7 @@ function getInfoStringLineIndexesFromFileGitDiffOutputLines(gitDiffOutputLines: 
     const infoStringLineIndexes: number[] = [];
     for (let i = 0; i < gitDiffOutputLines.length; i++)
     {
-        if (REGEX.BLOCK_DIFF_INFO.test(gitDiffOutputLines[i]))
+        if (REGEX.BLOCK_DIFF_INFO_LINE.test(gitDiffOutputLines[i]))
         {
             infoStringLineIndexes.push(i);
         }

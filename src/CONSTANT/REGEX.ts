@@ -1,1 +1,1 @@
-export const BLOCK_DIFF_INFO = /^@@\s-(\d+)(?:,(\d+))?\s\+(\d+)(?:,(\d+))?\s@@$/;
+export const BLOCK_DIFF_INFO_LINE = /^(@@\s-\d+(?:,\d+)?\s\+\d+(?:,\d+)?\s@@)(.+)?$/;
