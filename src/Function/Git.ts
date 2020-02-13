@@ -35,12 +35,12 @@ export async function getLastCommitInfo(repositoryPath: string, commitHash: stri
 {
     const tail = file ? `-- ${file}` : '';
     const info = await Promise.all([
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%H' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cn' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ce' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ct' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%b' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
     ]);
 
     const commit = new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
@@ -233,7 +233,7 @@ export async function doUpdateServerInfo(repositoryPath: string): Promise<void>
     });
 }
 
-export async function getDiffFiles(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<string[]>
+export async function getDiffFilesBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<string[]>
 {
     const result = await execPromise(`git diff ${baseCommitHash}..${targetCommitHash} --name-only`, {cwd: repositoryPath});
     const files = result.split('\n');
@@ -274,7 +274,10 @@ function getInfoStringLineIndexesFromFileGitDiffOutputLines(gitDiffOutputLines: 
     return infoStringLineIndexes;
 }
 
-export async function getFileDiffInfo(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<FileDiff>
+/**
+ * @description 获取某个文件在两次提交之间的差异信息
+ * */
+export async function getFileDiffInfoBetweenCommits(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<FileDiff>
 {
     const gitDiffOutput = await getFileGitDiffOutput(repositoryPath, filePath, baseCommitHash, targetCommitHash);
     const gitDiffOutputLines = getFileGitDiffOutputLines(gitDiffOutput);
@@ -316,14 +319,25 @@ export async function getFileDiffInfo(repositoryPath: string, filePath: string, 
     );
 }
 
+/**
+ * @description 获取某个文件某次提交的差异信息
+ * */
+export async function getFileDiffInfo(repositoryPath: string, filePath: string, commitHash: string): Promise<FileDiff>
+{
+    return await getFileDiffInfoBetweenCommits(repositoryPath, filePath, `${commitHash}~`, commitHash);
+}
+
+/**
+ * @description 获取仓库两次提交之间的提交历史
+ * */
 export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
 {
     const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
     ]);
     const hashes = splitToLines(hashesString);
     const committerNames = splitToLines(committerNamesString);
@@ -331,7 +345,7 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
     const commitTimes = splitToLines(commitTimesString);
     const commitMessages = splitToLines(commitMessagesString);
     const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${hash}`,
+        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
             {cwd: repositoryPath})));
     const length = hashes.length;
     const commits: Commit[] = [];
@@ -348,46 +362,25 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
     return commits;
 }
 
+/**
+ * @description 获取仓库到 targetCommitHash 的提交历史
+ * */
 export async function getRepositoryCommitHistory(repositoryPath: string, targetCommitHash: string): Promise<Commit[]>
 {
-    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${targetCommitHash}`, {cwd: repositoryPath}),
-    ]);
-    const hashes = splitToLines(hashesString);
-    const committerNames = splitToLines(committerNamesString);
-    const committerEmails = splitToLines(committerEmailsString);
-    const commitTimes = splitToLines(commitTimesString);
-    const commitMessages = splitToLines(commitMessagesString);
-    const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${hash}`,
-            {cwd: repositoryPath})));
-    const length = hashes.length;
-    const commits: Commit[] = [];
-    for (let i = 0; i < length; i++)
-    {
-        commits.push(new Commit(
-            hashes[i],
-            committerNames[i],
-            committerEmails[i],
-            Number.parseInt(commitTimes[i]) * 1000,
-            commitMessages[i],
-            commitBodies[i]));
-    }
-    return commits;
+    return await getRepositoryCommitHistoryBetweenCommits(repositoryPath, `${targetCommitHash}~`, targetCommitHash);
 }
 
+/**
+ * @description 获取某个文件两次提交之间的提交历史
+ * */
 export async function getFileCommitHistoryBetweenCommits(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
 {
     const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
     ]);
     const hashes = splitToLines(hashesString);
     const committerNames = splitToLines(committerNamesString);
@@ -396,7 +389,7 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
     const commitMessages = splitToLines(commitMessagesString);
     const length = hashes.length;
     const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${hash}`,
+        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
             {cwd: repositoryPath})));
     const commits: Commit[] = [];
     for (let i = 0; i < length; i++)
@@ -412,53 +405,65 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
     return commits;
 }
 
+/**
+ * @description 获取某个文件到 targetCommitHash 的提交历史
+ * */
 export async function getFileCommitHistory(repositoryPath: string, filePath: string, targetCommitHash: string): Promise<Commit[]>
 {
-    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%H' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%cn' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ce' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%ct' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%s' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
+    return await getFileCommitHistoryBetweenCommits(repositoryPath, filePath, `${targetCommitHash}~`, targetCommitHash);
+}
+
+/**
+ * @description 获取某次提交的信息
+ * */
+export async function getCommitInfo(repositoryPath: string, commitHash: string): Promise<Commit>
+{
+    const [hash, committerName, committerEmail, commitTime, commitMessage, commitBody] = await Promise.all([
+        execPromise(`git log --pretty=format:'%H' -1 ${commitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%cn' -1 ${commitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ce' -1 ${commitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%ct' -1 ${commitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%s' -1 ${commitHash}`, {cwd: repositoryPath}),
+        execPromise(`git log --pretty=format:'%b' -1 ${commitHash}`, {cwd: repositoryPath}),
     ]);
-    const hashes = splitToLines(hashesString);
-    const committerNames = splitToLines(committerNamesString);
-    const committerEmails = splitToLines(committerEmailsString);
-    const commitTimes = splitToLines(commitTimesString);
-    const commitMessages = splitToLines(commitMessagesString);
-    const length = hashes.length;
-    const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`LANG=zh_CN.UTF-8 git log --pretty=format:'%b' -1 ${hash}`,
-            {cwd: repositoryPath})));
-    const commits: Commit[] = [];
-    for (let i = 0; i < length; i++)
-    {
-        commits.push(new Commit(
-            hashes[i],
-            committerNames[i],
-            committerEmails[i],
-            Number.parseInt(commitTimes[i]) * 1000,
-            commitMessages[i],
-            commitBodies[i]));
-    }
-    return commits;
+    return new Commit(
+        hash,
+        committerName,
+        committerEmail,
+        Number.parseInt(commitTime),
+        commitMessage,
+        commitBody);
 }
 
-/*export async function getCommitInfo(hash: string): Commit
+/**
+ * @description 获取某次提交的所有文件差异
+ */
+export async function getCommitDiff(repositoryPath: string, commitHash: string): Promise<FileDiff[]>
 {
-
+    return await getDiffBetweenCommits(repositoryPath, `${commitHash}~`, commitHash);
 }
 
-export async function getCommitDiff(hash: string): FileDiff[]
+/**
+ * @description 获取两次提交间的所有文件差异
+ */
+export async function getDiffBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<FileDiff[]>
 {
+    const files = await getDiffFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
+    return await Promise.all(files.map(async filePath =>
+        await getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash)));
+}
 
-}*/
-
+/**
+ * @description 获取第一次提交的 hash
+ * */
 export async function getFirstCommitHash(repositoryPath: string): Promise<string>
 {
     return await execPromise(`git log --pretty=format:'%H' | tail -1`, {cwd: repositoryPath});
 }
 
+/**
+ * @description 获取某个文件第一次提交的 hash
+ * */
 export async function getFileFirstCommitHash(repositoryPath: string, filePath: string): Promise<string>
 {
     return await execPromise(`git log --pretty=format:'%H' -- ${filePath} | tail -1`, {cwd: repositoryPath});

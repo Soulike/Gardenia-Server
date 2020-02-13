@@ -5,11 +5,11 @@ import {
     COMMIT_COUNT,
     COMMIT_HISTORY,
     COMMIT_HISTORY_BETWEEN_COMMITS,
-    DIFF,
+    DIFF_BETWEEN_COMMITS,
     DIRECTORY,
     FILE_COMMIT_HISTORY,
     FILE_COMMIT_HISTORY_BETWEEN_COMMITS,
-    FILE_DIFF,
+    FILE_DIFF_BETWEEN_COMMITS,
     FILE_INFO,
     GROUPS,
     LAST_COMMIT,
@@ -27,11 +27,11 @@ import {
     commitCount,
     commitHistory,
     commitHistoryBetweenCommits,
-    diff,
+    diffBetweenCommits,
     directory,
     fileCommitHistory,
     fileCommitHistoryBetweenCommits,
-    fileDiff,
+    fileDiffBetweenCommits,
     fileInfo,
     groups,
     lastCommit,
@@ -61,6 +61,6 @@ export default (router: Router<IState, IContext>) =>
         .get(COMMIT_HISTORY, JSONQuerystringParser(), commitHistory())
         .get(FILE_COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), fileCommitHistoryBetweenCommits())
         .get(FILE_COMMIT_HISTORY, JSONQuerystringParser(), fileCommitHistory())
-        .get(DIFF, JSONQuerystringParser(), diff())
-        .get(FILE_DIFF, JSONQuerystringParser(), fileDiff());
+        .get(DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), diffBetweenCommits())
+        .get(FILE_DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), fileDiffBetweenCommits());
 };

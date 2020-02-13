@@ -404,7 +404,7 @@ export async function fileCommitHistory(repository: Pick<RepositoryClass, 'usern
         new ResponseBody(true, '', {commits}));
 }
 
-export async function diff(repository: Pick<RepositoryClass, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
+export async function diffBetweenCommits(repository: Pick<RepositoryClass, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -413,16 +413,16 @@ export async function diff(repository: Pick<RepositoryClass, 'username' | 'name'
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = Git.generateRepositoryPath(repository);
-    const diffFiles = await Git.getDiffFiles(repositoryPath, baseCommitHash, targetCommitHash);
+    const diffFiles = await Git.getDiffFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
     const fileDiffs = await Promise.all(diffFiles.map(
         async filePath =>
-            await Git.getFileDiffInfo(repositoryPath, filePath, baseCommitHash, targetCommitHash)),
+            await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash)),
     );
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {diff: fileDiffs}));
 }
 
-export async function fileDiff(repository: Pick<RepositoryClass, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff } | void>>
+export async function fileDiffBetweenCommits(repository: Pick<RepositoryClass, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -431,7 +431,7 @@ export async function fileDiff(repository: Pick<RepositoryClass, 'username' | 'n
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = Git.generateRepositoryPath(repository);
-    const diff = await Git.getFileDiffInfo(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const diff = await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {diff}));
 }

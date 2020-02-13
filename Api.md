@@ -719,7 +719,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
-#### `/diff`
+#### `/diffBetweenCommits`
 
 - 功能：获取两个提交之间的差异信息
 - 方法：GET
@@ -741,7 +741,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
-#### `/fileDiff`
+#### `/fileDiffBetweenCommits`
 
 - 功能：获取某个文件在两个提交之间的差异信息
 - 方法：GET

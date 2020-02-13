@@ -232,30 +232,30 @@ export const fileCommitHistory: IRouteHandler = () =>
     };
 };
 
-export const diff: IRouteHandler = () =>
+export const diffBetweenCommits: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!ParameterValidator.diff(ctx.request.body))
+        if (!ParameterValidator.diffBetweenCommits(ctx.request.body))
         {
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
         const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.diff(repository, baseCommitHash, targetCommitHash, username);
+        ctx.state.serviceResponse = await RepositoryInfo.diffBetweenCommits(repository, baseCommitHash, targetCommitHash, username);
     };
 };
 
-export const fileDiff: IRouteHandler = () =>
+export const fileDiffBetweenCommits: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!ParameterValidator.fileDiff(ctx.request.body))
+        if (!ParameterValidator.fileDiffBetweenCommits(ctx.request.body))
         {
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
         const {repository, filePath, baseCommitHash, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.fileDiff(repository, filePath, baseCommitHash, targetCommitHash, username);
+        ctx.state.serviceResponse = await RepositoryInfo.fileDiffBetweenCommits(repository, filePath, baseCommitHash, targetCommitHash, username);
     };
 };

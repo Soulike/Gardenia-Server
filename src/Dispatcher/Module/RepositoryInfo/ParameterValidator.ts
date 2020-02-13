@@ -198,5 +198,5 @@ export const fileCommitHistory: IParameterValidator = body =>
     return Repository.validate({username, name, description: '', isPublic: false});
 };
 
-export const diff: IParameterValidator = commitHistoryBetweenCommits;
-export const fileDiff: IParameterValidator = fileCommitHistoryBetweenCommits;
+export const diffBetweenCommits: IParameterValidator = commitHistoryBetweenCommits;
+export const fileDiffBetweenCommits: IParameterValidator = fileCommitHistoryBetweenCommits;
