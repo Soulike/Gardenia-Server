@@ -324,7 +324,16 @@ export async function getFileDiffInfoBetweenCommits(repositoryPath: string, file
  * */
 export async function getFileDiffInfo(repositoryPath: string, filePath: string, commitHash: string): Promise<FileDiff>
 {
-    return await getFileDiffInfoBetweenCommits(repositoryPath, filePath, `${commitHash}~`, commitHash);
+    const firstCommitHash = await getFirstCommitHash(repositoryPath);
+    if (commitHash === firstCommitHash)
+    {
+        // see https://stackoverflow.com/questions/40883798/how-to-get-git-diff-of-the-first-commit
+        return await getFileDiffInfoBetweenCommits(repositoryPath, filePath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash);
+    }
+    else
+    {
+        return await getFileDiffInfoBetweenCommits(repositoryPath, filePath, `${commitHash}~`, commitHash);
+    }
 }
 
 /**
@@ -494,7 +503,16 @@ export async function getCommitInfo(repositoryPath: string, commitHash: string):
  */
 export async function getCommitDiff(repositoryPath: string, commitHash: string): Promise<FileDiff[]>
 {
-    return await getDiffBetweenCommits(repositoryPath, `${commitHash}~`, commitHash);
+    const firstCommitHash = await getFirstCommitHash(repositoryPath);
+    if (commitHash === firstCommitHash)
+    {
+        // see https://stackoverflow.com/questions/40883798/how-to-get-git-diff-of-the-first-commit
+        return await getDiffBetweenCommits(repositoryPath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash);
+    }
+    else
+    {
+        return await getDiffBetweenCommits(repositoryPath, `${commitHash}~`, commitHash);
+    }
 }
 
 /**
