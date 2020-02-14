@@ -255,24 +255,7 @@ function getFileGitDiffOutputLines(gitDiffOutput: string): string[]
             && line !== '\\ No newline at end of file'
             && line !== '\\ No newline at end of file\n')
         {
-            // 处理文件内容和信息在一行的情况，需要拆分
-            if (REGEX.BLOCK_DIFF_INFO_LINE.test(line))
-            {
-                const execResult = REGEX.BLOCK_DIFF_INFO_LINE.exec(line);
-                if (execResult !== null)
-                {
-                    const [, info, content] = execResult;
-                    lines.push(`${info}`);
-                    if (content !== undefined)
-                    {
-                        lines.push(`${content}`);
-                    }
-                }
-            }
-            else
-            {
-                lines.push(line);
-            }
+            lines.push(line);
         }
     });
     return lines;
@@ -501,7 +484,7 @@ export async function getCommitInfo(repositoryPath: string, commitHash: string):
         hash,
         committerName,
         committerEmail,
-        Number.parseInt(commitTime),
+        Number.parseInt(commitTime) * 1000,
         commitMessage,
         commitBody);
 }
