@@ -1,6 +1,5 @@
 import {
     addToGroup,
-    branch,
     commitCount,
     directory,
     fileInfo,
@@ -44,8 +43,6 @@ const databaseMock = {
 
 const functionMock = {
     Git: {
-        getAllBranches: jest.fn<ReturnType<typeof Git.getAllBranches>,
-            Parameters<typeof Git.getAllBranches>>(),
         putMasterBranchToFront: jest.fn<ReturnType<typeof Git.putMasterBranchToFront>,
             Parameters<typeof Git.putMasterBranchToFront>>(),
         generateRepositoryPath: jest.fn<ReturnType<typeof Git.generateRepositoryPath>,
@@ -134,88 +131,6 @@ describe(`${repository.name}`, () =>
                 name: fakeRepository.name,
             }],
         ]);
-    });
-});
-
-describe(`${branch.name}`, () =>
-{
-    const fakeAccount = new Account('cABVAGAEG', 'a'.repeat(64));
-    const fakeViewer = new Account('vabaegaeg', 'c'.repeat(64));
-    const fakeRepositoryPath = path.join('vafawfgafg', 'babaeghaeg');
-    const fakeBranches = [
-        'gaegaegaegeg',
-        'niauebgiouabguoiag',
-        'vnbiaquhgbiaekubguaebg',
-        'gh9whboihuw',
-    ];
-    const fakeRepository = new Repository(fakeAccount.username, 'agaegaeg', 'vakbjvgeiaeubgiae', true);
-
-
-    beforeEach(() =>
-    {
-        jest.resetModules();
-        jest.resetAllMocks();
-        jest.mock('../../Database', () => databaseMock);
-        jest.mock('../../Function', () => functionMock);
-        functionMock.Git.getAllBranches.mockResolvedValue(fakeBranches);
-        functionMock.Git.putMasterBranchToFront.mockReturnValue(fakeBranches);
-        functionMock.Git.generateRepositoryPath.mockReturnValue(fakeRepositoryPath);
-    });
-
-    it('should return repository branches when repository is available to the viewer', async function ()
-    {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(true);
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        const {branch} = await import('../RepositoryInfo');
-        expect(
-            await branch(fakeAccount, fakeRepository, {username: fakeViewer.username} as unknown as Session),
-        ).toEqual(new ServiceResponse(200, {},
-            new ResponseBody(true, '', fakeBranches)));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
-            [{
-                username: fakeAccount.username,
-                name: fakeRepository.name,
-            }],
-        ]);
-        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
-            [fakeRepository, {username: fakeViewer.username}],
-        ]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([
-            [{
-                username: fakeRepository.username,
-                name: fakeRepository.name,
-            }],
-        ]);
-        expect(functionMock.Git.getAllBranches.mock.calls).toEqual([
-            [fakeRepositoryPath],
-        ]);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls).toEqual([
-            [fakeBranches, 'master'],
-        ]);
-    });
-
-    it('should not return repository branches when repository is not available to the viewer', async function ()
-    {
-        functionMock.Repository.repositoryIsAvailableToTheViewer.mockResolvedValue(false);
-        databaseMock.Repository.selectByUsernameAndName.mockResolvedValue(fakeRepository);
-        const {branch} = await import('../RepositoryInfo');
-
-        expect(
-            await branch(fakeAccount, fakeRepository, {username: fakeViewer.username} as unknown as Session),
-        ).toEqual(new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在')));
-        expect(databaseMock.Repository.selectByUsernameAndName.mock.calls).toEqual([
-            [{
-                username: fakeAccount.username,
-                name: fakeRepository.name,
-            }],
-        ]);
-        expect(functionMock.Repository.repositoryIsAvailableToTheViewer.mock.calls).toEqual([
-            [fakeRepository, {username: fakeViewer.username}],
-        ]);
-        expect(functionMock.Git.generateRepositoryPath.mock.calls).toEqual([]);
-        expect(functionMock.Git.getAllBranches.mock.calls).toEqual([]);
-        expect(functionMock.Git.putMasterBranchToFront.mock.calls).toEqual([]);
     });
 });
 

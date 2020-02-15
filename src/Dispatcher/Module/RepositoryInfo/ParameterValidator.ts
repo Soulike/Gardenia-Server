@@ -18,8 +18,6 @@ export const repository: IParameterValidator = body =>
     }
 };
 
-export const branch = repository;
-
 export const branches: IParameterValidator = body =>
 {
     const {repository} = body;

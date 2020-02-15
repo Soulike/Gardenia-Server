@@ -32,23 +32,6 @@ export async function repository(account: Readonly<Pick<Account, 'username'>>, r
         new ResponseBody<RepositoryClass>(true, '', repositoryInDatabase!));
 }
 
-export async function branch(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Array<string> | void>>
-{
-    const {username} = account;
-    const {name} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
-    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
-    const branches = await Git.getAllBranches(repositoryPath);
-    return new ServiceResponse<Array<string>>(200, {},
-        new ResponseBody<Array<string>>(true, '', Git.putMasterBranchToFront(branches, 'master')));
-}
-
 export async function branches(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ branches: Branch[] } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);

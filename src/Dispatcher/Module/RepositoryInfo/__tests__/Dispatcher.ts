@@ -9,7 +9,6 @@ import compose from 'koa-compose';
 import superagent from 'superagent';
 import {
     ADD_TO_GROUP,
-    BRANCH,
     COMMIT_COUNT,
     DIRECTORY,
     FILE_INFO,
@@ -44,8 +43,8 @@ const JSONQuerystringParserMiddlewareMock = jest.fn<ReturnType<ReturnType<typeof
 const MiddlewareWrapperMock = {
     repository: jest.fn<ReturnType<typeof Middleware.repository>,
         Parameters<typeof Middleware.repository>>(),
-    branch: jest.fn<ReturnType<typeof Middleware.branch>,
-        Parameters<typeof Middleware.branch>>(),
+    branches: jest.fn<ReturnType<typeof Middleware.branches>,
+        Parameters<typeof Middleware.branches>>(),
     lastCommit: jest.fn<ReturnType<typeof Middleware.lastCommit>,
         Parameters<typeof Middleware.lastCommit>>(),
     directory: jest.fn<ReturnType<typeof Middleware.directory>,
@@ -131,17 +130,6 @@ describe(`REPOSITORY`, () =>
         expect(JSONQuerystringParserMiddlewareMock).toBeCalledTimes(1);
         expect(MiddlewareWrapperMock.repository).toBeCalledTimes(1);
         expect(JSONQuerystringParserMock).toHaveBeenCalledBefore(MiddlewareWrapperMock.repository);
-    });
-});
-
-describe(`BRANCH`, () =>
-{
-    it('should run middlewares', async function ()
-    {
-        await superagent.get(getFullURL(BRANCH));
-        expect(JSONQuerystringParserMiddlewareMock).toBeCalledTimes(1);
-        expect(MiddlewareWrapperMock.branch).toBeCalledTimes(1);
-        expect(JSONQuerystringParserMock).toHaveBeenCalledBefore(MiddlewareWrapperMock.branch);
     });
 });
 

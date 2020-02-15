@@ -17,19 +17,6 @@ export const repository: IRouteHandler = () =>
     };
 };
 
-export const branch: IRouteHandler = () =>
-{
-    return async (ctx) =>
-    {
-        if (!ParameterValidator.branch(ctx.request.body))
-        {
-            throw new WrongParameterError();
-        }
-        const {account, repository} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.branch(account, repository, ctx.session);
-    };
-};
-
 export const branches: IRouteHandler = () =>
 {
     return async (ctx) =>

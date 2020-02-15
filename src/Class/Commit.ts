@@ -7,7 +7,7 @@ export class Commit
     public readonly commitHash: string;  // %H
     public readonly committerName: string;   // %cn
     public readonly committerEmail: string;  // %ce
-    public readonly timestamp: number;   // 毫秒 %ct
+    public timestamp: number;   // 毫秒 %ct
     public readonly message: string; // %s
     public readonly body: string;    // %b
 
