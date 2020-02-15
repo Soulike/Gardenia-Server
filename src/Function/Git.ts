@@ -313,8 +313,9 @@ export async function getFileDiffInfoBetweenCommits(repositoryPath: string, file
     }
     return new FileDiff(
         filePath,
-        diffMetaInfo.includes('new file'),
-        diffMetaInfo.includes('deleted'),
+        diffMetaInfo.toLowerCase().includes('new file'),
+        diffMetaInfo.toLowerCase().includes('deleted'),
+        diffMetaInfo.toLowerCase().includes('binary'),
         blockDiffs,
     );
 }
