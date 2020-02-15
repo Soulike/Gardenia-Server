@@ -30,6 +30,20 @@ export const branch: IRouteHandler = () =>
     };
 };
 
+export const branches: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.branches(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {repository} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.branches(repository, username);
+    };
+};
+
 export const lastCommit: IRouteHandler = () =>
 {
     return async (ctx) =>

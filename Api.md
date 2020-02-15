@@ -110,6 +110,17 @@ class FileDiff
 }
 ```
 
+### `Branch`
+
+```ts
+class Branch
+{
+    public readonly name: string;
+    public readonly lastCommit: Commit;
+    public readonly isDefault: boolean;
+}
+```
+
 ---
 
 ## 常量
@@ -394,6 +405,29 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 }
 ```
 - 响应体：`Repository`
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+
+#### `/branches`
+
+- 功能：获取仓库分支列表
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username' | 'name'>,
+    },
+}
+```
+- 响应体：
+```ts
+{
+    branches: Branch[],
+}
+```
 - 响应消息：
   - 仓库不存在
 - 其他说明：

@@ -2,6 +2,7 @@ import Router from '@koa/router';
 import {
     ADD_TO_GROUP,
     BRANCH,
+    BRANCHES,
     COMMIT,
     COMMIT_COUNT,
     COMMIT_HISTORY,
@@ -26,6 +27,7 @@ import bodyParser from '../../Middleware/bodyParser';
 import {
     addToGroup,
     branch,
+    branches,
     commit,
     commitCount,
     commitHistory,
@@ -51,6 +53,7 @@ export default (router: Router<IState, IContext>) =>
 {
     router.get(REPOSITORY, JSONQuerystringParser(), repository())
         .get(BRANCH, JSONQuerystringParser(), branch())
+        .get(BRANCHES, JSONQuerystringParser(), branches())
         .get(LAST_COMMIT, JSONQuerystringParser(), lastCommit())
         .get(DIRECTORY, JSONQuerystringParser(), directory())
         .get(COMMIT_COUNT, JSONQuerystringParser(), commitCount())

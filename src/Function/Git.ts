@@ -1,4 +1,4 @@
-import {BlockDiff, Commit, FileDiff, Repository} from '../Class';
+import {BlockDiff, Branch, Commit, FileDiff, Repository} from '../Class';
 import {execPromise} from './Promisify';
 import {ObjectType, REGEX} from '../CONSTANT';
 import path from 'path';
@@ -540,4 +540,20 @@ export async function getFirstCommitHash(repositoryPath: string): Promise<string
 export async function getFileFirstCommitHash(repositoryPath: string, filePath: string): Promise<string>
 {
     return await execPromise(`git log --pretty=format:'%H' -- ${filePath} | tail -1`, {cwd: repositoryPath});
+}
+
+/**
+ * @description 获取所有分支信息
+ * */
+export async function getBranches(repositoryPath: string): Promise<Branch[]>
+{
+    const branchOutput = await execPromise(`git branch`, {cwd: repositoryPath});
+    const branchLines = splitToLines(branchOutput);
+    return await Promise.all(branchLines.map(async line =>
+    {
+        const sign = line.slice(0, 2);
+        const branchName = line.slice(2);
+        const commit = await getCommitInfo(repositoryPath, branchName);
+        return new Branch(branchName, commit, sign.includes('*'));
+    }));
 }
