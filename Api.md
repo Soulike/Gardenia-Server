@@ -106,6 +106,7 @@ class FileDiff
     public readonly path: string;
     public readonly isNew: boolean;
     public readonly isDeleted: boolean;
+    public readonly isBinary: boolean;
     public readonly blockDiffs: BlockDiff[];
 }
 ```
