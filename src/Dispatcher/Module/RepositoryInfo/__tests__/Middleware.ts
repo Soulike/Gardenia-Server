@@ -19,8 +19,8 @@ const functionMock = {
 const parameterValidatorMock = {
     repository: jest.fn<ReturnType<typeof ParameterValidator.repository>,
         Parameters<typeof ParameterValidator.repository>>(),
-    branch: jest.fn<ReturnType<typeof ParameterValidator.branch>,
-        Parameters<typeof ParameterValidator.branch>>(),
+    branches: jest.fn<ReturnType<typeof ParameterValidator.branches>,
+        Parameters<typeof ParameterValidator.branches>>(),
     lastCommit: jest.fn<ReturnType<typeof ParameterValidator.lastCommit>,
         Parameters<typeof ParameterValidator.lastCommit>>(),
     directory: jest.fn<ReturnType<typeof ParameterValidator.directory>,
@@ -47,8 +47,8 @@ const serviceMock = {
     RepositoryInfo: {
         repository: jest.fn<ReturnType<typeof RepositoryInfoService.repository>,
             Parameters<typeof RepositoryInfoService.repository>>(),
-        branch: jest.fn<ReturnType<typeof RepositoryInfoService.branch>,
-            Parameters<typeof RepositoryInfoService.branch>>(),
+        branches: jest.fn<ReturnType<typeof RepositoryInfoService.branches>,
+            Parameters<typeof RepositoryInfoService.branches>>(),
         lastCommit: jest.fn<ReturnType<typeof RepositoryInfoService.lastCommit>,
             Parameters<typeof RepositoryInfoService.lastCommit>>(),
         directory: jest.fn<ReturnType<typeof RepositoryInfoService.directory>,
@@ -127,64 +127,6 @@ describe('repository', () =>
         expect(parameterValidatorMock.repository).toBeCalledWith(fakeBody);
         expect(serviceMock.RepositoryInfo.repository).toBeCalledTimes(1);
         expect(serviceMock.RepositoryInfo.repository)
-            .toBeCalledWith(fakeBody.account, fakeBody.repository, fakeSession);
-        expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
-    });
-});
-
-describe('branch', () =>
-{
-    beforeEach(() =>
-    {
-        jest.resetAllMocks()
-            .resetModules()
-            .mock('../../../../Function', () => functionMock)
-            .mock('../../../../Service', () => serviceMock)
-            .mock('../ParameterValidator', () => parameterValidatorMock);
-    });
-
-    it('should validate body', async function ()
-    {
-        parameterValidatorMock.branch.mockReturnValue(false);
-        const fakeBody = {a: 1};
-        const fakeContext = {
-            request: {body: fakeBody},
-        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
-        const {branch} = await import('../Middleware');
-        await expect(branch()(fakeContext, nextMock)).rejects.toEqual(new WrongParameterError());
-        expect(parameterValidatorMock.branch).toBeCalledTimes(1);
-        expect(parameterValidatorMock.branch).toBeCalledWith(fakeBody);
-        expect(serviceMock.RepositoryInfo.branch).not.toBeCalled();
-    });
-
-    it('should call service', async function ()
-    {
-        const fakeBody: {
-            account: Pick<Account, 'username'>,
-            repository: Pick<Repository, 'name'>,
-        } = {
-            account: {username: 'ffaef'},
-            repository: {name: 'faefeaf'},
-        };
-        const fakeSession = {b: 2};
-        const fakeContext = {
-            request: {body: fakeBody},
-            session: fakeSession,
-            state: <IState>{
-                serviceResponse: {},
-            },
-        } as unknown as ParameterizedContext<IState, IContext & RouterContext<IState, IContext>>;
-        const fakeServiceResponse = new ServiceResponse<Array<string>>(200, {},
-            new ResponseBody(true, '',
-                ['a', 'b']));
-        parameterValidatorMock.branch.mockReturnValue(true);
-        serviceMock.RepositoryInfo.branch.mockResolvedValue(fakeServiceResponse);
-        const {branch} = await import('../Middleware');
-        await branch()(fakeContext, nextMock);
-        expect(parameterValidatorMock.branch).toBeCalledTimes(1);
-        expect(parameterValidatorMock.branch).toBeCalledWith(fakeBody);
-        expect(serviceMock.RepositoryInfo.branch).toBeCalledTimes(1);
-        expect(serviceMock.RepositoryInfo.branch)
             .toBeCalledWith(fakeBody.account, fakeBody.repository, fakeSession);
         expect(fakeContext.state.serviceResponse).toEqual(fakeServiceResponse);
     });

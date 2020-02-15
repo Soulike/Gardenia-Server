@@ -3,7 +3,6 @@ import {
     doRPCCall,
     doUpdateServerInfo,
     generateRepositoryPath,
-    getAllBranches,
     getCommitCount,
     getFileCommitInfoList,
     getLastCommitInfo,
@@ -59,43 +58,6 @@ const binaryFileSize = 101;
 const childProcessMock = {
     spawn: jest.fn(),
 };
-
-describe(`${getAllBranches.name}`, () =>
-{
-    beforeAll(async () =>
-    {
-        await Promise.all([
-            createRepository(),
-            createBareRepository(),
-        ]);
-        await doFirstCommit();
-        await createBranches();
-        await changeMainBranchName();
-    });
-
-    afterAll(async () =>
-    {
-        await destroyRepository();
-    });
-
-    it('should get all branches', async function ()
-    {
-        expect(await getAllBranches(repositoryPath))
-            .toEqual(expect.arrayContaining([mainBranchName, ...branches]));
-    });
-
-    it('should handle empty repository', async function ()
-    {
-        expect(await getAllBranches(bareRepositoryPath))
-            .toEqual([]);
-    });
-
-    it('should reject when something is wrong', async function ()
-    {
-        await expect(getAllBranches('dadawdaw')).rejects.toThrow();
-        await expect(getAllBranches(os.tmpdir())).rejects.toThrow();
-    });
-});
 
 describe(`${putMasterBranchToFront.name}`, () =>
 {
@@ -621,14 +583,6 @@ async function destroyRepository()
 {
     await fse.remove(repositoryPath);
     await fse.remove(bareRepositoryPath);
-}
-
-async function createBranches()
-{
-    await Promise.all(branches.map(async (branch) =>
-    {
-        await promisify(exec)(`git branch ${branch}`, {cwd: repositoryPath});
-    }));
 }
 
 async function changeMainBranchName()

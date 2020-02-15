@@ -1,5 +1,14 @@
 import {Session} from 'koa-session';
-import {Account, Commit, FileDiff, Group, Repository as RepositoryClass, ResponseBody, ServiceResponse} from '../Class';
+import {
+    Account,
+    Branch,
+    Commit,
+    FileDiff,
+    Group,
+    Repository as RepositoryClass,
+    ResponseBody,
+    ServiceResponse,
+} from '../Class';
 import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Git, Repository} from '../Function';
 import {SERVER} from '../CONFIG';
@@ -23,21 +32,18 @@ export async function repository(account: Readonly<Pick<Account, 'username'>>, r
         new ResponseBody<RepositoryClass>(true, '', repositoryInDatabase!));
 }
 
-export async function branch(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Array<string> | void>>
+export async function branches(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ branches: Branch[] } | void>>
 {
-    const {username} = account;
-    const {name} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
-    if (!await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
+            new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
-    const branches = await Git.getAllBranches(repositoryPath);
-    return new ServiceResponse<Array<string>>(200, {},
-        new ResponseBody<Array<string>>(true, '', Git.putMasterBranchToFront(branches, 'master')));
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const branches = await Git.getBranches(repositoryPath);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {branches}));
 }
 
 export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<RepositoryClass, 'name'>>, commitHash: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>

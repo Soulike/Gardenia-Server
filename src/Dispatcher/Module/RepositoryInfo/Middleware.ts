@@ -17,16 +17,17 @@ export const repository: IRouteHandler = () =>
     };
 };
 
-export const branch: IRouteHandler = () =>
+export const branches: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        if (!ParameterValidator.branch(ctx.request.body))
+        if (!ParameterValidator.branches(ctx.request.body))
         {
             throw new WrongParameterError();
         }
-        const {account, repository} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.branch(account, repository, ctx.session);
+        const {repository} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.branches(repository, username);
     };
 };
 

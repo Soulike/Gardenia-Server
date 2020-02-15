@@ -8,3 +8,4 @@ export * from './Group';
 export * from './AccountRepository';
 export * from './FileDiff';
 export * from './BlockDiff';
+export * from './Branch';

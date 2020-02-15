@@ -1,4 +1,4 @@
-import {BlockDiff, Commit, FileDiff, Repository} from '../Class';
+import {BlockDiff, Branch, Commit, FileDiff, Repository} from '../Class';
 import {execPromise} from './Promisify';
 import {ObjectType, REGEX} from '../CONSTANT';
 import path from 'path';
@@ -7,12 +7,6 @@ import {Promisify} from './index';
 import {Readable} from 'stream';
 import {spawn} from 'child_process';
 import {splitToLines} from './String';
-
-export async function getAllBranches(repositoryPath: string): Promise<string[]>
-{
-    const stdout = await execPromise(`git branch --format='%(refname:short)'`, {cwd: repositoryPath});
-    return stdout.split('\n').filter(value => value.length > 0);
-}
 
 export function putMasterBranchToFront(branches: Readonly<string[]>, masterBranchName: string): string[]
 {
@@ -134,7 +128,7 @@ export function generateRepositoryPath(repository: Readonly<Pick<Repository, 'us
 export async function getCommitCount(repositoryPath: string, commitHash: string): Promise<number>
 {
     // 首先判断是否存在 master 分支，如果没有进行过任何提交是没有 master 分支的
-    const branches = await getAllBranches(repositoryPath);
+    const branches = await getBranches(repositoryPath);
     if (branches.length === 0)
     {
         return 0;
@@ -540,4 +534,20 @@ export async function getFirstCommitHash(repositoryPath: string): Promise<string
 export async function getFileFirstCommitHash(repositoryPath: string, filePath: string): Promise<string>
 {
     return await execPromise(`git log --pretty=format:'%H' -- ${filePath} | tail -1`, {cwd: repositoryPath});
+}
+
+/**
+ * @description 获取所有分支信息
+ * */
+export async function getBranches(repositoryPath: string): Promise<Branch[]>
+{
+    const branchOutput = await execPromise(`git branch`, {cwd: repositoryPath});
+    const branchLines = splitToLines(branchOutput);
+    return await Promise.all(branchLines.map(async line =>
+    {
+        const sign = line.slice(0, 2);
+        const branchName = line.slice(2);
+        const commit = await getCommitInfo(repositoryPath, branchName);
+        return new Branch(branchName, commit, sign.includes('*'));
+    }));
 }
