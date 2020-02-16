@@ -32,3 +32,11 @@ export async function select(repositoryRepository: Readonly<Partial<RepositoryRe
     return rows.map(row => RepositoryRepository.from(row));
 }
 
+export async function count(repositoryRepository: Readonly<Partial<RepositoryRepository>>): Promise<number>
+{
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repositoryRepository, 'AND');
+    const {rows} = await pool.query(
+        `SELECT COUNT(*) AS "count" FROM forks WHERE ${parameterizedStatement}`,
+        values);
+    return Number.parseInt(rows[0]['count']);
+}

@@ -836,6 +836,36 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - 仓库不存在
 
+#### `/forkAmount`
+
+- 功能：获取本仓库被复刻数量
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/forkRepositories`
+
+- 功能：获取由本仓库复刻的仓库列表
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    repositories: Repository[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
 ### Group 模块（`/group`）
 
 #### `/add`

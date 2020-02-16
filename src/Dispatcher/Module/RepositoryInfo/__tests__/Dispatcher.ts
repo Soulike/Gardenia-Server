@@ -81,6 +81,10 @@ const MiddlewareWrapperMock = {
         Parameters<typeof Middleware.commit>>(),
     fileCommit: jest.fn<ReturnType<typeof Middleware.fileCommit>,
         Parameters<typeof Middleware.fileCommit>>(),
+    forkAmount: jest.fn<ReturnType<typeof Middleware.forkAmount>,
+        Parameters<typeof Middleware.forkAmount>>(),
+    forkRepositories: jest.fn<ReturnType<typeof Middleware.forkRepositories>,
+        Parameters<typeof Middleware.forkRepositories>>(),
 };
 
 let server: Server;

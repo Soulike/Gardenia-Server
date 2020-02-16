@@ -9,7 +9,7 @@ import {
     ResponseBody,
     ServiceResponse,
 } from '../Class';
-import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
+import {Fork as ForkTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Git, Repository} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
@@ -474,4 +474,49 @@ export async function fileCommit(repository: Pick<RepositoryClass, 'username' | 
     ]);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commit, diff}));
+}
+
+export async function forkAmount(repository: Pick<RepositoryClass, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const {username, name} = repository;
+    const amount = await ForkTable.count({
+        sourceRepositoryUsername: username,
+        sourceRepositoryName: name,
+    });
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {amount}));
+}
+
+export async function forkRepositories(repository: Pick<RepositoryClass, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repositories: RepositoryClass[] } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const {username, name} = repository;
+    const repositoryPks = await ForkTable.select({
+        sourceRepositoryUsername: username,
+        sourceRepositoryName: name,
+    });
+    const repositoriesWithNull = await Promise.all(repositoryPks.map(
+        async ({targetRepositoryUsername: username, targetRepositoryName: name}) =>
+            (await RepositoryTable.selectByUsernameAndName({username, name}))));
+    const repositories: RepositoryClass[] = [];
+    for (const repository of repositoriesWithNull)
+    {
+        if (repository !== null)
+        {
+            repositories.push(repository);
+        }
+    }
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {repositories}));
 }
