@@ -50,3 +50,21 @@ export const getRepositories: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryService.getRepositories(start, end, ctx.session, username);
     };
 };
+
+export const fork: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        const {username: usernameInSession} = ctx.session;
+        if (typeof usernameInSession !== 'string')
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.fork(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryService.fork({username, name}, usernameInSession);
+    };
+};

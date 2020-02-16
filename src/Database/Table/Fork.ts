@@ -31,3 +31,4 @@ export async function select(repositoryRepository: Readonly<Partial<RepositoryRe
         values);
     return rows.map(row => RepositoryRepository.from(row));
 }
+

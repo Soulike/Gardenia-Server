@@ -388,6 +388,19 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
   - 仓库不存在
 - 其他说明：无
 
+#### `/fork`
+
+- 功能：复刻仓库
+- 方法：POST
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+  - 已存在同名仓库
+  - 不能 fork 私有仓库
+  - 不能 fork 自己的仓库
+- 其他说明：无
+
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息操作。

@@ -4,7 +4,7 @@ import {
     generateParameterizedStatementAndValuesArray,
 } from '../Function';
 import pool from '../Pool';
-import {Group, Repository as RepositoryClass} from '../../Class';
+import {Group, Repository as RepositoryClass, RepositoryRepository} from '../../Class';
 
 export async function insert(repository: Readonly<RepositoryClass>): Promise<void>
 {
@@ -166,6 +166,38 @@ export async function removeFromGroups(repository: Readonly<Pick<RepositoryClass
                        AND repository_name = $2
                        AND group_id = $3`,
                 [username, name, id])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+export async function fork(sourceRepository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, targetRepository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            const {
+                values: repositoryValues,
+                columnNames: repositoryColumnNames,
+                parameterString: repositoryParameterString,
+            } = generateColumnNamesAndValuesArrayAndParameterString(targetRepository);
+            await client.query(`INSERT INTO repositories (${repositoryColumnNames}) VALUES (${repositoryParameterString})`, repositoryValues);
+
+            const repositoryRepository = new RepositoryRepository(
+                sourceRepository.username, sourceRepository.name,
+                targetRepository.username, targetRepository.name,
+            );
+            const {
+                values: forkValues,
+                columnNames: forkColumnNames,
+                parameterString: forkParameterString,
+            } = generateColumnNamesAndValuesArrayAndParameterString(repositoryRepository);
+            await client.query(`INSERT INTO forks (${forkColumnNames}) VALUES (${forkParameterString})`, forkValues);
         });
     }
     finally
