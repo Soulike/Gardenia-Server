@@ -73,12 +73,13 @@ CREATE TABLE IF NOT EXISTS "collaborates"
     FOREIGN KEY ("repository_username", "repository_name") REFERENCES "repositories" ("username", "name") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE "forks"
+CREATE TABLE IF NOT EXISTS "forks"
 (
     "sourceRepositoryUsername" VARCHAR(255),
     "sourceRepositoryName"     VARCHAR(255),
     "targetRepositoryUsername" VARCHAR(255),
     "targetRepositoryName"     VARCHAR(255),
+    UNIQUE ("targetRepositoryUsername", "targetRepositoryName"),
     FOREIGN KEY ("sourceRepositoryUsername", "sourceRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ("targetRepositoryUsername", "targetRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY ("sourceRepositoryUsername", "sourceRepositoryName", "targetRepositoryUsername", "targetRepositoryName")
