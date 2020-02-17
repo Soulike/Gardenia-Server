@@ -241,3 +241,4 @@ export const forkAmount: IParameterValidator = body =>
 };
 
 export const forkRepositories: IParameterValidator = forkAmount;
+export const forkFrom: IParameterValidator = forkAmount;

@@ -520,3 +520,33 @@ export async function forkRepositories(repository: Pick<RepositoryClass, 'userna
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {repositories}));
 }
+
+export async function forkFrom(repository: Pick<RepositoryClass, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repository: Pick<RepositoryClass, 'username' | 'name'> | null } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await Repository.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const {username, name} = repository;
+    const repositoryRepositories = await ForkTable.select({
+        targetRepositoryUsername: username,
+        targetRepositoryName: name,
+    });
+    if (repositoryRepositories.length === 0)
+    {
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {repository: null}));
+    }
+    else
+    {
+        const {sourceRepositoryName, sourceRepositoryUsername} = repositoryRepositories[0];
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {
+                repository: {
+                    username: sourceRepositoryUsername, name: sourceRepositoryName,
+                },
+            }));
+    }
+}

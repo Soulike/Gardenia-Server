@@ -85,6 +85,8 @@ const MiddlewareWrapperMock = {
         Parameters<typeof Middleware.forkAmount>>(),
     forkRepositories: jest.fn<ReturnType<typeof Middleware.forkRepositories>,
         Parameters<typeof Middleware.forkRepositories>>(),
+    forkFrom: jest.fn<ReturnType<typeof Middleware.forkFrom>,
+        Parameters<typeof Middleware.forkFrom>>(),
 };
 
 let server: Server;

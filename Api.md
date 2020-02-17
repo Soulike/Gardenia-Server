@@ -866,6 +866,22 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
+#### `/forkFrom`
+
+- 功能：获取仓库的复刻源仓库
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'> | null,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库不是复刻得到则返回 `null`
+
 ### Group 模块（`/group`）
 
 #### `/add`

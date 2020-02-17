@@ -316,3 +316,17 @@ export const forkRepositories: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryInfo.forkRepositories({username, name}, usernameInSession);
     };
 };
+
+export const forkFrom: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkFrom(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkFrom({username, name}, usernameInSession);
+    };
+};
