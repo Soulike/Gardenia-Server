@@ -181,11 +181,16 @@ export async function fork(sourceRepository: Readonly<Pick<RepositoryClass, 'use
     {
         await executeTransaction(client, async client =>
         {
+            const sourceRepositoryInDatabase = await selectByUsernameAndName(sourceRepository);
             const {
                 values: repositoryValues,
                 columnNames: repositoryColumnNames,
                 parameterString: repositoryParameterString,
-            } = generateColumnNamesAndValuesArrayAndParameterString(targetRepository);
+            } = generateColumnNamesAndValuesArrayAndParameterString({
+                ...sourceRepositoryInDatabase,
+                username: targetRepository.username,
+                name: targetRepository.name,
+            });
             await client.query(`INSERT INTO repositories (${repositoryColumnNames}) VALUES (${repositoryParameterString})`, repositoryValues);
 
             const repositoryRepository = new RepositoryRepository(

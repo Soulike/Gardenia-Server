@@ -5,12 +5,8 @@ export async function execPromise(command: string, options?: ExecOptions): Promi
 {
     return new Promise<string>((resolve, reject) =>
     {
-        exec(command, {...options, encoding: 'utf-8'}, (error, stdout, stderr) =>
+        exec(command, {...options, encoding: 'utf-8'}, (error, stdout) =>
         {
-            if (stderr)
-            {
-                return reject(new Error(stderr));
-            }
             if (error)
             {
                 return reject(error);

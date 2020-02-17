@@ -14,11 +14,6 @@ describe(`${execPromise.name}`, () =>
     {
         await expect(execPromise(`gsgsrgsrg`)).rejects.toThrow();
     });
-
-    it('should reject error in executing command', async function ()
-    {
-        await expect(execPromise(`echo ${str} >& 2`)).rejects.toThrow();
-    });
 });
 
 describe(`${waitForEvent.name}`, () =>
