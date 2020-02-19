@@ -288,3 +288,45 @@ export const fileCommit: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryInfo.fileCommit(repository, filePath, commitHash, username);
     };
 };
+
+export const forkAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkAmount({username, name}, usernameInSession);
+    };
+};
+
+export const forkRepositories: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkRepositories(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkRepositories({username, name}, usernameInSession);
+    };
+};
+
+export const forkFrom: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkFrom(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkFrom({username, name}, usernameInSession);
+    };
+};

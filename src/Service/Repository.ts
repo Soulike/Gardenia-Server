@@ -1,9 +1,9 @@
-import {Repository, ResponseBody, ServiceResponse} from '../Class';
+import {Account, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Repository as RepositoryTable} from '../Database';
 import {SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
-import {Git, Session as SessionFunction} from '../Function';
+import {Git, Repository as RepositoryFunction, Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
 import fse from 'fs-extra';
 
@@ -134,4 +134,48 @@ export async function getRepositories(start: number, end: number, session: Reado
     }
     return new ServiceResponse<Array<Repository>>(200, {},
         new ResponseBody<Array<Repository>>(true, '', repositories));
+}
+
+export async function fork(sourceRepository: Pick<Repository, 'username' | 'name'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+{
+    const {username, name} = sourceRepository;
+    if (username === usernameInSession)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '不能 fork 自己的仓库'));
+    }
+    const sourceRepositoryInDatabase = await RepositoryTable.selectByUsernameAndName(sourceRepository);
+    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    if (!sourceRepositoryInDatabase.isPublic)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '不能 fork 私有仓库'));
+    }
+    const targetRepositoryInDatabase = await RepositoryTable.selectByUsernameAndName({
+        username: usernameInSession,
+        name,
+    });
+    if (targetRepositoryInDatabase !== null)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '已存在同名仓库'));
+    }
+    const sourceRepositoryPath = Git.generateRepositoryPath(sourceRepository);
+    const targetRepositoryPath = Git.generateRepositoryPath({username: usernameInSession, name});
+    try
+    {
+        await Git.cloneBareRepository(sourceRepositoryPath, targetRepositoryPath);
+        await RepositoryTable.fork(sourceRepository, {username: usernameInSession, name});
+    }
+    catch (e)
+    {
+        await fse.remove(targetRepositoryPath);
+        throw e;
+    }
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true));
 }

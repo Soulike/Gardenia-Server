@@ -551,3 +551,11 @@ export async function getBranches(repositoryPath: string): Promise<Branch[]>
         return new Branch(branchName, commit, sign.includes('*'));
     }));
 }
+
+/**
+ * @description 克隆裸仓库
+ * */
+export async function cloneBareRepository(sourceRepositoryPath: string, targetRepositoryPath: string): Promise<void>
+{
+    await execPromise(`git clone --bare ${sourceRepositoryPath} ${targetRepositoryPath}`);
+}

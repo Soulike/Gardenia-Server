@@ -9,3 +9,4 @@ export * from './AccountRepository';
 export * from './FileDiff';
 export * from './BlockDiff';
 export * from './Branch';
+export * from './RepositoryRepository';

@@ -389,6 +389,19 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
   - 仓库不存在
 - 其他说明：无
 
+#### `/fork`
+
+- 功能：复刻仓库
+- 方法：POST
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+  - 已存在同名仓库
+  - 不能 fork 私有仓库
+  - 不能 fork 自己的仓库
+- 其他说明：无
+
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息操作。
@@ -823,6 +836,52 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 仓库不存在
+
+#### `/forkAmount`
+
+- 功能：获取本仓库被复刻数量
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/forkRepositories`
+
+- 功能：获取由本仓库复刻的仓库列表
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    repositories: Repository[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/forkFrom`
+
+- 功能：获取仓库的复刻源仓库
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'> | null,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库不是复刻得到则返回 `null`
 
 ### Group 模块（`/group`）
 

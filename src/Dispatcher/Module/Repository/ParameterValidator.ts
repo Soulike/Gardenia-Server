@@ -21,3 +21,9 @@ export const getRepositories: IParameterValidator = body =>
         && (typeof username === 'undefined'
             || Repository.validate({username, name: '', description: '', isPublic: true}));
 };
+
+export const fork: IParameterValidator = body =>
+{
+    const {username, name} = body;
+    return Repository.validate({username, name, isPublic: false, description: ''});
+};

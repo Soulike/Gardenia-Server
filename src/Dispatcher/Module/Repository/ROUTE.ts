@@ -8,3 +8,4 @@ function repositoryPrefix(url: string): string
 export const CREATE = repositoryPrefix('/create');
 export const DEL = repositoryPrefix('/del');
 export const GET_REPOSITORIES = repositoryPrefix('/getRepositories');
+export const FORK = repositoryPrefix('/fork');

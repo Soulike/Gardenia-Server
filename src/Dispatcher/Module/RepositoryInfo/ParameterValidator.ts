@@ -233,3 +233,12 @@ export const fileCommit: IParameterValidator = body =>
     const {username, name} = repository;
     return Repository.validate({username, name, isPublic: true, description: ''});
 };
+
+export const forkAmount: IParameterValidator = body =>
+{
+    const {username, name} = body;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const forkRepositories: IParameterValidator = forkAmount;
+export const forkFrom: IParameterValidator = forkAmount;

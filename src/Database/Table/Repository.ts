@@ -4,7 +4,7 @@ import {
     generateParameterizedStatementAndValuesArray,
 } from '../Function';
 import pool from '../Pool';
-import {Group, Repository} from '../../Class';
+import {Group, Repository, RepositoryRepository} from '../../Class';
 
 export async function insert(repository: Readonly<Repository>): Promise<void>
 {
@@ -175,6 +175,43 @@ export async function removeFromGroups(repository: Readonly<Pick<Repository, 'us
                        AND repository_name = $2
                        AND group_id = $3`,
                 [username, name, id])));
+        });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+export async function fork(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        await executeTransaction(client, async client =>
+        {
+            const sourceRepositoryInDatabase = await selectByUsernameAndName(sourceRepository);
+            const {
+                values: repositoryValues,
+                columnNames: repositoryColumnNames,
+                parameterString: repositoryParameterString,
+            } = generateColumnNamesAndValuesArrayAndParameterString({
+                ...sourceRepositoryInDatabase,
+                username: targetRepository.username,
+                name: targetRepository.name,
+            });
+            await client.query(`INSERT INTO repositories (${repositoryColumnNames}) VALUES (${repositoryParameterString})`, repositoryValues);
+
+            const repositoryRepository = new RepositoryRepository(
+                sourceRepository.username, sourceRepository.name,
+                targetRepository.username, targetRepository.name,
+            );
+            const {
+                values: forkValues,
+                columnNames: forkColumnNames,
+                parameterString: forkParameterString,
+            } = generateColumnNamesAndValuesArrayAndParameterString(repositoryRepository);
+            await client.query(`INSERT INTO forks (${forkColumnNames}) VALUES (${forkParameterString})`, forkValues);
         });
     }
     finally

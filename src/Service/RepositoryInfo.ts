@@ -1,6 +1,6 @@
 import {Session} from 'koa-session';
 import {Account, Branch, Commit, FileDiff, Group, Repository, ResponseBody, ServiceResponse} from '../Class';
-import {Group as GroupTable, Repository as RepositoryTable} from '../Database';
+import {Fork as ForkTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
 import {Git, Repository as RepositoryFunction} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
@@ -465,4 +465,79 @@ export async function fileCommit(repository: Pick<Repository, 'username' | 'name
     ]);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commit, diff}));
+}
+
+export async function forkAmount(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const {username, name} = repository;
+    const amount = await ForkTable.count({
+        sourceRepositoryUsername: username,
+        sourceRepositoryName: name,
+    });
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {amount}));
+}
+
+export async function forkRepositories(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repositories: RepositoryClass[] } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const {username, name} = repository;
+    const repositoryPks = await ForkTable.select({
+        sourceRepositoryUsername: username,
+        sourceRepositoryName: name,
+    });
+    const repositoriesWithNull = await Promise.all(repositoryPks.map(
+        async ({targetRepositoryUsername: username, targetRepositoryName: name}) =>
+            (await RepositoryTable.selectByUsernameAndName({username, name}))));
+    const repositories: Repository[] = [];
+    for (const repository of repositoriesWithNull)
+    {
+        if (repository !== null)
+        {
+            repositories.push(repository);
+        }
+    }
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {repositories}));
+}
+
+export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repository: Pick<RepositoryClass, 'username' | 'name'> | null } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const {username, name} = repository;
+    const repositoryRepositories = await ForkTable.select({
+        targetRepositoryUsername: username,
+        targetRepositoryName: name,
+    });
+    if (repositoryRepositories.length === 0)
+    {
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {repository: null}));
+    }
+    else
+    {
+        const {sourceRepositoryName, sourceRepositoryUsername} = repositoryRepositories[0];
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {
+                repository: {
+                    username: sourceRepositoryUsername, name: sourceRepositoryName,
+                },
+            }));
+    }
 }
