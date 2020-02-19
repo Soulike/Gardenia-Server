@@ -1,9 +1,9 @@
-import {Account as AccountClass, Group, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
+import {Account, Group, Profile, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable, Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
 import {Session as SessionFunction} from '../Function';
 
-export async function login(account: Readonly<AccountClass>): Promise<ServiceResponse<void>>
+export async function login(account: Readonly<Account>): Promise<ServiceResponse<void>>
 {
     const {username, hash} = account;
     const accountInDatabase = await AccountTable.selectByUsername(username);
@@ -25,16 +25,16 @@ export async function login(account: Readonly<AccountClass>): Promise<ServiceRes
     }
 }
 
-export async function register(account: Readonly<AccountClass>, profile: Readonly<Omit<ProfileClass, 'username'>>): Promise<ServiceResponse<void>>
+export async function register(account: Readonly<Account>, profile: Readonly<Omit<Profile, 'username'>>): Promise<ServiceResponse<void>>
 {
     const {username} = account;
     const {email} = profile;
-    if ((await AccountTable.selectByUsername(username)) !== null) // 检查用户名是不是已经存在了
+    if ((await AccountTable.count({username})) !== 0) // 检查用户名是不是已经存在了
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '用户名已存在'));
     }
-    if ((await ProfileTable.selectByEmail(email)) !== null)
+    if ((await ProfileTable.count({email})) !== 0)
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '邮箱已被使用'));
@@ -55,11 +55,10 @@ export async function logout(): Promise<ServiceResponse<void>>
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true), {username: undefined});
 }
 
-export async function getGroups(account: Readonly<Pick<AccountClass, 'username'>>): Promise<ServiceResponse<Group[]>>
+export async function getGroups(account: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Group[]>>
 {
     const {username} = account;
-    const accountInDatabase = await AccountTable.selectByUsername(username);
-    if (accountInDatabase === null)
+    if (await AccountTable.count({username}) === 0)
     {
         return new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '用户不存在'));
@@ -69,11 +68,10 @@ export async function getGroups(account: Readonly<Pick<AccountClass, 'username'>
         new ResponseBody<Group[]>(true, '', groups));
 }
 
-export async function getAdministratingGroups(account: Readonly<Pick<AccountClass, 'username'>>): Promise<ServiceResponse<Group[]>>
+export async function getAdministratingGroups(account: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Group[]>>
 {
     const {username} = account;
-    const accountInDatabase = await AccountTable.selectByUsername(username);
-    if (accountInDatabase === null)
+    if (await AccountTable.count({username}))
     {
         return new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '用户不存在'));
@@ -83,7 +81,7 @@ export async function getAdministratingGroups(account: Readonly<Pick<AccountClas
         new ResponseBody<Group[]>(true, '', groups));
 }
 
-export async function checkPassword(account: Readonly<Pick<AccountClass, 'hash'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isCorrect: boolean }>>
+export async function checkPassword(account: Readonly<Pick<Account, 'hash'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isCorrect: boolean }>>
 {
     const {username} = session;
     const {hash} = account;

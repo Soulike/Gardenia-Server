@@ -23,7 +23,8 @@ export async function add(repository: Pick<Repository, 'username' | 'name'>, use
 export async function remove(repository: Pick<Repository, 'username' | 'name'>, username: Account['username']): Promise<ServiceResponse<void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
-    if (repositoryInDatabase === null)
+    if (repositoryInDatabase === null
+        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));

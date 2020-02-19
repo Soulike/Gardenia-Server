@@ -1,19 +1,19 @@
 import fs from 'fs';
-import {Git, Repository} from '../Function';
+import {Git, Repository as RepositoryFuncton} from '../Function';
 import mime from 'mime-types';
-import {Repository as RepositoryClass, ServiceResponse} from '../Class';
+import {Repository, ServiceResponse} from '../Class';
 import path from 'path';
 import {Repository as RepositoryTable} from '../Database';
 import {Readable} from 'stream';
 
-export async function file(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, filePath: string, headers: Readonly<any>): Promise<ServiceResponse<Readable | string>>
+export async function file(repository: Readonly<Pick<Repository, 'username' | 'name'>>, filePath: string, headers: Readonly<any>): Promise<ServiceResponse<Readable | string>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null)  // 仓库不存在
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await Repository.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFuncton.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
@@ -39,19 +39,19 @@ export async function file(repository: Readonly<Pick<RepositoryClass, 'username'
     });
 }
 
-export async function advertise(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, service: string, headers: Readonly<any>): Promise<ServiceResponse<string | void>>
+export async function advertise(repository: Readonly<Pick<Repository, 'username' | 'name'>>, service: string, headers: Readonly<any>): Promise<ServiceResponse<string | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null)  // 仓库不存在
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await Repository.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFuncton.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
     if (service === 'git-receive-pack'
-        && !(await Repository.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
+        && !(await RepositoryFuncton.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
@@ -61,24 +61,23 @@ export async function advertise(repository: Readonly<Pick<RepositoryClass, 'user
 
     return new ServiceResponse<string | void>(200, {
         'Content-Type': `application/x-${service}-advertisement`,
-    }, Repository.generateRefsServiceResponse(service, RPCCallOutput));
+    }, RepositoryFuncton.generateRefsServiceResponse(service, RPCCallOutput));
 }
 
-
-export async function rpc(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, command: string, headers: Readonly<any>, parameterStream: Readable): Promise<ServiceResponse<Readable | string>>
+export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'name'>>, command: string, headers: Readonly<any>, parameterStream: Readable): Promise<ServiceResponse<Readable | string>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null)  // 仓库不存在
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await Repository.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFuncton.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
     if (command === 'receive-pack'
-        && !(await Repository.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
+        && !(await RepositoryFuncton.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
