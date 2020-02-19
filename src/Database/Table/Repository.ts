@@ -4,9 +4,9 @@ import {
     generateParameterizedStatementAndValuesArray,
 } from '../Function';
 import pool from '../Pool';
-import {Group, Repository as RepositoryClass} from '../../Class';
+import {Group, Repository} from '../../Class';
 
-export async function insert(repository: Readonly<RepositoryClass>): Promise<void>
+export async function insert(repository: Readonly<Repository>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -23,7 +23,7 @@ export async function insert(repository: Readonly<RepositoryClass>): Promise<voi
     }
 }
 
-export async function deleteByUsernameAndName(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
+export async function deleteByUsernameAndName(repository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -43,7 +43,7 @@ export async function deleteByUsernameAndName(repository: Readonly<Pick<Reposito
     }
 }
 
-export async function update(repository: Readonly<Partial<RepositoryClass>>, primaryKey: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
+export async function update(repository: Readonly<Partial<Repository>>, primaryKey: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<void>
 {
     if (Object.keys(repository).length !== 0)
     {
@@ -67,7 +67,7 @@ export async function update(repository: Readonly<Partial<RepositoryClass>>, pri
     }
 }
 
-export async function selectByUsernameAndName(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<RepositoryClass | null>
+export async function selectByUsernameAndName(repository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<Repository | null>
 {
     const {username, name} = repository;
     const {rows, rowCount} = await pool.query(`SELECT *
@@ -80,21 +80,30 @@ export async function selectByUsernameAndName(repository: Readonly<Pick<Reposito
     }
     else
     {
-        return RepositoryClass.from(rows[0]);
+        return Repository.from(rows[0]);
     }
 }
 
-export async function select(repository: Readonly<Partial<RepositoryClass>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<RepositoryClass[]>
+export async function select(repository: Readonly<Partial<Repository>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Repository[]>
 {
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
     const parameterAmount = values.length;
     const {rows} = await pool.query(
         `SELECT * FROM repositories WHERE ${parameterizedStatement} OFFSET $${parameterAmount + 1} LIMIT $${parameterAmount + 2}`,
         [...values, offset, limit]);
-    return rows.map(row => RepositoryClass.from(row));
+    return rows.map(row => Repository.from(row));
 }
 
-export async function getGroupsByUsernameAndName(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<Group[]>
+export async function count(repository: Readonly<Partial<Repository>>): Promise<number>
+{
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
+    const {rows} = await pool.query(
+        `SELECT COUNT(*) AS "count" FROM repositories WHERE ${parameterizedStatement}`,
+        [...values]);
+    return Number.parseInt(rows[0]['count']);
+}
+
+export async function getGroupsByUsernameAndName(repository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<Group[]>
 {
     const {rows} = await pool.query(`SELECT *
                                      FROM repositories     r,
@@ -108,7 +117,7 @@ export async function getGroupsByUsernameAndName(repository: Readonly<Pick<Repos
     return rows.map(row => Group.from(row));
 }
 
-export async function getGroupByUsernameAndNameAndGroupId(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, group: Readonly<Pick<Group, 'id'>>): Promise<Group | null>
+export async function getGroupByUsernameAndNameAndGroupId(repository: Readonly<Pick<Repository, 'username' | 'name'>>, group: Readonly<Pick<Group, 'id'>>): Promise<Group | null>
 {
     const {rows, rowCount} = await pool.query(`SELECT *
                                                FROM repositories     r,
@@ -130,7 +139,7 @@ export async function getGroupByUsernameAndNameAndGroupId(repository: Readonly<P
     }
 }
 
-export async function addToGroups(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, groupIds: Readonly<Group['id'][]>): Promise<void>
+export async function addToGroups(repository: Readonly<Pick<Repository, 'username' | 'name'>>, groupIds: Readonly<Group['id'][]>): Promise<void>
 {
     const client = await pool.connect();
     const {username, name} = repository;
@@ -151,7 +160,7 @@ export async function addToGroups(repository: Readonly<Pick<RepositoryClass, 'us
     }
 }
 
-export async function removeFromGroups(repository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>, groupIds: Readonly<Group['id'][]>): Promise<void>
+export async function removeFromGroups(repository: Readonly<Pick<Repository, 'username' | 'name'>>, groupIds: Readonly<Group['id'][]>): Promise<void>
 {
     const client = await pool.connect();
     const {username, name} = repository;

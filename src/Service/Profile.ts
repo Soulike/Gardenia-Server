@@ -1,4 +1,4 @@
-import {Account, Profile as ProfileClass, ResponseBody, ServiceResponse} from '../Class';
+import {Account, Profile, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
 import {File} from 'formidable';
@@ -9,7 +9,7 @@ import fse from 'fs-extra';
 import os from 'os';
 import {SERVER} from '../CONFIG';
 
-export async function get(session: Readonly<Session>, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<ProfileClass | void>>
+export async function get(session: Readonly<Session>, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | void>>
 {
     if (typeof account === 'undefined' && typeof session.username !== 'string')
     {
@@ -23,18 +23,17 @@ export async function get(session: Readonly<Session>, account?: Readonly<Pick<Ac
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '用户不存在'));
     }
-    return new ServiceResponse<ProfileClass>(200, {},
-        new ResponseBody<ProfileClass>(true, '', profile));
+    return new ServiceResponse<Profile>(200, {},
+        new ResponseBody<Profile>(true, '', profile));
 }
 
-export async function set(profile: Readonly<Partial<Omit<ProfileClass, 'avatar' | 'username'>>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'username'>>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
     const {email} = profile;
     if (typeof email === 'string')
     {
-        const profileByEmail = await ProfileTable.selectByEmail(email);
-        if (profileByEmail !== null)
+        if (await ProfileTable.count({email}) !== 0)
         {
             return new ServiceResponse<void>(200, {},
                 new ResponseBody(false, '邮箱已被使用'));
@@ -48,6 +47,11 @@ export async function set(profile: Readonly<Partial<Omit<ProfileClass, 'avatar' 
 export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;
+    if (await ProfileTable.count({username}) === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '用户不存在'));
+    }
     /*
     * 1. 将头像转换到 webp 临时文件
     * 2. 更新数据库为新路径

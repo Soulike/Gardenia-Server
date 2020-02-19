@@ -9,8 +9,7 @@ import {
 
 export async function generateCode(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ code: string } | void>>
 {
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
-    if (repositoryInDatabase === null || repositoryInDatabase.username !== username)
+    if (await RepositoryTable.count(repository) === 0 || repository.username !== username)
     {
         return new ServiceResponse(404, {},
             new ResponseBody(false, '仓库不存在'));
@@ -138,7 +137,7 @@ export async function getCollaboratorsAmount(repository: Pick<Repository, 'usern
 export async function getCollaboratingRepositories(account: Pick<Account, 'username'>): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
 {
     const {username} = account;
-    if (!(await AccountTable.selectByUsername(username)) === null)
+    if (await AccountTable.count({username}) === 0)
     {
         return new ServiceResponse(404, {},
             new ResponseBody(true, '用户不存在'));
@@ -163,7 +162,7 @@ export async function getCollaboratingRepositories(account: Pick<Account, 'usern
 export async function getCollaboratingRepositoriesAmount(account: Pick<Account, 'username'>): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username} = account;
-    if (!(await AccountTable.selectByUsername(username)) === null)
+    if (await AccountTable.count({username}) === 0)
     {
         return new ServiceResponse(404, {},
             new ResponseBody(true, '用户不存在'));

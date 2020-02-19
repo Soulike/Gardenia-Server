@@ -15,7 +15,7 @@
     "test": "jest",
     "test-ci": "jest --forceExit -c jest.ci.config.js",
     "test-coverage": "jest --collectCoverage",
-    "ci": "yarn check-type && yarn test-ci"
+    "ci": "yarn check-type"
   },
   "husky": {
     "hooks": {
