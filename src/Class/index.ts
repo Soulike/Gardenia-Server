@@ -10,3 +10,5 @@ export * from './FileDiff';
 export * from './BlockDiff';
 export * from './Branch';
 export * from './RepositoryRepository';
+export * from './PullRequest';
+export * from './PullRequestComment';
