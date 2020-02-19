@@ -183,7 +183,7 @@ export async function removeFromGroups(repository: Readonly<Pick<Repository, 'us
     }
 }
 
-export async function fork(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepository: Readonly<Pick<RepositoryClass, 'username' | 'name'>>): Promise<void>
+export async function fork(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
     try

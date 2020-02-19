@@ -484,7 +484,7 @@ export async function forkAmount(repository: Pick<Repository, 'username' | 'name
         new ResponseBody(true, '', {amount}));
 }
 
-export async function forkRepositories(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repositories: RepositoryClass[] } | void>>
+export async function forkRepositories(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -512,7 +512,7 @@ export async function forkRepositories(repository: Pick<Repository, 'username' |
         new ResponseBody(true, '', {repositories}));
 }
 
-export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repository: Pick<RepositoryClass, 'username' | 'name'> | null } | void>>
+export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repository: Pick<Repository, 'username' | 'name'> | null } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
