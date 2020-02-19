@@ -23,27 +23,32 @@ export async function insert(star: Readonly<AccountRepository>): Promise<void>
     }
 }
 
-export async function del(star: Readonly<AccountRepository>): Promise<void>
+export async function del(star: Readonly<Partial<AccountRepository>>): Promise<void>
 {
-    const client = await pool.connect();
-    try
+    if (Object.keys(star).length !== 0)
     {
-        const {username, repository_username, repository_name} = star;
-        await client.query(`DELETE
+        const client = await pool.connect();
+        try
+        {
+            const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(star, 'AND');
+            await client.query(`DELETE
                             FROM stars
-                            WHERE username = $1
-                              AND repository_username = $2
-                              AND repository_name = $3`,
-            [username, repository_username, repository_name]);
-    }
-    finally
-    {
-        client.release();
+                            WHERE ${parameterizedStatement}`,
+                values);
+        }
+        finally
+        {
+            client.release();
+        }
     }
 }
 
 export async function select(star: Readonly<Partial<AccountRepository>>): Promise<AccountRepository[]>
 {
+    if (Object.keys(star).length === 0)
+    {
+        return [];
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(star, 'AND');
     const {rows} = await pool.query(
         `SELECT * FROM stars WHERE ${parameterizedStatement}`,
@@ -53,9 +58,13 @@ export async function select(star: Readonly<Partial<AccountRepository>>): Promis
 
 export async function count(star: Readonly<Partial<AccountRepository>>): Promise<number>
 {
+    if (Object.keys(star).length === 0)
+    {
+        return 0;
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(star, 'AND');
     const {rows} = await pool.query(
-        `SELECT COUNT(*) as count FROM stars WHERE ${parameterizedStatement}`,
+        `SELECT COUNT(*) AS count FROM stars WHERE ${parameterizedStatement}`,
         values);
     return Number.parseInt(rows[0]['count']);
 }

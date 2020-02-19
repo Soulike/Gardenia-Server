@@ -90,6 +90,10 @@ export async function selectById(id: Group['id']): Promise<Group | null>
 
 export async function count(group: Readonly<Partial<Group>>): Promise<number>
 {
+    if (Object.keys(group).length === 0)
+    {
+        return 0;
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(group, 'AND');
     const {rows} = await pool.query(
         `SELECT COUNT(*) AS "count" FROM groups WHERE ${parameterizedStatement}`,

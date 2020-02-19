@@ -86,6 +86,10 @@ export async function deleteByUsername(username: Account['username']): Promise<v
 
 export async function count(account: Readonly<Partial<Account>>): Promise<number>
 {
+    if (Object.keys(account).length === 0)
+    {
+        return 0;
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(account, 'AND');
     const {rows} = await pool.query(
         `SELECT COUNT(*) as "count" FROM accounts WHERE ${parameterizedStatement}`,

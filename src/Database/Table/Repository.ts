@@ -86,6 +86,10 @@ export async function selectByUsernameAndName(repository: Readonly<Pick<Reposito
 
 export async function select(repository: Readonly<Partial<Repository>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Repository[]>
 {
+    if (Object.keys(repository).length === 0)
+    {
+        return [];
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
     const parameterAmount = values.length;
     const {rows} = await pool.query(
@@ -96,6 +100,10 @@ export async function select(repository: Readonly<Partial<Repository>>, offset: 
 
 export async function count(repository: Readonly<Partial<Repository>>): Promise<number>
 {
+    if (Object.keys(repository).length === 0)
+    {
+        return 0;
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
     const {rows} = await pool.query(
         `SELECT COUNT(*) AS "count" FROM repositories WHERE ${parameterizedStatement}`,
