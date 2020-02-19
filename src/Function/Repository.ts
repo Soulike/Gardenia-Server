@@ -1,9 +1,9 @@
-import {Account, AccountRepository, Repository as RepositoryClass} from '../Class';
+import {Account, AccountRepository, Repository} from '../Class';
 import * as Authentication from './Authentication';
 import {Account as AccountTable, Collaborate as CollaborateTable} from '../Database';
 import {redis} from '../Singleton';
 
-export async function repositoryIsAvailableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): Promise<boolean>
+export async function repositoryIsAvailableToTheViewer(repository: Readonly<Repository | null>, viewer: Readonly<{ username?: Account['username'] }>): Promise<boolean>
 {
     if (repository === null)
     {
@@ -37,7 +37,7 @@ export async function repositoryIsAvailableToTheViewer(repository: Readonly<Repo
     }
 }
 
-export async function repositoryIsModifiableToTheViewer(repository: Readonly<RepositoryClass | null>, viewer: Readonly<{ username?: Account['username'] }>): Promise<boolean>
+export async function repositoryIsModifiableToTheViewer(repository: Readonly<Repository | null>, viewer: Readonly<{ username?: Account['username'] }>): Promise<boolean>
 {
     if (repository === null)
     {
@@ -63,7 +63,7 @@ export async function repositoryIsModifiableToTheViewer(repository: Readonly<Rep
 /**
  * @description 通过 HTTP 请求的 headers 判断此次请求是否可以访问指定仓库
  * */
-export async function repositoryIsAvailableToTheRequest(repository: Readonly<RepositoryClass>, headers: Readonly<any>): Promise<boolean>
+export async function repositoryIsAvailableToTheRequest(repository: Readonly<Repository>, headers: Readonly<any>): Promise<boolean>
 {
     if (repository.isPublic)    // 公有仓库任何人都能查看
     {
@@ -84,7 +84,7 @@ export async function repositoryIsAvailableToTheRequest(repository: Readonly<Rep
 /**
  * @description 通过 HTTP 请求的 headers 判断此次请求是否可以修改指定仓库（push 之类）
  * */
-export async function repositoryIsModifiableToTheRequest(repository: Readonly<RepositoryClass>, headers: Readonly<any>): Promise<boolean>
+export async function repositoryIsModifiableToTheRequest(repository: Readonly<Repository>, headers: Readonly<any>): Promise<boolean>
 {
     const accountFromHeader = Authentication.getAccountFromAuthenticationHeader(headers);
     if (accountFromHeader === null) // 没有认证信息
@@ -108,13 +108,13 @@ export function generateRefsServiceResponse(service: string, RPCCallOutput: stri
     return `${length.toString(16).padStart(4, '0')}${serverAdvert}0000${RPCCallOutput}`;
 }
 
-export function generateCollaborateCode(repository: Pick<RepositoryClass, 'username' | 'name'>): string
+export function generateCollaborateCode(repository: Pick<Repository, 'username' | 'name'>): string
 {
     const {username, name} = repository;
     return `${username}_${name}_${Date.now()}`;
 }
 
-export async function setCollaborateCode(code: string, repository: Pick<RepositoryClass, 'username' | 'name'>): Promise<void>
+export async function setCollaborateCode(code: string, repository: Pick<Repository, 'username' | 'name'>): Promise<void>
 {
     const result = await redis.set(code, JSON.stringify(repository), 'EX', 10 * 60);
     if (result !== 'OK')
@@ -123,7 +123,7 @@ export async function setCollaborateCode(code: string, repository: Pick<Reposito
     }
 }
 
-export async function getCollaborateCodeRepository(code: string): Promise<Pick<RepositoryClass, 'username' | 'name'> | null>
+export async function getCollaborateCodeRepository(code: string): Promise<Pick<Repository, 'username' | 'name'> | null>
 {
     const result = await redis.get(code);
     if (result === null)
@@ -131,7 +131,7 @@ export async function getCollaborateCodeRepository(code: string): Promise<Pick<R
         return null;
     }
     const {username, name} = JSON.parse(result);
-    if (!RepositoryClass.validate(new RepositoryClass(username, name, '', true)))
+    if (!Repository.validate(new Repository(username, name, '', true)))
     {
         return null;
     }

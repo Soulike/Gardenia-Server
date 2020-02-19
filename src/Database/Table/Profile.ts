@@ -4,9 +4,9 @@ import {
     generateParameterizedStatementAndValuesArray,
 } from '../Function';
 import pool from '../Pool';
-import {Profile as ProfileClass} from '../../Class';
+import {Profile} from '../../Class';
 
-export async function update(profile: Readonly<Partial<ProfileClass>>, primaryKey: Readonly<Pick<ProfileClass, 'username'>>): Promise<void>
+export async function update(profile: Readonly<Partial<Profile>>, primaryKey: Readonly<Pick<Profile, 'username'>>): Promise<void>
 {
     if (Object.keys(profile).length !== 0)
     {
@@ -30,7 +30,7 @@ export async function update(profile: Readonly<Partial<ProfileClass>>, primaryKe
     }
 }
 
-export async function selectByUsername(username: ProfileClass['username']): Promise<ProfileClass | null>
+export async function selectByUsername(username: Profile['username']): Promise<Profile | null>
 {
     const {rows, rowCount} = await pool.query(
             `SELECT *
@@ -43,11 +43,11 @@ export async function selectByUsername(username: ProfileClass['username']): Prom
     }
     else
     {
-        return ProfileClass.from(rows[0]);
+        return Profile.from(rows[0]);
     }
 }
 
-export async function selectByEmail(email: ProfileClass['email']): Promise<ProfileClass | null>
+export async function selectByEmail(email: Profile['email']): Promise<Profile | null>
 {
     const {rows, rowCount} = await pool.query(
             `SELECT *
@@ -60,11 +60,11 @@ export async function selectByEmail(email: ProfileClass['email']): Promise<Profi
     }
     else
     {
-        return ProfileClass.from(rows[0]);
+        return Profile.from(rows[0]);
     }
 }
 
-export async function deleteByUsername(username: ProfileClass['username']): Promise<void>
+export async function deleteByUsername(username: Profile['username']): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -84,7 +84,7 @@ export async function deleteByUsername(username: ProfileClass['username']): Prom
     }
 }
 
-export async function insert(profile: Readonly<ProfileClass>): Promise<void>
+export async function insert(profile: Readonly<Profile>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -99,4 +99,13 @@ export async function insert(profile: Readonly<ProfileClass>): Promise<void>
     {
         client.release();
     }
+}
+
+export async function count(profile: Readonly<Partial<Profile>>): Promise<number>
+{
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(profile, 'AND');
+    const {rows} = await pool.query(
+        `SELECT COUNT(*) AS "count" FROM profiles WHERE ${parameterizedStatement}`,
+        [...values]);
+    return Number.parseInt(rows[0]['count']);
 }

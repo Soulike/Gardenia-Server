@@ -1,4 +1,4 @@
-import {Account as AccountClass, Group, Profile as ProfileClass} from '../../Class';
+import {Account, Group, Profile} from '../../Class';
 import pool from '../Pool';
 import {
     executeTransaction,
@@ -6,7 +6,7 @@ import {
     generateParameterizedStatementAndValuesArray,
 } from '../Function';
 
-export async function selectByUsername(username: AccountClass['username']): Promise<AccountClass | null>
+export async function selectByUsername(username: Account['username']): Promise<Account | null>
 {
     const {rows, rowCount} = await pool.query(
             `SELECT *
@@ -19,11 +19,11 @@ export async function selectByUsername(username: AccountClass['username']): Prom
     }
     else
     {
-        return AccountClass.from(rows[0]);
+        return Account.from(rows[0]);
     }
 }
 
-export async function update(account: Readonly<Partial<AccountClass>>, primaryKey: Readonly<Pick<AccountClass, 'username'>>): Promise<void>
+export async function update(account: Readonly<Partial<Account>>, primaryKey: Readonly<Pick<Account, 'username'>>): Promise<void>
 {
     if (Object.keys(account).length !== 0)
     {
@@ -47,7 +47,7 @@ export async function update(account: Readonly<Partial<AccountClass>>, primaryKe
     }
 }
 
-export async function insert(account: Readonly<AccountClass>): Promise<void>
+export async function insert(account: Readonly<Account>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -64,7 +64,7 @@ export async function insert(account: Readonly<AccountClass>): Promise<void>
     }
 }
 
-export async function deleteByUsername(username: AccountClass['username']): Promise<void>
+export async function deleteByUsername(username: Account['username']): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -84,10 +84,19 @@ export async function deleteByUsername(username: AccountClass['username']): Prom
     }
 }
 
+export async function count(account: Readonly<Partial<Account>>): Promise<number>
+{
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(account, 'AND');
+    const {rows} = await pool.query(
+        `SELECT COUNT(*) as "count" FROM accounts WHERE ${parameterizedStatement}`,
+        [...values]);
+    return Number.parseInt(rows[0]['count']);
+}
+
 /**
  * @description 为注册操作编写的接口，可以在一个事务内完成账号和账号资料的创建
  * */
-export async function create(account: Readonly<AccountClass>, profile: Readonly<ProfileClass>): Promise<void>
+export async function create(account: Readonly<Account>, profile: Readonly<Profile>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -112,7 +121,7 @@ export async function create(account: Readonly<AccountClass>, profile: Readonly<
     }
 }
 
-export async function getGroupsByUsername(username: AccountClass['username']): Promise<Group[]>
+export async function getGroupsByUsername(username: Account['username']): Promise<Group[]>
 {
     const {rows} = await pool.query(`SELECT *
                                      FROM accounts      a,
@@ -125,7 +134,7 @@ export async function getGroupsByUsername(username: AccountClass['username']): P
     return rows.map(row => Group.from(row));
 }
 
-export async function getAdministratingGroupsByUsername(username: AccountClass['username']): Promise<Group[]>
+export async function getAdministratingGroupsByUsername(username: Account['username']): Promise<Group[]>
 {
     const {rows} = await pool.query(`SELECT *
                                      FROM accounts    a,
@@ -138,7 +147,7 @@ export async function getAdministratingGroupsByUsername(username: AccountClass['
     return rows.map(row => Group.from(row));
 }
 
-export async function getGroupByUsernameAndGroupName(username: AccountClass['username'], groupName: Group['name']): Promise<Group | null>
+export async function getGroupByUsernameAndGroupName(username: Account['username'], groupName: Group['name']): Promise<Group | null>
 {
     const {rows, rowCount} = await pool.query(`SELECT *
                                                FROM accounts      a,
@@ -159,7 +168,7 @@ export async function getGroupByUsernameAndGroupName(username: AccountClass['use
     }
 }
 
-export async function getAdministratingGroupByUsernameAndGroupName(username: AccountClass['username'], groupName: Group['name']): Promise<Group | null>
+export async function getAdministratingGroupByUsernameAndGroupName(username: Account['username'], groupName: Group['name']): Promise<Group | null>
 {
     const {rows, rowCount} = await pool.query(`SELECT *
                                                FROM accounts    a,
@@ -180,7 +189,7 @@ export async function getAdministratingGroupByUsernameAndGroupName(username: Acc
     }
 }
 
-export async function getAdministratingGroupByUsernameAndGroupId(username: AccountClass['username'], groupId: Group['id']): Promise<Group | null>
+export async function getAdministratingGroupByUsernameAndGroupId(username: Account['username'], groupId: Group['id']): Promise<Group | null>
 {
     const {rows, rowCount} = await pool.query(`SELECT *
                                                FROM accounts    a,
@@ -201,7 +210,7 @@ export async function getAdministratingGroupByUsernameAndGroupId(username: Accou
     }
 }
 
-export async function addToGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+export async function addToGroups(username: Account['username'], groupIds: Group['id'][]): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -220,7 +229,7 @@ export async function addToGroups(username: AccountClass['username'], groupIds: 
     }
 }
 
-export async function removeFromGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+export async function removeFromGroups(username: Account['username'], groupIds: Group['id'][]): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -240,7 +249,7 @@ export async function removeFromGroups(username: AccountClass['username'], group
     }
 }
 
-export async function addAdministratingGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+export async function addAdministratingGroups(username: Account['username'], groupIds: Group['id'][]): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -259,7 +268,7 @@ export async function addAdministratingGroups(username: AccountClass['username']
     }
 }
 
-export async function removeAdministratingGroups(username: AccountClass['username'], groupIds: Group['id'][]): Promise<void>
+export async function removeAdministratingGroups(username: Account['username'], groupIds: Group['id'][]): Promise<void>
 {
     const client = await pool.connect();
     try

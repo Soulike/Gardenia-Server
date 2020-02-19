@@ -19,8 +19,7 @@ export async function isGroupMember(group: Readonly<Pick<Group, 'id'>>, username
 export async function groupExists(group: Readonly<Pick<Group, 'id'>>): Promise<boolean>
 {
     const {id} = group;
-    const groupInDatabase = await GroupTable.selectById(id);
-    return groupInDatabase !== null;
+    return await GroupTable.count({id}) !== 0;
 }
 
 export async function groupNameExists(account: Pick<Account, 'username'>, group: Pick<Group, 'name'>): Promise<boolean>

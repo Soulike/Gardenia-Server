@@ -88,6 +88,15 @@ export async function selectById(id: Group['id']): Promise<Group | null>
     }
 }
 
+export async function count(group: Readonly<Partial<Group>>): Promise<number>
+{
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(group, 'AND');
+    const {rows} = await pool.query(
+        `SELECT COUNT(*) AS "count" FROM groups WHERE ${parameterizedStatement}`,
+        [...values]);
+    return Number.parseInt(rows[0]['count']);
+}
+
 export async function getAccountsById(id: Group['id']): Promise<Account[]>
 {
     const {rows} = await pool.query(

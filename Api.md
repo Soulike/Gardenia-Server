@@ -309,7 +309,8 @@ export enum ObjectType
 - 功能：上传头像
 - 方法：POST
 - 请求体：`FormData`，头像数据保存在 `avatar` 键中
-- 响应消息：无
+- 响应消息：
+  - 用户不存在
 - 其他说明：
   - 修改 Session 对应的账号头像
 
