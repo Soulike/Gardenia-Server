@@ -4,25 +4,28 @@ export class PullRequestComment
     public readonly username: string;
     public readonly belongsTo: number;
     public readonly content: string;
-    public readonly createTime: number;
+    public readonly creationTime: number;
+    public readonly modificationTime: number;
 
-    constructor(id: number | undefined, username: string, belongsTo: number, content: string, createTime: number)
+    constructor(id: number | undefined, username: string, belongsTo: number, content: string, creationTime: number, modificationTime: number)
     {
         this.id = id;
         this.username = username;
         this.belongsTo = belongsTo;
         this.content = content;
-        this.createTime = createTime;
+        this.creationTime = creationTime;
+        this.modificationTime = modificationTime;
     }
 
     public static validate(pullRequestComment: Readonly<Record<keyof PullRequestComment, any>>): boolean
     {
-        const {id, username, belongsTo, content, createTime} = pullRequestComment;
+        const {id, username, belongsTo, content, creationTime, modificationTime} = pullRequestComment;
         return (typeof id === 'number' || id === undefined)
             && typeof username === 'string'
             && typeof belongsTo === 'number'
             && typeof content === 'string'
-            && typeof createTime === 'number';
+            && typeof creationTime === 'number'
+            && typeof modificationTime === 'number';
     }
 
     public static from(pullRequestComment: Readonly<Record<keyof PullRequestComment, any>>): PullRequestComment
@@ -31,7 +34,7 @@ export class PullRequestComment
         {
             throw new TypeError();
         }
-        const {id, username, belongsTo, content, createTime} = pullRequestComment;
-        return new PullRequestComment(id, username, belongsTo, content, createTime);
+        const {id, username, belongsTo, content, creationTime, modificationTime} = pullRequestComment;
+        return new PullRequestComment(id, username, belongsTo, content, creationTime, modificationTime);
     }
 }

@@ -10,7 +10,8 @@ export class PullRequest
     public readonly targetRepositoryUsername: string;
     public readonly targetRepositoryName: string;
     public readonly targetRepositoryBranch: string;
-    public readonly createTime: number;
+    public readonly creationTime: number;
+    public readonly modificationTime: number;
     public readonly title: string;
     public readonly content: string;
     public readonly status: PULL_REQUEST_STATUS;
@@ -18,7 +19,7 @@ export class PullRequest
     constructor(id: number | undefined, no: number,
                 sourceRepositoryUsername: string, sourceRepositoryName: string, sourceRepositoryBranch: string,
                 targetRepositoryUsername: string, targetRepositoryName: string, targetRepositoryBranch: string,
-                createTime: number, title: string, content: string, status: PULL_REQUEST_STATUS)
+                creationTime: number, modificationTime: number, title: string, content: string, status: PULL_REQUEST_STATUS)
     {
         this.id = id;
         this.no = no;
@@ -28,7 +29,8 @@ export class PullRequest
         this.targetRepositoryUsername = targetRepositoryUsername;
         this.targetRepositoryName = targetRepositoryName;
         this.targetRepositoryBranch = targetRepositoryBranch;
-        this.createTime = createTime;
+        this.creationTime = creationTime;
+        this.modificationTime = modificationTime;
         this.title = title;
         this.content = content;
         this.status = status;
@@ -40,7 +42,7 @@ export class PullRequest
             id, no,
             sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
             targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
-            createTime, title, content, status,
+            creationTime, modificationTime, title, content, status,
         } = pullRequest;
         return (typeof id === 'number' || id === undefined)
             && typeof no === 'number'
@@ -50,7 +52,8 @@ export class PullRequest
             && typeof targetRepositoryUsername === 'string'
             && typeof targetRepositoryName === 'string'
             && typeof targetRepositoryBranch === 'string'
-            && typeof createTime === 'number'
+            && typeof creationTime === 'number'
+            && typeof modificationTime === 'number'
             && typeof title === 'string'
             && typeof content === 'string'
             && Object.values(PULL_REQUEST_STATUS).includes(status);
@@ -66,11 +69,11 @@ export class PullRequest
             id, no,
             sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
             targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
-            createTime, title, content, status,
+            creationTime, modificationTime, title, content, status,
         } = pullRequest;
         return new PullRequest(id, no,
             sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
             targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
-            createTime, title, content, status);
+            creationTime, modificationTime, title, content, status);
     }
 }

@@ -95,7 +95,8 @@ CREATE TABLE IF NOT EXISTS "pull-requests"
     "targetRepositoryUsername" VARCHAR(255),
     "targetRepositoryName"     VARCHAR(255),
     "targetRepositoryBranch"   VARCHAR(255),
-    "createTime"               TIMESTAMP WITH TIME ZONE NOT NULL,
+    "creationTime"             TIMESTAMP WITH TIME ZONE NOT NULL,
+    "modificationTime"         TIMESTAMP WITH TIME ZONE NOT NULL,
     "title"                    VARCHAR(255)             NOT NULL,
     "content"                  TEXT                     NOT NULL,
     PRIMARY KEY ("id"),
@@ -109,11 +110,12 @@ CREATE TABLE IF NOT EXISTS "pull-requests"
 
 CREATE TABLE IF NOT EXISTS "pull-request-comments"
 (
-    "id"         BIGSERIAL,
-    "username"   VARCHAR(255),
-    "belongsTo"  BIGINT,
-    "content"    TEXT                     NOT NULL,
-    "createTime" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "id"               BIGSERIAL,
+    "username"         VARCHAR(255),
+    "belongsTo"        BIGINT,
+    "content"          TEXT                     NOT NULL,
+    "creationTime"     TIMESTAMP WITH TIME ZONE NOT NULL,
+    "modificationTime" TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY ("id"),
     FOREIGN KEY ("belongsTo") REFERENCES "pull-requests" ("id"),
     FOREIGN KEY ("username") REFERENCES "accounts" ("username")
