@@ -23,27 +23,31 @@ export async function insert(collaborate: Readonly<AccountRepository>): Promise<
     }
 }
 
-export async function del(collaborate: Readonly<AccountRepository>): Promise<void>
+export async function del(collaborate: Readonly<Partial<AccountRepository>>): Promise<void>
 {
-    const client = await pool.connect();
-    try
+    if (Object.keys(collaborate).length !== 0)
     {
-        const {username, repository_username, repository_name} = collaborate;
-        await client.query(`DELETE
+        const client = await pool.connect();
+        try
+        {
+            const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(collaborate, 'AND');
+            await client.query(`DELETE
                             FROM collaborates
-                            WHERE username = $1
-                              AND repository_username = $2
-                              AND repository_name = $3`,
-            [username, repository_username, repository_name]);
-    }
-    finally
-    {
-        client.release();
+                            WHERE ${parameterizedStatement}`, values);
+        }
+        finally
+        {
+            client.release();
+        }
     }
 }
 
 export async function select(collaborate: Readonly<Partial<AccountRepository>>): Promise<AccountRepository[]>
 {
+    if (Object.keys(collaborate).length === 0)
+    {
+        return [];
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(collaborate, 'AND');
     const {rows} = await pool.query(
         `SELECT * FROM collaborates WHERE ${parameterizedStatement}`,
@@ -53,6 +57,10 @@ export async function select(collaborate: Readonly<Partial<AccountRepository>>):
 
 export async function count(collaborate: Readonly<Partial<AccountRepository>>): Promise<number>
 {
+    if (Object.keys(collaborate).length === 0)
+    {
+        return 0;
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(collaborate, 'AND');
     const {rows} = await pool.query(
         `SELECT COUNT(*) AS count FROM collaborates WHERE ${parameterizedStatement}`,

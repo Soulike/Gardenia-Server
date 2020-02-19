@@ -103,6 +103,10 @@ export async function insert(profile: Readonly<Profile>): Promise<void>
 
 export async function count(profile: Readonly<Partial<Profile>>): Promise<number>
 {
+    if (Object.keys(profile).length === 0)
+    {
+        return 0;
+    }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(profile, 'AND');
     const {rows} = await pool.query(
         `SELECT COUNT(*) AS "count" FROM profiles WHERE ${parameterizedStatement}`,
