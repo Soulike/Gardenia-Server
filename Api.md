@@ -1438,10 +1438,11 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Omit<PullRequest, 'id' | 'no' | 'creationTime' | 'modificationTime' | 'status'>`
 - 响应体：无
 - 响应消息：
-  - 源仓库不存在
-  - 目标仓库不存在
-- 其他说明：
-  - 只有源仓库的所有者可创建 Pull Request
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 分支 `${branch}` 不存在
+  - `${username}/${name}` 不是 `${username}/${name}` 的 fork
+  - 只有源仓库的创建者才可创建 Pull Request
+- 其他说明：无
 
 #### `/update`
 
@@ -1457,8 +1458,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - Pull Request 不存在
-- 其他说明：
-  - 只有源仓库的所有者可修改 Pull Request
+  - 只有 Pull Request 的创建者可进行修改
+- 其他说明：无
 
 #### `/close`
 
@@ -1468,8 +1469,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - Pull Request 不存在
-- 其他说明：
   - 只有目标仓库的合作者可关闭 Pull Request
+- 其他说明：无
 
 #### `/isMergeable`
 
@@ -1484,6 +1485,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - Pull Request 不存在
+  - `${username}/${name}` 分支 `${branch}` 不存在
 - 其他说明：无
 
 #### `/merge`
@@ -1495,6 +1497,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - Pull Request 不存在
   - Pull Request 存在冲突，不能自动合并
+  - `${username}/${name}` 分支 `${branch}` 不存在
 - 其他说明：无
   - 只有目标仓库的合作者可合并 Pull Request
 

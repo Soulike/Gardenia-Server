@@ -88,17 +88,17 @@ CREATE TABLE IF NOT EXISTS "forks"
 CREATE TABLE IF NOT EXISTS "pull-requests"
 (
     "id"                       BIGSERIAL, /*唯一的标志 ID*/
-    "no"                       BIGINT                   NOT NULL, /*在目标仓库下的编号*/
+    "no"                       BIGINT       NOT NULL, /*在目标仓库下的编号*/
     "sourceRepositoryUsername" VARCHAR(255),
     "sourceRepositoryName"     VARCHAR(255),
     "sourceRepositoryBranch"   VARCHAR(255),
     "targetRepositoryUsername" VARCHAR(255),
     "targetRepositoryName"     VARCHAR(255),
     "targetRepositoryBranch"   VARCHAR(255),
-    "creationTime"             TIMESTAMP WITH TIME ZONE NOT NULL,
-    "modificationTime"         TIMESTAMP WITH TIME ZONE NOT NULL,
-    "title"                    VARCHAR(255)             NOT NULL,
-    "content"                  TEXT                     NOT NULL,
+    "creationTime"             BIGINT       NOT NULL,
+    "modificationTime"         BIGINT       NOT NULL,
+    "title"                    VARCHAR(255) NOT NULL,
+    "content"                  TEXT         NOT NULL,
     PRIMARY KEY ("id"),
     FOREIGN KEY ("sourceRepositoryUsername", "sourceRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ("targetRepositoryUsername", "targetRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
@@ -113,9 +113,9 @@ CREATE TABLE IF NOT EXISTS "pull-request-comments"
     "id"               BIGSERIAL,
     "username"         VARCHAR(255),
     "belongsTo"        BIGINT,
-    "content"          TEXT                     NOT NULL,
-    "creationTime"     TIMESTAMP WITH TIME ZONE NOT NULL,
-    "modificationTime" TIMESTAMP WITH TIME ZONE NOT NULL,
+    "content"          TEXT   NOT NULL,
+    "creationTime"     BIGINT NOT NULL,
+    "modificationTime" BIGINT NOT NULL,
     PRIMARY KEY ("id"),
     FOREIGN KEY ("belongsTo") REFERENCES "pull-requests" ("id"),
     FOREIGN KEY ("username") REFERENCES "accounts" ("username")

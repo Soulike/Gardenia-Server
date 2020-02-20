@@ -7,6 +7,7 @@ import {Promisify} from './index';
 import {Readable} from 'stream';
 import {spawn} from 'child_process';
 import {splitToLines} from './String';
+import fse from 'fs-extra';
 
 export function putMasterBranchToFront(branches: Readonly<string[]>, masterBranchName: string): string[]
 {
@@ -553,9 +554,78 @@ export async function getBranches(repositoryPath: string): Promise<Branch[]>
 }
 
 /**
+ * @description 获取所有分支名
+ * */
+export async function getBranchNames(repositoryPath: string): Promise<string[]>
+{
+    const branchOutput = await execPromise(`git branch`, {cwd: repositoryPath});
+    const branchLines = splitToLines(branchOutput);
+    return branchLines.map(line => line.slice(2));
+}
+
+/**
+ * @description 检查是否仓库有指定 branch
+ * */
+export async function hasBranch(repositoryPath: string, branchName: string): Promise<boolean>
+{
+    const branches = await getBranchNames(repositoryPath);
+    return branches.includes(branchName);
+}
+
+/**
  * @description 克隆裸仓库
  * */
 export async function cloneBareRepository(sourceRepositoryPath: string, targetRepositoryPath: string): Promise<void>
 {
     await execPromise(`git clone --bare ${sourceRepositoryPath} ${targetRepositoryPath}`);
+}
+
+/**
+ * @description 检测两个仓库是不是可以自动合并
+ * */
+export async function isMergeable(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<boolean>
+{
+    const tempRepositoryPath = await fse.promises.mkdtemp('repository_');
+    const tempSourceRemoteName = `remote_${Date.now()}`;
+    await execPromise(`git clone -b ${targetRepositoryBranch} ${targetRepositoryPath} ${tempRepositoryPath}`);
+    await execPromise(`git remote add -f ${tempSourceRemoteName} ${sourceRepositoryPath}`,
+        {cwd: tempRepositoryPath});
+    await execPromise(`git remote update`, {cwd: tempRepositoryPath});
+    try
+    {
+        await execPromise(`git merge --no-commit --no-ff ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+            {cwd: tempRepositoryPath});
+        return true;
+    }
+    catch (e)   // 命令会在不能自动合并时抛出错误
+    {
+        return false;
+    }
+    finally
+    {
+        await fse.remove(tempRepositoryPath);
+    }
+}
+
+/**
+ * @description 合并仓库
+ * */
+export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<void>
+{
+    const tempRepositoryPath = await fse.promises.mkdtemp('repository_');
+    const tempSourceRemoteName = `remote_${Date.now()}`;
+    try
+    {
+        await execPromise(`git clone -b ${targetRepositoryBranch} ${targetRepositoryPath} ${tempRepositoryPath}`);
+        await execPromise(`git remote add -f ${tempSourceRemoteName} ${sourceRepositoryPath}`,
+            {cwd: tempRepositoryPath});
+        await execPromise(`git remote update`, {cwd: tempRepositoryPath});
+        await execPromise(`git merge ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+            {cwd: tempRepositoryPath});
+        await execPromise(`git push`, {cwd: tempRepositoryPath});
+    }
+    finally
+    {
+        await fse.remove(tempRepositoryPath);
+    }
 }
