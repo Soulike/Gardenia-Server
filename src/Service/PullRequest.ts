@@ -1,8 +1,17 @@
-import {Account, PullRequest, Repository, RepositoryRepository, ResponseBody, ServiceResponse} from '../Class';
+import {
+    Account,
+    PullRequest,
+    PullRequestComment,
+    Repository,
+    RepositoryRepository,
+    ResponseBody,
+    ServiceResponse,
+} from '../Class';
 import {
     Collaborate as CollaborateTable,
     Fork as ForkTable,
     PullRequest as PullRequestTable,
+    PullRequestComment as PullRequestCommentTable,
     Repository as RepositoryTable,
 } from '../Database';
 import {Git, Repository as RepositoryFunction} from '../Function';
@@ -328,4 +337,96 @@ export async function getByRepository(repository: Pick<Repository, 'username' | 
     });
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {pullRequests}));
+}
+
+export async function addComment(pullRequestComment: Readonly<Omit<PullRequestComment, 'id' | 'username' | 'creationTime' | 'modificationTime'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+{
+    // 查看 PR 是否存在
+    const {belongsTo, content} = pullRequestComment;
+    const pullRequests = await PullRequestTable.select({id: belongsTo});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看提交者是否有权限
+    const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 添加评论
+    await PullRequestCommentTable.insertAndReturnId(new PullRequestComment(
+        undefined, usernameInSession,
+        belongsTo, content, Date.now(), Date.now(),
+    ));
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true));
+}
+
+export async function updateComment(primaryKey: Readonly<Pick<PullRequestComment, 'id'>>, pullRequestComment: Readonly<Pick<PullRequestComment, 'content'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+{
+    // 查看评论是否存在
+    const {id} = primaryKey;
+    const pullRequestComments = await PullRequestCommentTable.select({id});
+    if (pullRequestComments.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '评论不存在'));
+    }
+    // 查看是否是本人修改
+    const {username} = pullRequestComments[0];
+    if (username !== usernameInSession)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '仅本人可编辑评论'));
+    }
+    // 进行修改
+    const {content} = pullRequestComment;
+    await PullRequestCommentTable.update({
+        content,
+        modificationTime: Date.now(),
+    }, {id});
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true));
+}
+
+export async function getComments(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看访问权限
+    const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 获取所有评论
+    const pullRequestComments = await PullRequestCommentTable.select({
+        belongsTo: id,
+    });
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {comments: pullRequestComments}));
 }

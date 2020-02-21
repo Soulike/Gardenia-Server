@@ -1536,7 +1536,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：对 Pull Request 添加评论
 - 方法：POST
-- 请求体：`Omit<PullRequestComment, 'id' | 'creationTime' | 'modificationTime'>`
+- 请求体：`Omit<PullRequestComment, 'id' | 'username' | 'creationTime' | 'modificationTime'>`
 - 响应体：无
 - 响应消息：
   - Pull Request 不存在
@@ -1544,18 +1544,19 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 #### `/updateComment`
 
-- 功能：对 Pull Request 添加评论
+- 功能：修改评论
 - 方法：POST
 - 请求体：
 ```ts
 {
     primaryKey: Pick<PullRequestComment, 'id'>,
-    pullRequest: Pick<PullRequestComment, 'content'>,
+    pullRequestComment: Pick<PullRequestComment, 'content'>,
 }
 ```
 - 响应体：无
 - 响应消息：
   - Pull Request 不存在
+  - 仅本人可编辑评论
 - 其他说明：无
 
 #### `/getComments`
