@@ -1511,7 +1511,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - Pull Request 不存在
 - 其他说明：无
 
-#### `/gets`
+#### `/getByRepository`
 
 - 功能：获取一个仓库的 Pull Request
 - 方法：GET
@@ -1519,7 +1519,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     repository: `Pick<Repository, 'username' | 'name'>`,
-    open: boolean,  // 是 true 就只获取 open 的，是 false 就只获取 closed 的
+    status: PULL_REQUEST_STATUS | undefined, // undefined 是没有筛选条件
 }
 ```
 - 响应体：

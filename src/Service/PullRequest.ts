@@ -1,11 +1,11 @@
-import {Account, PullRequest, RepositoryRepository, ResponseBody, ServiceResponse} from '../Class';
+import {Account, PullRequest, Repository, RepositoryRepository, ResponseBody, ServiceResponse} from '../Class';
 import {
     Collaborate as CollaborateTable,
     Fork as ForkTable,
     PullRequest as PullRequestTable,
     Repository as RepositoryTable,
 } from '../Database';
-import {Git} from '../Function';
+import {Git, Repository as RepositoryFunction} from '../Function';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
 
 export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creationTime' | 'modificationTime' | 'status'>, usernameInSession?: Account['username']): Promise<ServiceResponse<void>>
@@ -274,4 +274,58 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
         {id});
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
+}
+
+export async function get(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<PullRequest | void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 访问权限查看
+    const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession}))
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 返回 PR
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', pullRequests[0]));
+}
+
+export async function getByRepository(repository: Pick<Repository, 'username' | 'name'>, status: PULL_REQUEST_STATUS | undefined, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ pullRequests: PullRequest[] } | void>>
+{
+    // 获取仓库数据库信息
+    const {username, name} = repository;
+    const repositories = await RepositoryTable.select({username, name});
+    if (repositories.length === 0)
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    // 查看访问权限
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositories[0], {username: usernameInSession}))
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    // 获取 PR 列表
+    const pullRequests = await PullRequestTable.select({
+        targetRepositoryUsername: username,
+        targetRepositoryName: name,
+        status,
+    });
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {pullRequests}));
 }
