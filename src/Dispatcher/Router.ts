@@ -7,6 +7,7 @@ import gitDispatcher from './Module/Git';
 import groupDispatcher from './Module/Group';
 import starDispatcher from './Module/Star';
 import collaborateDispatcher from './Module/Collaborate';
+import pullRequestDispatcher from './Module/PullRequest';
 import http from 'http';
 import {IContext, IState} from './Interface';
 
@@ -23,5 +24,6 @@ gitDispatcher(router);
 groupDispatcher(router);
 starDispatcher(router);
 collaborateDispatcher(router);
+pullRequestDispatcher(router);
 
 export default router;

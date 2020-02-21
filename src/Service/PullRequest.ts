@@ -17,7 +17,7 @@ import {
 import {Git, Repository as RepositoryFunction} from '../Function';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
 
-export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creationTime' | 'modificationTime' | 'status'>, usernameInSession?: Account['username']): Promise<ServiceResponse<void>>
+export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creationTime' | 'modificationTime' | 'status'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
@@ -103,7 +103,7 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
         new ResponseBody(true));
 }
 
-export async function update(primaryKey: Readonly<Pick<PullRequest, 'id'>>, pullRequest: Readonly<Partial<Pick<PullRequest, 'title' | 'content'>>>, usernameInSession?: Account['username']): Promise<ServiceResponse<void>>
+export async function update(primaryKey: Readonly<Pick<PullRequest, 'id'>>, pullRequest: Readonly<Partial<Pick<PullRequest, 'title' | 'content'>>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
     // 检查 PR 是否存在
     const {id} = primaryKey;
@@ -128,7 +128,7 @@ export async function update(primaryKey: Readonly<Pick<PullRequest, 'id'>>, pull
         new ResponseBody(true));
 }
 
-export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSession?: Account['username']): Promise<ServiceResponse<void>>
+export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
     // 检查 PR 是否存在
     const {id} = pullRequest;
@@ -208,7 +208,7 @@ export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>
         new ResponseBody(true, '', {isMergeable}));
 }
 
-export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<void>>
+export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
     // 检查 PR 是否存在
     const {id} = pullRequest;
