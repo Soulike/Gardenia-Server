@@ -5,8 +5,8 @@ import {
 
 describe(`${generateParameterizedStatementAndValuesArray.name}`, () =>
 {
-    const obj = {a: 1, b: 2, c: 3, d: 'a'};
-    const objValues = Object.values(obj);
+    const obj = {a: 1, b: 2, c: 3, d: 'a', e: undefined};
+    const objValues = Object.values(JSON.parse(JSON.stringify(obj)));
 
     it('should generate parameterized statement and corresponding array of values with "AND" connection', function ()
     {
@@ -34,6 +34,9 @@ describe(`${generateParameterizedStatementAndValuesArray.name}`, () =>
         expect(
             () => generateParameterizedStatementAndValuesArray({}, 'AND'))
             .toThrow();
+        expect(
+            () => generateParameterizedStatementAndValuesArray({a: undefined}, ','))
+            .toThrow();
     });
 });
 
@@ -41,8 +44,8 @@ describe(`${generateColumnNamesAndValuesArrayAndParameterString.name}`, () =>
 {
     it('should generate columns\' names, values array and parameter string', async function ()
     {
-        const obj = {a: 1, b: 2, c: 3, d: 'a'};
-        const objValues = Object.values(obj);
+        const obj = {a: 1, b: 2, c: 3, d: 'a', e: undefined};
+        const objValues = Object.values(JSON.parse(JSON.stringify(obj)));
         const expectedColumnNames = '"a","b","c","d"';
         const expectedParameterString = '$1,$2,$3,$4';
         const {values, columnNames, parameterString} = generateColumnNamesAndValuesArrayAndParameterString(obj);
@@ -56,6 +59,9 @@ describe(`${generateColumnNamesAndValuesArrayAndParameterString.name}`, () =>
         expect(() => generateColumnNamesAndValuesArrayAndParameterString({}))
             .toThrow();
         expect(() => generateColumnNamesAndValuesArrayAndParameterString({}))
+            .toThrow();
+        expect(
+            () => generateColumnNamesAndValuesArrayAndParameterString({a: undefined}))
             .toThrow();
     });
 });

@@ -23,16 +23,18 @@ export async function executeTransaction<T extends Client | PoolClient, R>(clien
 
 export function generateParameterizedStatementAndValuesArray(parameters: Readonly<{ [key: string]: any }>, connection: 'AND' | ',')
 {
-    if (Object.keys(parameters).length === 0)
+    // 移除值为 undefined 的键
+    const processedParameters = JSON.parse(JSON.stringify(parameters));
+    if (Object.keys(processedParameters).length === 0)
     {
         throw new Error(`Empty parameter object`);
     }
     const values: any[] = [];
     const parameterizedStatements: string[] = [];    // "a"=$1,"b"=$2
-    Object.keys(parameters).forEach((key, index) =>
+    Object.keys(processedParameters).forEach((key, index) =>
     {
         parameterizedStatements.push(`"${key}"=$${index + 1}`);
-        values.push(parameters[key]);
+        values.push(processedParameters[key]);
     });
     return {
         values,
@@ -42,17 +44,19 @@ export function generateParameterizedStatementAndValuesArray(parameters: Readonl
 
 export function generateColumnNamesAndValuesArrayAndParameterString(parameters: Readonly<{ [key: string]: any }>)
 {
-    if (Object.keys(parameters).length === 0)
+    // 移除值为 undefined 的键
+    const processedParameters = JSON.parse(JSON.stringify(parameters));
+    if (Object.keys(processedParameters).length === 0)
     {
         throw new Error(`Empty parameter object`);
     }
     const values: any[] = [];
     const columnNames: string[] = [];
     const parameterStrings: string[] = [];
-    Object.keys(parameters).forEach((key, index) =>
+    Object.keys(processedParameters).forEach((key, index) =>
     {
         columnNames.push(`"${key}"`);
-        values.push(parameters[key]);
+        values.push(processedParameters[key]);
         parameterStrings.push(`$${index + 1}`);
     });
     return {
