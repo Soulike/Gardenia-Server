@@ -49,6 +49,7 @@ export const close: IParameterValidator = body =>
         0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 
+export const reopen: IParameterValidator = close;
 export const isMergeable: IParameterValidator = close;
 export const merge: IParameterValidator = close;
 export const get: IParameterValidator = close;
@@ -63,6 +64,12 @@ export const getByRepository: IParameterValidator = body =>
     }
     const {username, name} = repository;
     return Repository.validate(new Repository(username, name, '', true));
+};
+
+export const getOpenPullRequestAmount: IParameterValidator = body =>
+{
+    const {username, name} = body;
+    return Repository.validate(new Repository(username, name, '', false));
 };
 
 export const addComment: IParameterValidator = body =>

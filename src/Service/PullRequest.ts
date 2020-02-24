@@ -160,6 +160,38 @@ export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSess
         new ResponseBody(true));
 }
 
+export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+{
+    // 检查 PR 是否存在
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 检查是不是目标仓库的合作者或 PR 创建者
+    const {
+        sourceRepositoryUsername,
+        targetRepositoryUsername, targetRepositoryName,
+    } = pullRequests[0];
+    const targetRepositoryCollaboration = await CollaborateTable.select({
+        repository_username: targetRepositoryUsername,
+        repository_name: targetRepositoryName,
+    });
+    const collaborators = targetRepositoryCollaboration.map(({username}) => username);
+    if (usernameInSession !== sourceRepositoryUsername      // 不是 PR 的发起者
+        && usernameInSession !== targetRepositoryUsername   // 不是目标仓库的创建者
+        && !collaborators.includes(usernameInSession))      // 不是目标仓库的合作者
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false,
+                '只有目标仓库的合作者和 Pull Request 创建者可重开 Pull Request'));
+    }
+    await PullRequestTable.update({status: PULL_REQUEST_STATUS.OPEN}, {id});
+    return new ServiceResponse<void>(200, {}, new ResponseBody(true));
+}
+
 export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>): Promise<ServiceResponse<{ isMergeable: boolean } | void>>
 {
     // 检查 PR 是否存在
@@ -337,6 +369,29 @@ export async function getByRepository(repository: Pick<Repository, 'username' | 
     });
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {pullRequests}));
+}
+
+export async function getOpenPullRequestAmount(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ amount: number } | void>>
+{
+    const {username, name} = repository;
+    const repositories = await RepositoryTable.select({username, name});
+    if (repositories.length === 0)
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositories[0], {username: usernameInSession}))
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const amount = await PullRequestTable.count({
+        targetRepositoryUsername: username,
+        targetRepositoryName: name,
+        status: PULL_REQUEST_STATUS.OPEN,
+    });
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {amount}));
 }
 
 export async function addComment(pullRequestComment: Readonly<Omit<PullRequestComment, 'id' | 'username' | 'creationTime' | 'modificationTime'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>

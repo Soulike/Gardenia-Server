@@ -66,6 +66,24 @@ export const close: IRouteHandler = () =>
     };
 };
 
+export const reopen: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.reopen(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.reopen({id}, username!);
+    };
+};
+
 export const isMergeable: IRouteHandler = () =>
 {
     return async ctx =>
@@ -124,6 +142,23 @@ export const getByRepository: IRouteHandler = () =>
         ctx.state.serviceResponse = await PullRequestService.getByRepository(repository, status, username);
     };
 };
+export const getOpenPullRequestAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.getOpenPullRequestAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = ctx.request.body;
+        const {username: usernameInSession} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.getOpenPullRequestAmount({
+            username,
+            name,
+        }, usernameInSession);
+    };
+};
+
 
 export const addComment: IRouteHandler = () =>
 {

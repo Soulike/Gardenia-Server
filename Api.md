@@ -1472,6 +1472,17 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 只有目标仓库的合作者可关闭 Pull Request
 - 其他说明：无
 
+#### `/reopen`
+
+- 功能：重新开启 Pull Request
+- 方法：POST
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - 只有目标仓库的合作者和 Pull Request 创建者可重开 Pull Request
+- 其他说明：无
+
 #### `/isMergeable`
 
 - 功能：查看 Pull Request 是否可自动合并
@@ -1518,7 +1529,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：
 ```ts
 {
-    repository: `Pick<Repository, 'username' | 'name'>`,
+    repository: Pick<Repository, 'username' | 'name'>,
     status: PULL_REQUEST_STATUS | undefined, // undefined 是没有筛选条件
 }
 ```
@@ -1526,6 +1537,21 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     pullRequests: PullRequest[]
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/getOpenPullRequestAmount`
+
+- 功能：获取仓库 Open 的 Pull Request 的个数
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    amount: number,
 }
 ```
 - 响应消息：
