@@ -157,6 +157,17 @@ class PullRequestComment
 }
 ```
 
+### `Conflict`
+
+```ts
+class Conflict
+{
+    public readonly filePath: string;
+    public readonly isBinary: boolean;
+    public readonly content: string;
+}
+```
+
 ---
 
 ## 常量

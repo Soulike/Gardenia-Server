@@ -12,3 +12,4 @@ export * from './Branch';
 export * from './RepositoryRepository';
 export * from './PullRequest';
 export * from './PullRequestComment';
+export * from './Conflict';

@@ -1,27 +1,13 @@
-import {BlockDiff, Branch, Commit, FileDiff, Repository} from '../Class';
+import {BlockDiff, Branch, Commit, Conflict, FileDiff, PullRequest, Repository} from '../Class';
 import {execPromise} from './Promisify';
 import {ObjectType, REGEX} from '../CONSTANT';
 import path from 'path';
 import {GIT} from '../CONFIG';
-import {Promisify} from './index';
+import {Promisify, String} from './index';
 import {Readable} from 'stream';
 import {spawn} from 'child_process';
 import {splitToLines} from './String';
 import fse from 'fs-extra';
-
-export function putMasterBranchToFront(branches: Readonly<string[]>, masterBranchName: string): string[]
-{
-    const index = branches.indexOf(masterBranchName);
-    if (index === -1)
-    {
-        throw new TypeError(`No master branch "${masterBranchName}" in "branches" array`);
-    }
-    return [
-        branches[index],
-        ...branches.slice(0, index),
-        ...branches.slice(index + 1),
-    ];
-}
 
 /**
  * @description 获取分支/文件的最后一次提交信息
@@ -581,18 +567,36 @@ export async function cloneBareRepository(sourceRepositoryPath: string, targetRe
 }
 
 /**
+ * @description 克隆一个临时的工作区仓库，返回临时仓库路径
+ * */
+export async function makeTemporaryRepository(repositoryPath: string, branch: string): Promise<string>
+{
+    const tempRepositoryPath = await fse.promises.mkdtemp('repository_');
+    await execPromise(`git clone -b ${branch} ${repositoryPath} ${tempRepositoryPath}`);
+    return tempRepositoryPath;
+}
+
+/**
+ * @description 添加仓库的远程源
+ * */
+export async function addRemote(repositoryPath: string, remoteRepositoryPath: string, remoteName: string): Promise<void>
+{
+    await execPromise(`git remote add -f ${remoteName} ${remoteRepositoryPath}`,
+        {cwd: repositoryPath});
+    await execPromise(`git remote update`, {cwd: repositoryPath});
+}
+
+/**
  * @description 检测两个仓库是不是可以自动合并
  * */
 export async function isMergeable(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<boolean>
 {
-    const tempRepositoryPath = await fse.promises.mkdtemp('repository_');
-    const tempSourceRemoteName = `remote_${Date.now()}`;
-    await execPromise(`git clone -b ${targetRepositoryBranch} ${targetRepositoryPath} ${tempRepositoryPath}`);
-    await execPromise(`git remote add -f ${tempSourceRemoteName} ${sourceRepositoryPath}`,
-        {cwd: tempRepositoryPath});
-    await execPromise(`git remote update`, {cwd: tempRepositoryPath});
+    let tempRepositoryPath = '';
     try
     {
+        tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
+        const tempSourceRemoteName = `remote_${Date.now()}`;
+        await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
         await execPromise(`git merge --no-commit --no-ff ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
             {cwd: tempRepositoryPath});
         return true;
@@ -603,7 +607,10 @@ export async function isMergeable(sourceRepositoryPath: string, sourceRepository
     }
     finally
     {
-        await fse.remove(tempRepositoryPath);
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
+        }
     }
 }
 
@@ -612,20 +619,89 @@ export async function isMergeable(sourceRepositoryPath: string, sourceRepository
  * */
 export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<void>
 {
-    const tempRepositoryPath = await fse.promises.mkdtemp('repository_');
-    const tempSourceRemoteName = `remote_${Date.now()}`;
+    let tempRepositoryPath = '';
     try
     {
-        await execPromise(`git clone -b ${targetRepositoryBranch} ${targetRepositoryPath} ${tempRepositoryPath}`);
-        await execPromise(`git remote add -f ${tempSourceRemoteName} ${sourceRepositoryPath}`,
-            {cwd: tempRepositoryPath});
-        await execPromise(`git remote update`, {cwd: tempRepositoryPath});
+        tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
+        const tempSourceRemoteName = `remote_${Date.now()}`;
+        await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
         await execPromise(`git merge ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
             {cwd: tempRepositoryPath});
         await execPromise(`git push`, {cwd: tempRepositoryPath});
     }
     finally
     {
-        await fse.remove(tempRepositoryPath);
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
+        }
+    }
+}
+
+/**
+ * @description 获取存在合并冲突的文件列表
+ * @return 文件路径数组
+ * */
+export async function getConflictFiles(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<string[]>
+{
+    let tempRepositoryPath = '';
+    try
+    {
+        tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
+        const tempSourceRemoteName = `remote_${Date.now()}`;
+        await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
+        try
+        {
+            await execPromise(`git merge ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+                {cwd: tempRepositoryPath});
+        }
+        catch (e)
+        {
+            // 忽略合并错误
+        }
+        return String.splitToLines(
+            await execPromise(`git ls-files -u | cut -f 2 | sort -u`, {cwd: tempRepositoryPath}));
+    }
+    finally
+    {
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
+        }
+    }
+}
+
+/**
+ * @description 解决冲突，注意不能处理二进制文件
+ * */
+export async function resolveConflicts(repositoryPath: string, repositoryBranch: string, conflicts: Readonly<Conflict[]>, pullRequest: Readonly<Pick<PullRequest, 'no'>>): Promise<void>
+{
+    if (conflicts.length !== 0)
+    {
+        let tempRepositoryPath = '';
+        try
+        {
+            tempRepositoryPath = await makeTemporaryRepository(repositoryPath, repositoryBranch);
+            // 用修改后的文件内容覆盖原文件内容
+            await Promise.all(conflicts.map(async ({filePath, content}) =>
+                await fse.outputFile(filePath, content),
+            ));
+            // 暂存所有更改
+            await Promise.all(conflicts.map(async ({filePath}) =>
+                await execPromise(`git add ${filePath}`,
+                    {cwd: repositoryPath}),
+            ));
+            // 进行提交
+            const {no} = pullRequest;
+            await execPromise(`git commit -m '解决 Pull Request #${no} 的冲突'`,
+                {cwd: repositoryPath});
+        }
+        finally
+        {
+            if (tempRepositoryPath.length > 0)
+            {
+                await fse.remove(tempRepositoryPath);
+            }
+        }
     }
 }

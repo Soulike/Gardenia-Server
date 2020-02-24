@@ -12,7 +12,6 @@ import {
     getObjectType,
     isBinaryObject,
     objectExists,
-    putMasterBranchToFront,
 } from '../Git';
 import fs from 'fs';
 import {exec, spawn} from 'child_process';
@@ -29,7 +28,6 @@ import {EventEmitter} from 'events';
 let repositoryPath = '';
 let bareRepositoryPath = '';
 const mainBranchName = 'main';
-const branches = ['test1', 'test2', 'test3'];
 const firstCommitFileName = 'testFile';
 const firstCommitFileContent = `
     <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -58,28 +56,6 @@ const binaryFileSize = 101;
 const childProcessMock = {
     spawn: jest.fn(),
 };
-
-describe(`${putMasterBranchToFront.name}`, () =>
-{
-    it('should put master branch to front', function ()
-    {
-        const expectedBranches = [
-            mainBranchName,
-            ...branches,
-        ];
-        expect(putMasterBranchToFront([...branches, mainBranchName], mainBranchName))
-            .toEqual(expectedBranches);
-        expect(putMasterBranchToFront([mainBranchName, ...branches], mainBranchName))
-            .toEqual(expectedBranches);
-        expect(putMasterBranchToFront([...branches.slice(0, 1), mainBranchName, ...branches.slice(1)], mainBranchName))
-            .toEqual(expectedBranches);
-    });
-
-    it('should throw error when the master branch name is not included in the branches', function ()
-    {
-        expect(() => putMasterBranchToFront(branches, mainBranchName)).toThrow(TypeError);
-    });
-});
 
 describe(`${getLastCommitInfo.name}`, () =>
 {
