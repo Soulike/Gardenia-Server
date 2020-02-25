@@ -211,3 +211,35 @@ export const getComments: IRouteHandler = () =>
         ctx.state.serviceResponse = await PullRequestService.getComments({id}, username);
     };
 };
+
+export const getConflicts: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.getConflicts(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.getConflicts({id}, username);
+    };
+};
+
+export const resolveConflicts: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.resolveConflicts(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {pullRequest, conflicts} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.resolveConflicts(pullRequest, conflicts, username!);
+    };
+};

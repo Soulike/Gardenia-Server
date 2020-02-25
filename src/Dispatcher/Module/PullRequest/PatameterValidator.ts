@@ -1,5 +1,5 @@
 import {IParameterValidator} from '../../Interface';
-import {PullRequest, PullRequestComment, Repository} from '../../../Class';
+import {Conflict, PullRequest, PullRequestComment, Repository} from '../../../Class';
 import {PULL_REQUEST_STATUS} from '../../../CONSTANT';
 
 export const add: IParameterValidator = body =>
@@ -113,4 +113,31 @@ export const getComments: IParameterValidator = body =>
     return PullRequestComment.validate(new PullRequestComment(
         id, '', 0, '', 0, 0,
     ));
+};
+
+export const getConflicts: IParameterValidator = close;
+
+export const resolveConflicts: IParameterValidator = body =>
+{
+    const {pullRequest, conflicts} = body;
+    if (pullRequest === null || !Array.isArray(conflicts))
+    {
+        return false;
+    }
+    const {id} = pullRequest;
+    if (id === undefined || !PullRequest.validate(new PullRequest(id, 0,
+        '', '', '',
+        '', '', '',
+        0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+    {
+        return false;
+    }
+    for (const conflict of conflicts)
+    {
+        if (!Conflict.validate(conflict))
+        {
+            return false;
+        }
+    }
+    return true;
 };

@@ -1,5 +1,6 @@
 import {
     Account,
+    Conflict,
     PullRequest,
     PullRequestComment,
     Repository,
@@ -484,4 +485,99 @@ export async function getComments(pullRequest: Readonly<Pick<PullRequest, 'id'>>
     });
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {comments: pullRequestComments}));
+}
+
+export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ conflicts: Conflict[] } | void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看访问权限
+    const {
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+    } = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 获取冲突信息
+    const sourceRepositoryPath = Git.generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = Git.generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    const conflicts = await Git.getConflicts(
+        sourceRepositoryPath, sourceRepositoryBranch,
+        targetRepositoryPath, targetRepositoryBranch);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {conflicts}));
+}
+
+export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>>, conflicts: Readonly<Conflict[]>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看访问权限
+    const {
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
+        targetRepositoryUsername, targetRepositoryName, no,
+    } = pullRequests[0];
+    if (sourceRepositoryUsername !== usernameInSession)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '只有 Pull Request 的创建者可解决冲突'));
+    }
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 检查有没有二进制文件
+    for (const {isBinary} of conflicts)
+    {
+        if (isBinary)
+        {
+            return new ServiceResponse<void>(200, {},
+                new ResponseBody(false, '存在二进制文件冲突，请使用命令行解决'));
+        }
+    }
+    // 进行冲突解决
+    const sourceRepositoryPath = Git.generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    await Git.resolveConflicts(sourceRepositoryPath, sourceRepositoryBranch,
+        conflicts, {no});
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true));
 }

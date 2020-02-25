@@ -7,10 +7,12 @@ import {
     GET,
     GET_BY_REPOSITORY,
     GET_COMMENTS,
+    GET_CONFLICTS,
     GET_OPEN_PULL_REQUEST_AMOUNT,
     IS_MERGEABLE,
     MERGE,
     REOPEN,
+    RESOLVE_CONFLICTS,
     UPDATE,
     UPDATE_COMMENT,
 } from './ROUTE';
@@ -22,10 +24,12 @@ import {
     get,
     getByRepository,
     getComments,
+    getConflicts,
     getOpenPullRequestAmount,
     isMergeable,
     merge,
     reopen,
+    resolveConflicts,
     update,
     updateComment,
 } from './Middleware';
@@ -44,5 +48,7 @@ export default (router: Router<IState, IContext>) =>
         .get(GET_OPEN_PULL_REQUEST_AMOUNT, JSONQuerystringParser(), getOpenPullRequestAmount())
         .post(ADD_COMMENT, bodyParser(), addComment())
         .post(UPDATE_COMMENT, bodyParser(), updateComment())
-        .get(GET_COMMENTS, JSONQuerystringParser(), getComments());
+        .get(GET_COMMENTS, JSONQuerystringParser(), getComments())
+        .get(GET_CONFLICTS, JSONQuerystringParser(), getConflicts())
+        .post(RESOLVE_CONFLICTS, bodyParser(), resolveConflicts());
 }

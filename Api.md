@@ -1645,5 +1645,6 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - Pull Request 不存在
+  - 存在二进制文件冲突，请使用命令行解决
   - 只有 Pull Request 的创建者可解决冲突
 - 其他说明：无

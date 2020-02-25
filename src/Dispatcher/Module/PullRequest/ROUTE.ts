@@ -17,3 +17,5 @@ export const GET_OPEN_PULL_REQUEST_AMOUNT = pullRequestPrefix('/getOpenPullReque
 export const ADD_COMMENT = pullRequestPrefix('/addComment');
 export const UPDATE_COMMENT = pullRequestPrefix('/updateComment');
 export const GET_COMMENTS = pullRequestPrefix('/getComments');
+export const GET_CONFLICTS = pullRequestPrefix('/getConflicts');
+export const RESOLVE_CONFLICTS = pullRequestPrefix('/resolveConflicts');

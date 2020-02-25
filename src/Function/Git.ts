@@ -3,11 +3,12 @@ import {execPromise} from './Promisify';
 import {ObjectType, REGEX} from '../CONSTANT';
 import path from 'path';
 import {GIT} from '../CONFIG';
-import {Promisify, String} from './index';
+import {File, Promisify, String} from './index';
 import {Readable} from 'stream';
 import {spawn} from 'child_process';
 import {splitToLines} from './String';
 import fse from 'fs-extra';
+import fs from 'fs';
 
 /**
  * @description 获取分支/文件的最后一次提交信息
@@ -639,10 +640,9 @@ export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch
 }
 
 /**
- * @description 获取存在合并冲突的文件列表
- * @return 文件路径数组
+ * @description 获取合并冲突列表
  * */
-export async function getConflictFiles(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<string[]>
+export async function getConflicts(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<Conflict[]>
 {
     let tempRepositoryPath = '';
     try
@@ -659,8 +659,18 @@ export async function getConflictFiles(sourceRepositoryPath: string, sourceRepos
         {
             // 忽略合并错误
         }
-        return String.splitToLines(
+        const filePaths = String.splitToLines(
             await execPromise(`git ls-files -u | cut -f 2 | sort -u`, {cwd: tempRepositoryPath}));
+        return await Promise.all(filePaths.map(async filePath =>
+        {
+            const fileAbsolutePath = path.join(tempRepositoryPath, filePath);
+            if (await File.isBinaryFile(fileAbsolutePath))
+            {
+                return new Conflict(filePath, true, '');
+            }
+            const content = await fs.promises.readFile(fileAbsolutePath, {encoding: 'utf-8'});
+            return new Conflict(filePath, false, content);
+        }));
     }
     finally
     {
@@ -684,17 +694,18 @@ export async function resolveConflicts(repositoryPath: string, repositoryBranch:
             tempRepositoryPath = await makeTemporaryRepository(repositoryPath, repositoryBranch);
             // 用修改后的文件内容覆盖原文件内容
             await Promise.all(conflicts.map(async ({filePath, content}) =>
-                await fse.outputFile(filePath, content),
+                await fse.outputFile(path.join(tempRepositoryPath, filePath), content),
             ));
             // 暂存所有更改
             await Promise.all(conflicts.map(async ({filePath}) =>
                 await execPromise(`git add ${filePath}`,
-                    {cwd: repositoryPath}),
+                    {cwd: tempRepositoryPath}),
             ));
             // 进行提交
             const {no} = pullRequest;
             await execPromise(`git commit -m '解决 Pull Request #${no} 的冲突'`,
-                {cwd: repositoryPath});
+                {cwd: tempRepositoryPath});
+            await execPromise(`git push`, {cwd: tempRepositoryPath});
         }
         finally
         {
