@@ -31,6 +31,20 @@ export const branches: IRouteHandler = () =>
     };
 };
 
+export const branchNames: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.branchNames(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {repository} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.branchNames(repository, username);
+    };
+};
+
 export const lastCommit: IRouteHandler = () =>
 {
     return async (ctx) =>

@@ -29,6 +29,8 @@ export const branches: IParameterValidator = body =>
     return Repository.validate({username, name, isPublic: true, description: ''});
 };
 
+export const branchNames: IParameterValidator = branches;
+
 export const lastCommit: IParameterValidator = body =>
 {
     const {account, repository, commitHash, filePath} = body;

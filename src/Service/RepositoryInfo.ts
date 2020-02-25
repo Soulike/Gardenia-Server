@@ -37,6 +37,20 @@ export async function branches(repository: Readonly<Pick<Repository, 'username' 
         new ResponseBody(true, '', {branches}));
 }
 
+export async function branchNames(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ branchNames: string[] } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = Git.generateRepositoryPath(repository);
+    const branchNames = await Git.getBranchNames(repositoryPath);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {branchNames}));
+}
+
 export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, commitHash: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
     const {username} = account;
