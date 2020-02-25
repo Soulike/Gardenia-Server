@@ -71,7 +71,7 @@ export async function getGroups(account: Readonly<Pick<Account, 'username'>>): P
 export async function getAdministratingGroups(account: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Group[]>>
 {
     const {username} = account;
-    if (await AccountTable.count({username}))
+    if (await AccountTable.count({username}) === 0)
     {
         return new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, '用户不存在'));
