@@ -1615,3 +1615,35 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - Pull Request 不存在
 - 其他说明：无
+
+#### `/getConflicts`
+
+- 功能：获取 Pull Request 合并存在的冲突
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    conflicts: Conflict[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+- 其他说明：无
+
+#### `/resolveConflicts`
+
+- 功能：解决 Pull Request 合并存在的冲突
+- 方法：POST
+- 请求体：
+```ts
+{
+    pullRequest: Pick<PullRequest, 'id'>,
+    conflicts: Conflict[],
+}
+```
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - 只有 Pull Request 的创建者可解决冲突
+- 其他说明：无
