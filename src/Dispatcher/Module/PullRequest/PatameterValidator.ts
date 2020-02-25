@@ -20,7 +20,8 @@ export const add: IParameterValidator = body =>
 export const update: IParameterValidator = body =>
 {
     const {primaryKey, pullRequest} = body;
-    if (primaryKey === null || pullRequest === null)
+    if (primaryKey === undefined || pullRequest === undefined
+        || primaryKey === null || pullRequest === null)
     {
         return false;
     }
@@ -39,7 +40,7 @@ export const update: IParameterValidator = body =>
 export const close: IParameterValidator = body =>
 {
     const {id} = body;
-    if (id === undefined)
+    if (id === undefined || id === null)
     {
         return false;
     }
@@ -57,7 +58,7 @@ export const get: IParameterValidator = close;
 export const getByRepository: IParameterValidator = body =>
 {
     const {repository, status} = body;
-    if (repository === null
+    if (repository === undefined || repository === null
         || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status)))
     {
         return false;
@@ -83,7 +84,8 @@ export const addComment: IParameterValidator = body =>
 export const updateComment: IParameterValidator = body =>
 {
     const {primaryKey, pullRequestComment} = body;
-    if (primaryKey === null || pullRequestComment === null)
+    if (primaryKey === undefined || pullRequestComment === undefined
+        || primaryKey === null || pullRequestComment === null)
     {
         return false;
     }
@@ -101,7 +103,7 @@ export const updateComment: IParameterValidator = body =>
 export const getComments: IParameterValidator = body =>
 {
     const {pullRequest} = body;
-    if (pullRequest === null)
+    if (pullRequest === undefined || pullRequest === null)
     {
         return false;
     }
@@ -120,7 +122,7 @@ export const getConflicts: IParameterValidator = close;
 export const resolveConflicts: IParameterValidator = body =>
 {
     const {pullRequest, conflicts} = body;
-    if (pullRequest === null || !Array.isArray(conflicts))
+    if (pullRequest === undefined || pullRequest === null || !Array.isArray(conflicts))
     {
         return false;
     }

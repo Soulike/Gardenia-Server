@@ -459,6 +459,31 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
   - 不能 fork 自己的仓库
 - 其他说明：无
 
+#### `/isMergeable`
+
+- 功能：查看两仓库分支是否可自动合并
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username'|'name'>,
+    sourceRepositoryBranch: string,
+    targetRepository: Pick<Repository, 'username'|'name'>,
+    targetRepositoryBranch: string,
+}
+```
+- 响应体：
+```ts
+{
+    isMergeable: boolean,
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+  - 仓库 `${username}/${name}` 不存在
+  - 仓库 `${username}/${name}` 分支 `${branch}` 不存在
+- 其他说明：无
+
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息操作。

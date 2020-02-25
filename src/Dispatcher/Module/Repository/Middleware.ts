@@ -68,3 +68,22 @@ export const fork: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryService.fork({username, name}, usernameInSession);
     };
 };
+
+export const isMergeable: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.isMergeable(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {
+            sourceRepository,
+            sourceRepositoryBranch,
+            targetRepository,
+            targetRepositoryBranch,
+        } = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryService.isMergeable(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
+    };
+};

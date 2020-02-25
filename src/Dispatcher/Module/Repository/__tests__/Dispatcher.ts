@@ -33,6 +33,7 @@ const MiddlewareWrapperMock = {
     create: jest.fn<ReturnType<typeof Middleware.create>, Parameters<typeof Middleware.create>>(),
     del: jest.fn<ReturnType<typeof Middleware.del>, Parameters<typeof Middleware.del>>(),
     fork: jest.fn<ReturnType<typeof Middleware.fork>, Parameters<typeof Middleware.fork>>(),
+    isMergeable: jest.fn<ReturnType<typeof Middleware.isMergeable>, Parameters<typeof Middleware.isMergeable>>(),
 };
 
 let server: Server;

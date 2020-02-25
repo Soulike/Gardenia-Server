@@ -27,3 +27,24 @@ export const fork: IParameterValidator = body =>
     const {username, name} = body;
     return Repository.validate({username, name, isPublic: false, description: ''});
 };
+
+export const isMergeable: IParameterValidator = body =>
+{
+    const {
+        sourceRepository,
+        sourceRepositoryBranch,
+        targetRepository,
+        targetRepositoryBranch,
+    } = body;
+    if (sourceRepository === undefined || sourceRepository === null
+        || typeof sourceRepositoryBranch !== 'string'
+        || targetRepository === undefined || targetRepository === null
+        || typeof targetRepositoryBranch !== 'string')
+    {
+        return false;
+    }
+    const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
+    const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
+    return Repository.validate(new Repository(sourceRepositoryUsername, sourceRepositoryName, '', true))
+        && Repository.validate(new Repository(targetRepositoryUsername, targetRepositoryName, '', true));
+};

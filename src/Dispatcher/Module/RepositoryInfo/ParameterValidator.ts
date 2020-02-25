@@ -21,7 +21,7 @@ export const repository: IParameterValidator = body =>
 export const branches: IParameterValidator = body =>
 {
     const {repository} = body;
-    if (repository === undefined)
+    if (repository === undefined || repository === null)
     {
         return false;
     }
@@ -160,7 +160,7 @@ export const addToGroup: IParameterValidator = body =>
 export const commitHistoryBetweenCommits: IParameterValidator = body =>
 {
     const {repository, baseCommitHash, targetCommitHash} = body;
-    if (repository === undefined
+    if (repository === undefined || repository === null
         || typeof baseCommitHash !== 'string'
         || typeof targetCommitHash !== 'string')
     {
@@ -173,7 +173,7 @@ export const commitHistoryBetweenCommits: IParameterValidator = body =>
 export const commitHistory: IParameterValidator = body =>
 {
     const {repository, targetCommitHash} = body;
-    if (repository === undefined
+    if (repository === undefined || repository === null
         || typeof targetCommitHash !== 'string')
     {
         return false;
@@ -185,7 +185,7 @@ export const commitHistory: IParameterValidator = body =>
 export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
 {
     const {repository, filePath, baseCommitHash, targetCommitHash} = body;
-    if (repository === undefined
+    if (repository === undefined || repository === null
         || typeof filePath !== 'string'
         || typeof baseCommitHash !== 'string'
         || typeof targetCommitHash !== 'string')
@@ -199,7 +199,7 @@ export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
 export const fileCommitHistory: IParameterValidator = body =>
 {
     const {repository, filePath, targetCommitHash} = body;
-    if (repository === undefined
+    if (repository === undefined || repository === null
         || typeof filePath !== 'string'
         || typeof targetCommitHash !== 'string')
     {
@@ -215,7 +215,7 @@ export const fileDiffBetweenCommits: IParameterValidator = fileCommitHistoryBetw
 export const commit: IParameterValidator = body =>
 {
     const {repository, commitHash} = body;
-    if (repository === undefined || typeof commitHash !== 'string')
+    if (repository === undefined || repository === null || typeof commitHash !== 'string')
     {
         return false;
     }
@@ -226,7 +226,7 @@ export const commit: IParameterValidator = body =>
 export const fileCommit: IParameterValidator = body =>
 {
     const {repository, filePath, commitHash} = body;
-    if (repository === undefined
+    if (repository === undefined || repository === null
         || typeof commitHash !== 'string'
         || typeof filePath !== 'string')
     {

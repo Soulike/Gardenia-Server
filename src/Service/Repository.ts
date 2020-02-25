@@ -179,3 +179,57 @@ export async function fork(sourceRepository: Pick<Repository, 'username' | 'name
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
 }
+
+export async function isMergeable(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ isMergeable: boolean } | void>>
+{
+    // 检查两个仓库是否存在
+    const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
+    const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
+    const [sourceRepositoryInDatabase, targetRepositoryInDatabase] = await Promise.all([
+        RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
+        RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
+    ]);
+    if (sourceRepositoryInDatabase === null
+        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false,
+                `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
+    }
+    if (targetRepositoryInDatabase === null
+        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false,
+                `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
+    }
+    // 检查分支是否存在
+    const sourceRepositoryPath = Git.generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = Git.generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+    ]);
+    if (!sourceRepositoryHasBranch)
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false,
+                `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 不存在`));
+    }
+    if (!targetRepositoryHasBranch)
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false,
+                `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
+    }
+    // 查看是否可合并
+    const isMergeable = await Git.isMergeable(sourceRepositoryPath, sourceRepositoryBranch, targetRepositoryPath, targetRepositoryBranch);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {isMergeable}));
+}
