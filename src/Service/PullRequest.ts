@@ -25,6 +25,14 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
         content, title,
     } = pullRequest;
+    // 查看是不是同仓库同分支的请求
+    if (sourceRepositoryUsername === targetRepositoryUsername
+        && sourceRepositoryName === targetRepositoryName
+        && sourceRepositoryBranch === targetRepositoryBranch)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, `不能合并相同分支`));
+    }
     // 检查源仓库存在性，检查是否有创建 PR 的权限
     const sourceRepositories = await RepositoryTable.select({
         username: sourceRepositoryUsername,
@@ -36,7 +44,7 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
             new ResponseBody(false,
                 `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
     }
-    else if (sourceRepositories[0].username !== usernameInSession)
+    if (sourceRepositories[0].username !== usernameInSession)
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false, '只有源仓库的创建者才可创建 Pull Request'));
@@ -58,7 +66,8 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
             new ResponseBody(false,
                 `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
     }
-    else if (forkAmount === 0)
+    if (forkAmount === 0 && !(sourceRepositoryUsername === targetRepositoryUsername
+        && sourceRepositoryName === targetRepositoryName))    // 既不是 fork 关系，也不是在同一个仓库内
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false,

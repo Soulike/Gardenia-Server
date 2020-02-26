@@ -1501,6 +1501,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - `${username}/${name}` 分支 `${branch}` 不存在
   - `${username}/${name}` 不是 `${username}/${name}` 的 fork
   - 只有源仓库的创建者才可创建 Pull Request
+  - 不能合并相同分支
 - 其他说明：无
 
 #### `/update`
