@@ -555,3 +555,99 @@ export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>
             }));
     }
 }
+
+export async function forkCommitHistory(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+{
+    const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
+    const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
+    // 检查仓库存在性和可访问性
+    const [sourceRepositoryInDatabase, targetRepositoryInDatabase] = await Promise.all([
+        RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
+        RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
+    ]);
+    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
+    }
+    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
+    }
+    // 检查分支存在性
+    const sourceRepositoryPath = Git.generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = Git.generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+    ]);
+    if (!sourceRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 不存在`));
+    }
+    if (!targetRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
+    }
+    // 获取提交历史
+    const commits = await Git.getCommitHistoryBetweenRepositories(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commits}));
+}
+
+export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
+{
+    const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
+    const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
+    // 检查仓库存在性和可访问性
+    const [sourceRepositoryInDatabase, targetRepositoryInDatabase] = await Promise.all([
+        RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
+        RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
+    ]);
+    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
+    }
+    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
+    }
+    // 检查分支存在性
+    const sourceRepositoryPath = Git.generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = Git.generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+    ]);
+    if (!sourceRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 不存在`));
+    }
+    if (!targetRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
+    }
+    // 获取文件差异
+    const fileDiffs = await Git.getFileDiffBetweenRepositories(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {fileDiffs}));
+}

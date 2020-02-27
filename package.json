@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@types/jest": "^25.1.2",
+    "@types/nodemon": "^1.19.0",
     "@types/superagent": "^4.1.4",
     "husky": "^4.0.7",
     "jest": "^25.1.0",
@@ -68,5 +69,10 @@
   "signale": {
     "displayDate": true,
     "displayTimestamp": true
+  },
+  "nodemonConfig": {
+    "watch": [
+      "dist/"
+    ]
   }
 }

@@ -626,7 +626,7 @@ export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch
         tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
         const tempSourceRemoteName = `remote_${Date.now()}`;
         await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
-        await execPromise(`git merge ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+        await execPromise(`git merge --no-ff --no-edit ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
             {cwd: tempRepositoryPath});
         await execPromise(`git push`, {cwd: tempRepositoryPath});
     }
@@ -713,6 +713,65 @@ export async function resolveConflicts(repositoryPath: string, repositoryBranch:
             {
                 await fse.remove(tempRepositoryPath);
             }
+        }
+    }
+}
+
+/**
+ * @description 获取两仓库分支之间的提交历史
+ * */
+export async function getCommitHistoryBetweenRepositories(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string): Promise<Commit[]>
+{
+    let tempRepositoryPath = '';
+    try
+    {
+        // 复制源仓库
+        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath, baseRepositoryBranchName);
+        // fetch 目标仓库
+        const tempSourceRemoteName = `remote_${Date.now()}`;
+        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+        // 得到源仓库分支到目标仓库分支的历史
+        return await getRepositoryCommitHistoryBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
+    }
+    finally
+    {
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
+        }
+    }
+}
+
+/**
+ * @description 获取两仓库分支之间的提交文件差异
+ * */
+export async function getFileDiffBetweenRepositories(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string): Promise<FileDiff[]>
+{
+    let tempRepositoryPath = '';
+    try
+    {
+        // 复制源仓库
+        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath, baseRepositoryBranchName);
+        // fetch 目标仓库
+        const tempSourceRemoteName = `remote_${Date.now()}`;
+        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+        // 得到源仓库分支到目标仓库分支的历史
+        // 查看两个分支之间有没有提交差异
+        const commits = await getRepositoryCommitHistoryBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
+        if (commits.length !== 0)   // 如果有，产生合并提交查看合并提交的差异
+        {
+            return await getDiffBetweenCommits(tempRepositoryPath, commits[commits.length - 1].commitHash, commits[0].commitHash);
+        }
+        else    // 没有提交差异，返回空
+        {
+            return [];
+        }
+    }
+    finally
+    {
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
         }
     }
 }

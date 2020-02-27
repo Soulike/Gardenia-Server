@@ -988,6 +988,54 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 其他说明：
   - 如果仓库不是复刻得到则返回 `null`
 
+#### `/forkCommitHistory`
+
+- 功能：获取有 fork 关系两仓库分支之间的提交差异
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username' | 'name'>,
+    sourceRepositoryBranch: string,
+    targetRepository: Pick<Repository, 'username' | 'name'>,
+    targetRepositoryBranch: string,
+}
+```
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 的分支 `${branch}` 不存在
+- 其他说明：无
+
+#### `/forkFileDiff`
+
+- 功能：获取有 fork 关系两仓库分支之间的文件差异
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username' | 'name'>,
+    sourceRepositoryBranch: string,
+    targetRepository: Pick<Repository, 'username' | 'name'>,
+    targetRepositoryBranch: string,
+}
+```
+- 响应体：
+```ts
+{
+    fileDiffs: FileDiff[],
+}
+```
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 的分支 `${branch}` 不存在
+- 其他说明：无
+
 ### Group 模块（`/group`）
 
 #### `/add`

@@ -244,3 +244,36 @@ export const forkAmount: IParameterValidator = body =>
 
 export const forkRepositories: IParameterValidator = forkAmount;
 export const forkFrom: IParameterValidator = forkAmount;
+
+export const forkCommitHistory: IParameterValidator = body =>
+{
+    const {
+        sourceRepository, sourceRepositoryBranch,
+        targetRepository, targetRepositoryBranch,
+    } = body;
+    if (sourceRepository === undefined
+        || sourceRepository === null
+        || typeof sourceRepositoryBranch !== 'string'
+        || targetRepository === undefined
+        || targetRepository === null
+        || typeof targetRepositoryBranch !== 'string')
+    {
+        return false;
+    }
+    const {
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    } = sourceRepository;
+    const {
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    } = targetRepository;
+    return Repository.validate(new Repository(
+        sourceRepositoryUsername,
+        sourceRepositoryName, '', false))
+        && Repository.validate(new Repository(
+            targetRepositoryUsername,
+            targetRepositoryName, '', false));
+};
+
+export const forkFileDiff: IParameterValidator = forkCommitHistory;
