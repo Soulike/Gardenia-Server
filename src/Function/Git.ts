@@ -16,15 +16,11 @@ import fs from 'fs';
 export async function getLastCommitInfo(repositoryPath: string, commitHash: string, file?: string): Promise<Commit>
 {
     const tail = file ? `-- ${file}` : '';
-    const info = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ct' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%b' -1 ${commitHash} ${tail}`, {cwd: repositoryPath}),
-    ]);
-
+    const SEPARATOR = '|àωⓈ⒧|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${commitHash} ${tail}`,
+        {cwd: repositoryPath});
+    const info = stdout.split(SEPARATOR);
     const commit = new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
     if (commit.commitHash.length === 0)
     {
@@ -324,68 +320,47 @@ export async function getFileDiffInfo(repositoryPath: string, filePath: string, 
  * */
 export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
 {
-    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash}`, {cwd: repositoryPath}),
-    ]);
-    const hashes = splitToLines(hashesString);
-    const committerNames = splitToLines(committerNamesString);
-    const committerEmails = splitToLines(committerEmailsString);
-    const commitTimes = splitToLines(commitTimesString);
-    const commitMessages = splitToLines(commitMessagesString);
-    const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
-            {cwd: repositoryPath})));
-    const length = hashes.length;
+    const SEPARATOR = '|àωⓈ⒧|';
+    const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash}`,
+        {cwd: repositoryPath});
+    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
     const commits: Commit[] = [];
-    for (let i = 0; i < length; i++)
+    logs.forEach(line =>
     {
+        const info = line.split(SEPARATOR);
         commits.push(new Commit(
-            hashes[i],
-            committerNames[i],
-            committerEmails[i],
-            Number.parseInt(commitTimes[i]) * 1000,
-            commitMessages[i],
-            commitBodies[i]));
-    }
+            info[0], info[1], info[2],
+            Number.parseInt(info[3]) * 1000,
+            info[4], info[5],
+        ));
+    });
     return commits;
 }
+
 
 /**
  * @description 获取仓库到 targetCommitHash 的提交历史
  * */
 export async function getRepositoryCommitHistory(repositoryPath: string, targetCommitHash: string): Promise<Commit[]>
 {
-    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ct' ${targetCommitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' ${targetCommitHash}`, {cwd: repositoryPath}),
-    ]);
-    const hashes = splitToLines(hashesString);
-    const committerNames = splitToLines(committerNamesString);
-    const committerEmails = splitToLines(committerEmailsString);
-    const commitTimes = splitToLines(commitTimesString);
-    const commitMessages = splitToLines(commitMessagesString);
-    const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
-            {cwd: repositoryPath})));
-    const length = hashes.length;
+    const SEPARATOR = '|àωⓈ⒧|';
+    const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash}`,
+        {cwd: repositoryPath});
+    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
     const commits: Commit[] = [];
-    for (let i = 0; i < length; i++)
+    logs.forEach(line =>
     {
+        const info = line.split(SEPARATOR);
         commits.push(new Commit(
-            hashes[i],
-            committerNames[i],
-            committerEmails[i],
-            Number.parseInt(commitTimes[i]) * 1000,
-            commitMessages[i],
-            commitBodies[i]));
-    }
+            info[0], info[1], info[2],
+            Number.parseInt(info[3]) * 1000,
+            info[4], info[5],
+        ));
+    });
     return commits;
 }
 
@@ -394,33 +369,22 @@ export async function getRepositoryCommitHistory(repositoryPath: string, targetC
  * */
 export async function getFileCommitHistoryBetweenCommits(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
 {
-    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ct' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-    ]);
-    const hashes = splitToLines(hashesString);
-    const committerNames = splitToLines(committerNamesString);
-    const committerEmails = splitToLines(committerEmailsString);
-    const commitTimes = splitToLines(commitTimesString);
-    const commitMessages = splitToLines(commitMessagesString);
-    const length = hashes.length;
-    const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
-            {cwd: repositoryPath})));
+    const SEPARATOR = '|àωⓈ⒧|';
+    const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`,
+        {cwd: repositoryPath});
+    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
     const commits: Commit[] = [];
-    for (let i = 0; i < length; i++)
+    logs.forEach(line =>
     {
+        const info = line.split(SEPARATOR);
         commits.push(new Commit(
-            hashes[i],
-            committerNames[i],
-            committerEmails[i],
-            Number.parseInt(commitTimes[i]) * 1000,
-            commitMessages[i],
-            commitBodies[i]));
-    }
+            info[0], info[1], info[2],
+            Number.parseInt(info[3]) * 1000,
+            info[4], info[5],
+        ));
+    });
     return commits;
 }
 
@@ -429,33 +393,22 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
  * */
 export async function getFileCommitHistory(repositoryPath: string, filePath: string, targetCommitHash: string): Promise<Commit[]>
 {
-    const [hashesString, committerNamesString, committerEmailsString, commitTimesString, commitMessagesString] = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ct' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' ${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath}),
-    ]);
-    const hashes = splitToLines(hashesString);
-    const committerNames = splitToLines(committerNamesString);
-    const committerEmails = splitToLines(committerEmailsString);
-    const commitTimes = splitToLines(commitTimesString);
-    const commitMessages = splitToLines(commitMessagesString);
-    const length = hashes.length;
-    const commitBodies = await Promise.all(hashes.map(
-        async hash => execPromise(`git log --pretty=format:'%b' -1 ${hash}`,
-            {cwd: repositoryPath})));
+    const SEPARATOR = '|àωⓈ⒧|';
+    const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash} -- ${filePath}`,
+        {cwd: repositoryPath});
+    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
     const commits: Commit[] = [];
-    for (let i = 0; i < length; i++)
+    logs.forEach(line =>
     {
+        const info = line.split(SEPARATOR);
         commits.push(new Commit(
-            hashes[i],
-            committerNames[i],
-            committerEmails[i],
-            Number.parseInt(commitTimes[i]) * 1000,
-            commitMessages[i],
-            commitBodies[i]));
-    }
+            info[0], info[1], info[2],
+            Number.parseInt(info[3]) * 1000,
+            info[4], info[5],
+        ));
+    });
     return commits;
 }
 
@@ -464,14 +417,12 @@ export async function getFileCommitHistory(repositoryPath: string, filePath: str
  * */
 export async function getCommitInfo(repositoryPath: string, commitHash: string): Promise<Commit>
 {
-    const [hash, committerName, committerEmail, commitTime, commitMessage, commitBody] = await Promise.all([
-        execPromise(`git log --pretty=format:'%H' -1 ${commitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%cn' -1 ${commitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ce' -1 ${commitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%ct' -1 ${commitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%s' -1 ${commitHash}`, {cwd: repositoryPath}),
-        execPromise(`git log --pretty=format:'%b' -1 ${commitHash}`, {cwd: repositoryPath}),
-    ]);
+    const SEPARATOR = '|àωⓈ⒧|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${commitHash}`,
+        {cwd: repositoryPath});
+
+    const [hash, committerName, committerEmail, commitTime, commitMessage, commitBody] = stdout.split(SEPARATOR);
     return new Commit(
         hash,
         committerName,
@@ -494,7 +445,9 @@ export async function getCommitDiff(repositoryPath: string, commitHash: string):
     }
     else
     {
-        return await getDiffBetweenCommits(repositoryPath, `${commitHash}~`, commitHash);
+        return await getDiffBetweenCommits(repositoryPath,
+            `${commitHash}~`
+            , commitHash);
     }
 }
 
@@ -513,7 +466,9 @@ export async function getDiffBetweenCommits(repositoryPath: string, baseCommitHa
  * */
 export async function getFirstCommitHash(repositoryPath: string): Promise<string>
 {
-    return await execPromise(`git log --pretty=format:'%H' | tail -1`, {cwd: repositoryPath});
+    return await execPromise(
+        `git log --pretty=format:'%H' | tail -1`
+        , {cwd: repositoryPath});
 }
 
 /**
@@ -521,7 +476,9 @@ export async function getFirstCommitHash(repositoryPath: string): Promise<string
  * */
 export async function getFileFirstCommitHash(repositoryPath: string, filePath: string): Promise<string>
 {
-    return await execPromise(`git log --pretty=format:'%H' -- ${filePath} | tail -1`, {cwd: repositoryPath});
+    return await execPromise(
+        `git log --pretty=format:'%H' -- ${filePath} | tail -1`
+        , {cwd: repositoryPath});
 }
 
 /**
@@ -529,7 +486,9 @@ export async function getFileFirstCommitHash(repositoryPath: string, filePath: s
  * */
 export async function getBranches(repositoryPath: string): Promise<Branch[]>
 {
-    const branchOutput = await execPromise(`git branch`, {cwd: repositoryPath});
+    const branchOutput = await execPromise(
+        `git branch`
+        , {cwd: repositoryPath});
     const branchLines = splitToLines(branchOutput);
     return await Promise.all(branchLines.map(async line =>
     {
