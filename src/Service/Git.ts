@@ -1,5 +1,5 @@
 import fs from 'fs';
-import {Git, Repository as RepositoryFuncton} from '../Function';
+import {Git, Repository as RepositoryFunction} from '../Function';
 import mime from 'mime-types';
 import {Repository, ServiceResponse} from '../Class';
 import path from 'path';
@@ -13,7 +13,7 @@ export async function file(repository: Readonly<Pick<Repository, 'username' | 'n
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await RepositoryFuncton.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFunction.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
@@ -46,12 +46,12 @@ export async function advertise(repository: Readonly<Pick<Repository, 'username'
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await RepositoryFuncton.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFunction.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
     if (service === 'git-receive-pack'
-        && !(await RepositoryFuncton.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
+        && !(await RepositoryFunction.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
@@ -61,7 +61,7 @@ export async function advertise(repository: Readonly<Pick<Repository, 'username'
 
     return new ServiceResponse<string | void>(200, {
         'Content-Type': `application/x-${service}-advertisement`,
-    }, RepositoryFuncton.generateRefsServiceResponse(service, RPCCallOutput));
+    }, RepositoryFunction.generateRefsServiceResponse(service, RPCCallOutput));
 }
 
 export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'name'>>, command: string, headers: Readonly<any>, parameterStream: Readable): Promise<ServiceResponse<Readable | string>>
@@ -71,18 +71,19 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await RepositoryFuncton.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFunction.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
     if (command === 'receive-pack'
-        && !(await RepositoryFuncton.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
+        && !(await RepositoryFunction.repositoryIsModifiableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
     const repositoryPath = Git.generateRepositoryPath(repository);
+    const prevBranchNames = await Git.getBranchNames(repositoryPath);
     const RPCCallOutputStream = Git.doRPCCall(repositoryPath, command, parameterStream);
 
     RPCCallOutputStream.on('close', async () =>
@@ -90,6 +91,18 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
         if (command === 'receive-pack')
         {
             await Git.doUpdateServerInfo(repositoryPath);
+            // 检查是不是有分支被删除，关闭相关 PR
+            const branchNames = await Git.getBranchNames(repositoryPath);
+            if (branchNames.length !== prevBranchNames.length)
+            {
+                await Promise.all(prevBranchNames.map(async branchName =>
+                {
+                    if (!branchNames.includes(branchName))
+                    {
+                        await RepositoryFunction.closePullRequestWithBranch(repository, branchName);
+                    }
+                }));
+            }
         }
     });
 
