@@ -618,7 +618,7 @@ export async function isMergeable(sourceRepositoryPath: string, sourceRepository
 /**
  * @description 合并仓库
  * */
-export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string): Promise<void>
+export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string, message: string): Promise<void>
 {
     let tempRepositoryPath = '';
     try
@@ -626,7 +626,7 @@ export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch
         tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
         const tempSourceRemoteName = `remote_${Date.now()}`;
         await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
-        await execPromise(`git merge --no-ff --no-edit ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+        await execPromise(`git merge --no-ff -m '${message}' ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
             {cwd: tempRepositoryPath});
         await execPromise(`git push`, {cwd: tempRepositoryPath});
     }

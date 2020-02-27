@@ -264,6 +264,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        title,
     } = pullRequests[0];
     // 仓库一定存在
     const collaborates = await CollaborateTable.select({
@@ -318,6 +319,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     await Git.merge(
         sourceRepositoryPath, sourceRepositoryBranch,
         targetRepositoryPath, targetRepositoryBranch,
+        `合并 Pull Request #${id}\n\n${title}`,
     );
     // merge 成功再改动数据库
     await PullRequestTable.update(
