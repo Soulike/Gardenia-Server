@@ -325,7 +325,7 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
@@ -350,7 +350,7 @@ export async function getRepositoryCommitHistory(repositoryPath: string, targetC
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
@@ -374,7 +374,7 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
@@ -398,7 +398,7 @@ export async function getFileCommitHistory(repositoryPath: string, filePath: str
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash} -- ${filePath}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(LOG_SEPARATOR).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
