@@ -103,8 +103,6 @@ CREATE TABLE IF NOT EXISTS "pull-requests"
     PRIMARY KEY ("id"),
     FOREIGN KEY ("sourceRepositoryUsername", "sourceRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ("targetRepositoryUsername", "targetRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
-    UNIQUE ("sourceRepositoryUsername", "sourceRepositoryName", "sourceRepositoryBranch",
-            "targetRepositoryUsername", "targetRepositoryName", "targetRepositoryBranch"),
     UNIQUE ("no", "targetRepositoryUsername", "targetRepositoryName"),
     CHECK ( "no" > 0 ),
     CHECK ( "status" IN ('open', 'closed', 'merged') )

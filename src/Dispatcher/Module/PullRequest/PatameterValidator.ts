@@ -57,6 +57,19 @@ export const get: IParameterValidator = close;
 
 export const getByRepository: IParameterValidator = body =>
 {
+    const {repository, status, offset, limit} = body;
+    if (repository === undefined || repository === null
+        || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status))
+        || typeof offset !== 'number' || typeof limit !== 'number')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate(new Repository(username, name, '', true));
+};
+
+export const getPullRequestAmount: IParameterValidator = body =>
+{
     const {repository, status} = body;
     if (repository === undefined || repository === null
         || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status)))
@@ -65,12 +78,6 @@ export const getByRepository: IParameterValidator = body =>
     }
     const {username, name} = repository;
     return Repository.validate(new Repository(username, name, '', true));
-};
-
-export const getOpenPullRequestAmount: IParameterValidator = body =>
-{
-    const {username, name} = body;
-    return Repository.validate(new Repository(username, name, '', false));
 };
 
 export const addComment: IParameterValidator = body =>

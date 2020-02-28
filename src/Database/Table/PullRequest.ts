@@ -49,7 +49,7 @@ export async function update(pullRequest: Readonly<Partial<PullRequest>>, primar
     }
 }
 
-export async function select(pullRequest: Readonly<Partial<PullRequest>>): Promise<PullRequest[]>
+export async function select(pullRequest: Readonly<Partial<PullRequest>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<PullRequest[]>
 {
     if (Object.keys(pullRequest).length === 0)
     {
@@ -57,7 +57,7 @@ export async function select(pullRequest: Readonly<Partial<PullRequest>>): Promi
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(pullRequest, 'AND');
     const {rows} = await pool.query(
-        `SELECT * FROM "pull-requests" WHERE ${parameterizedStatement}`,
+        `SELECT * FROM "pull-requests" WHERE ${parameterizedStatement} ORDER BY "no" DESC OFFSET ${offset} LIMIT ${limit}`,
         values);
     return rows.map(row => PullRequest.from(row));
 }

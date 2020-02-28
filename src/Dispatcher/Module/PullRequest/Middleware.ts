@@ -137,25 +137,22 @@ export const getByRepository: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {repository, status} = ctx.request.body;
+        const {repository, status, offset, limit} = ctx.request.body;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await PullRequestService.getByRepository(repository, status, username);
+        ctx.state.serviceResponse = await PullRequestService.getByRepository(repository, status, offset, limit, username);
     };
 };
-export const getOpenPullRequestAmount: IRouteHandler = () =>
+export const getPullRequestAmount: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!ParameterValidator.getOpenPullRequestAmount(ctx.request.body))
+        if (!ParameterValidator.getPullRequestAmount(ctx.request.body))
         {
             throw new WrongParameterError();
         }
-        const {username, name} = ctx.request.body;
+        const {repository, status} = ctx.request.body;
         const {username: usernameInSession} = ctx.session;
-        ctx.state.serviceResponse = await PullRequestService.getOpenPullRequestAmount({
-            username,
-            name,
-        }, usernameInSession);
+        ctx.state.serviceResponse = await PullRequestService.getPullRequestAmount(repository, status, usernameInSession);
     };
 };
 

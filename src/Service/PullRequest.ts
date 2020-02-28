@@ -357,7 +357,7 @@ export async function get(pullRequest: Readonly<Pick<PullRequest, 'id'>>, userna
         new ResponseBody(true, '', pullRequests[0]));
 }
 
-export async function getByRepository(repository: Pick<Repository, 'username' | 'name'>, status: PULL_REQUEST_STATUS | undefined, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ pullRequests: PullRequest[] } | void>>
+export async function getByRepository(repository: Pick<Repository, 'username' | 'name'>, status: PULL_REQUEST_STATUS | undefined, offset: number, limit: number, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ pullRequests: PullRequest[] } | void>>
 {
     // 获取仓库数据库信息
     const {username, name} = repository;
@@ -378,12 +378,12 @@ export async function getByRepository(repository: Pick<Repository, 'username' | 
         targetRepositoryUsername: username,
         targetRepositoryName: name,
         status,
-    });
+    }, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {pullRequests}));
 }
 
-export async function getOpenPullRequestAmount(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ amount: number } | void>>
+export async function getPullRequestAmount(repository: Readonly<Pick<Repository, 'username' | 'name'>>, status: PULL_REQUEST_STATUS | undefined, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username, name} = repository;
     const repositories = await RepositoryTable.select({username, name});
@@ -400,7 +400,7 @@ export async function getOpenPullRequestAmount(repository: Readonly<Pick<Reposit
     const amount = await PullRequestTable.count({
         targetRepositoryUsername: username,
         targetRepositoryName: name,
-        status: PULL_REQUEST_STATUS.OPEN,
+        status,
     });
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {amount}));

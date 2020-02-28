@@ -8,7 +8,7 @@ import {
     GET_BY_REPOSITORY,
     GET_COMMENTS,
     GET_CONFLICTS,
-    GET_OPEN_PULL_REQUEST_AMOUNT,
+    GET_PULL_REQUEST_AMOUNT,
     IS_MERGEABLE,
     MERGE,
     REOPEN,
@@ -25,7 +25,7 @@ import {
     getByRepository,
     getComments,
     getConflicts,
-    getOpenPullRequestAmount,
+    getPullRequestAmount,
     isMergeable,
     merge,
     reopen,
@@ -45,7 +45,7 @@ export default (router: Router<IState, IContext>) =>
         .post(MERGE, bodyParser(), merge())
         .get(GET, JSONQuerystringParser(), get())
         .get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository())
-        .get(GET_OPEN_PULL_REQUEST_AMOUNT, JSONQuerystringParser(), getOpenPullRequestAmount())
+        .get(GET_PULL_REQUEST_AMOUNT, JSONQuerystringParser(), getPullRequestAmount())
         .post(ADD_COMMENT, bodyParser(), addComment())
         .post(UPDATE_COMMENT, bodyParser(), updateComment())
         .get(GET_COMMENTS, JSONQuerystringParser(), getComments())

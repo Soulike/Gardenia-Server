@@ -1639,6 +1639,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     status: PULL_REQUEST_STATUS | undefined, // undefined 是没有筛选条件
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -1651,11 +1653,17 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
-#### `/getOpenPullRequestAmount`
+#### `/getPullRequestAmount`
 
-- 功能：获取仓库 Open 的 Pull Request 的个数
+- 功能：获取仓库不同状态 Pull Request 的个数
 - 方法：GET
-- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    status: PULL_REQUEST_STATUS | undefined, // undefined 是没有筛选条件
+}
+```
 - 响应体：
 ```ts
 {
