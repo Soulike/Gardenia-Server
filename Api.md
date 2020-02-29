@@ -1714,7 +1714,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：
 ```ts
 {
-    pullRequest: Pick<PullRequest, 'id'>,
+    repository: Pick<Repository, 'username' | 'name'>,
+    pullRequest: Pick<PullRequest, 'no'>,
 }
 ```
 - 响应体：

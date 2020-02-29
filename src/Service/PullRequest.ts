@@ -467,18 +467,23 @@ export async function updateComment(primaryKey: Readonly<Pick<PullRequestComment
         new ResponseBody(true));
 }
 
-export async function getComments(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
+export async function getComments(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
 {
     // 获取 PR 数据库信息
-    const {id} = pullRequest;
-    const pullRequests = await PullRequestTable.select({id});
+    const {username, name} = repository;
+    const {no} = pullRequest;
+    const pullRequests = await PullRequestTable.select({
+        targetRepositoryUsername: username,
+        targetRepositoryName: name,
+        no,
+    });
     if (pullRequests.length === 0)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     // 查看访问权限
-    const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
+    const {targetRepositoryUsername, targetRepositoryName, id} = pullRequests[0];
     const repositories = await RepositoryTable.select({
         username: targetRepositoryUsername,
         name: targetRepositoryName,

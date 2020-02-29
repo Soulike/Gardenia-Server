@@ -119,23 +119,7 @@ export const updateComment: IParameterValidator = body =>
     ));
 };
 
-export const getComments: IParameterValidator = body =>
-{
-    const {pullRequest} = body;
-    if (pullRequest === undefined || pullRequest === null)
-    {
-        return false;
-    }
-    const {id} = pullRequest;
-    if (id === undefined)
-    {
-        return false;
-    }
-    return PullRequestComment.validate(new PullRequestComment(
-        id, '', 0, '', 0, 0,
-    ));
-};
-
+export const getComments: IParameterValidator = get;
 export const getConflicts: IParameterValidator = close;
 
 export const resolveConflicts: IParameterValidator = body =>
