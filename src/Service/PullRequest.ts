@@ -329,22 +329,23 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
         new ResponseBody(true));
 }
 
-export async function get(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<PullRequest | void>>
+export async function get(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<PullRequest | void>>
 {
     // 获取 PR 数据库信息
-    const {id} = pullRequest;
-    const pullRequests = await PullRequestTable.select({id});
+    const {username, name} = repository;
+    const {no} = pullRequest;
+    const pullRequests = await PullRequestTable.select({
+        no,
+        targetRepositoryUsername: username,
+        targetRepositoryName: name,
+    });
     if (pullRequests.length === 0)
     {
         return new ServiceResponse(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     // 访问权限查看
-    const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
-    const repositories = await RepositoryTable.select({
-        username: targetRepositoryUsername,
-        name: targetRepositoryName,
-    });
+    const repositories = await RepositoryTable.select({username, name});
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
         repositories[0],    // 一定存在
         {username: usernameInSession}))

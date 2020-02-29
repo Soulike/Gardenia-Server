@@ -1624,7 +1624,13 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取一个 Pull Request 的信息
 - 方法：GET
-- 请求体：`Pick<PullRequest, 'id'>`
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    pullRequest: Pick<PullRequest, 'no'>,
+}
+```
 - 响应体：`PullRequest`
 - 响应消息：
   - Pull Request 不存在

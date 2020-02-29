@@ -123,9 +123,9 @@ export const get: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {id} = ctx.request.body;
+        const {repository, pullRequest} = ctx.request.body;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await PullRequestService.get({id}, username);
+        ctx.state.serviceResponse = await PullRequestService.get(repository, pullRequest, username);
     };
 };
 
@@ -203,7 +203,7 @@ export const getComments: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {id} = ctx.request.body;
+        const {pullRequest: {id}} = ctx.request.body;
         const {username} = ctx.session;
         ctx.state.serviceResponse = await PullRequestService.getComments({id}, username);
     };

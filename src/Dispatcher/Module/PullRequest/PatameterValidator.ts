@@ -53,7 +53,19 @@ export const close: IParameterValidator = body =>
 export const reopen: IParameterValidator = close;
 export const isMergeable: IParameterValidator = close;
 export const merge: IParameterValidator = close;
-export const get: IParameterValidator = close;
+export const get: IParameterValidator = body =>
+{
+    const {pullRequest, repository} = body;
+    if (pullRequest === undefined || pullRequest === null
+        || repository === undefined || repository === null)
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    const {no} = pullRequest;
+    return Repository.validate(new Repository(username, name, '', false))
+        && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+};
 
 export const getByRepository: IParameterValidator = body =>
 {
