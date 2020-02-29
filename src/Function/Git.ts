@@ -325,13 +325,13 @@ export async function getRepositoryCommitHistoryBetweenCommits(repositoryPath: s
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
         const info = line.split(SEPARATOR);
-        commits.push(new Commit(
-            info[0], info[1], info[2],
+        commits.push(new Commit(    // trim：删除上一行遗留的 \n
+            info[0].trim(), info[1], info[2],
             Number.parseInt(info[3]) * 1000,
             info[4], info[5],
         ));
@@ -350,13 +350,13 @@ export async function getRepositoryCommitHistory(repositoryPath: string, targetC
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
         const info = line.split(SEPARATOR);
-        commits.push(new Commit(
-            info[0], info[1], info[2],
+        commits.push(new Commit(    // trim：删除上一行遗留的 \n
+            info[0].trim(), info[1], info[2],
             Number.parseInt(info[3]) * 1000,
             info[4], info[5],
         ));
@@ -374,13 +374,13 @@ export async function getFileCommitHistoryBetweenCommits(repositoryPath: string,
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
         const info = line.split(SEPARATOR);
-        commits.push(new Commit(
-            info[0], info[1], info[2],
+        commits.push(new Commit(    // trim：删除上一行遗留的 \n
+            info[0].trim(), info[1], info[2],
             Number.parseInt(info[3]) * 1000,
             info[4], info[5],
         ));
@@ -398,13 +398,13 @@ export async function getFileCommitHistory(repositoryPath: string, filePath: str
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash} -- ${filePath}`,
         {cwd: repositoryPath});
-    const logs = stdout.split(`${LOG_SEPARATOR}\n`).filter(line => line.length > 0);
+    const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
     logs.forEach(line =>
     {
         const info = line.split(SEPARATOR);
-        commits.push(new Commit(
-            info[0], info[1], info[2],
+        commits.push(new Commit(    // trim：删除上一行遗留的 \n
+            info[0].trim(), info[1], info[2],
             Number.parseInt(info[3]) * 1000,
             info[4], info[5],
         ));

@@ -56,8 +56,8 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
             name: targetRepositoryName,
         }),
         ForkTable.count(new RepositoryRepository(
-            sourceRepositoryUsername, sourceRepositoryName,
             targetRepositoryUsername, targetRepositoryName,
+            sourceRepositoryUsername, sourceRepositoryName,
         )),
     ]);
     if (targetRepositoryAmount === 0)
@@ -71,7 +71,7 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false,
-                `${targetRepositoryUsername}/${targetRepositoryName} 不是 ${sourceRepositoryUsername}/${sourceRepositoryName} 的 fork`));
+                `${sourceRepositoryUsername}/${sourceRepositoryName} 不是 ${targetRepositoryUsername}/${targetRepositoryName} 的 fork`));
     }
     // 检查两个仓库的被操作分支是否存在
     const sourceRepositoryPath = Git.generateRepositoryPath({
