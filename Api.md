@@ -1549,7 +1549,6 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - `${username}/${name}` 分支 `${branch}` 不存在
   - `${username}/${name}` 不是 `${username}/${name}` 的 fork
   - 只有源仓库的创建者才可创建 Pull Request
-  - 不能合并相同分支
 - 其他说明：无
 
 #### `/update`
@@ -1589,6 +1588,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - Pull Request 不存在
   - 只有目标仓库的合作者和 Pull Request 创建者可重开 Pull Request
+  - 仓库 `${username}/${name}` 已不存在
+  - `${username}/${name}` 分支 `${branch}` 已不存在
 - 其他说明：无
 
 #### `/isMergeable`
@@ -1605,6 +1606,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - Pull Request 不存在
   - `${username}/${name}` 分支 `${branch}` 不存在
+  - Pull Request 已关闭
 - 其他说明：无
 
 #### `/merge`
@@ -1617,8 +1619,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - Pull Request 不存在
   - Pull Request 存在冲突，不能自动合并
   - `${username}/${name}` 分支 `${branch}` 不存在
-- 其他说明：无
+  - Pull Request 已关闭
   - 只有目标仓库的合作者可合并 Pull Request
+- 其他说明：无
 
 #### `/get`
 
@@ -1688,6 +1691,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - Pull Request 不存在
+  - Pull Request 已关闭
 - 其他说明：无
 
 #### `/updateComment`
@@ -1741,6 +1745,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - Pull Request 不存在
+  - Pull Request 已关闭
 - 其他说明：无
 
 #### `/resolveConflicts`
@@ -1759,4 +1764,5 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - Pull Request 不存在
   - 存在二进制文件冲突，请使用命令行解决
   - 只有 Pull Request 的创建者可解决冲突
+  - Pull Request 已关闭
 - 其他说明：无

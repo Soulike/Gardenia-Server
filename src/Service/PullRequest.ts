@@ -27,14 +27,6 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
         content, title,
     } = pullRequest;
-    // 查看是不是同仓库同分支的请求
-    if (sourceRepositoryUsername === targetRepositoryUsername
-        && sourceRepositoryName === targetRepositoryName
-        && sourceRepositoryBranch === targetRepositoryBranch)
-    {
-        return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, `不能合并相同分支`));
-    }
     // 检查源仓库存在性，检查是否有创建 PR 的权限
     const sourceRepositories = await RepositoryTable.select({
         username: sourceRepositoryUsername,
@@ -182,11 +174,45 @@ export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, use
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
-    // 检查是不是目标仓库的合作者或 PR 创建者
     const {
-        sourceRepositoryUsername,
-        targetRepositoryUsername, targetRepositoryName,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
     } = pullRequests[0];
+    // 检查源仓库、源仓库的分支、目标仓库的分支是否还都存在
+    const sourceRepositoryAmount = await RepositoryTable.count({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    if (sourceRepositoryAmount === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 已不存在`));
+    }
+    const sourceRepositoryPath = generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+    ]);
+    if (!sourceRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false,
+                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 已不存在`));
+    }
+    else if (!targetRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false,
+                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 已不存在`));
+    }
+    // 检查是不是目标仓库的合作者或 PR 创建者
     const targetRepositoryCollaboration = await CollaborateTable.select({
         repository_username: targetRepositoryUsername,
         repository_name: targetRepositoryName,
@@ -214,11 +240,17 @@ export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
-    // 检查分支是否存在
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch, status,
     } = pullRequests[0];
+    // 检查是不是开启状态
+    if (status !== PULL_REQUEST_STATUS.OPEN)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, 'Pull Request 已关闭'));
+    }
+    // 检查分支是否存在
     const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
@@ -262,12 +294,18 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
-    // 检查是不是合作者操作
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
-        title,
+        title, status,
     } = pullRequests[0];
+    // 检查是不是开启状态
+    if (status !== PULL_REQUEST_STATUS.OPEN)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, 'Pull Request 已关闭'));
+    }
+    // 检查是不是合作者操作
     // 仓库一定存在
     const collaborates = await CollaborateTable.select({
         repository_username: targetRepositoryUsername,
@@ -419,8 +457,14 @@ export async function addComment(pullRequestComment: Readonly<Omit<PullRequestCo
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
+    const {targetRepositoryUsername, targetRepositoryName, status} = pullRequests[0];
+    // 查看是不是开启状态
+    if (status !== PULL_REQUEST_STATUS.OPEN)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, 'Pull Request 已关闭'));
+    }
     // 查看提交者是否有权限
-    const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
     const repositories = await RepositoryTable.select({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
@@ -516,11 +560,18 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
-    // 查看访问权限
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        status,
     } = pullRequests[0];
+    // 查看是不是开启状态
+    if (status !== PULL_REQUEST_STATUS.OPEN)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, 'Pull Request 已关闭'));
+    }
+    // 查看访问权限
     const repositories = await RepositoryTable.select({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
@@ -559,11 +610,18 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
-    // 查看访问权限
+
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, no,
+        targetRepositoryUsername, targetRepositoryName, no, status,
     } = pullRequests[0];
+    // 查看是不是开启状态
+    if (status !== PULL_REQUEST_STATUS.OPEN)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, 'Pull Request 已关闭'));
+    }
+    // 查看访问权限
     if (sourceRepositoryUsername !== usernameInSession)
     {
         return new ServiceResponse<void>(200, {},
