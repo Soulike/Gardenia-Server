@@ -53,8 +53,8 @@ export const lastCommit: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {account, repository, commitHash, filePath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(account, repository, commitHash, ctx.session, filePath);
+        const {account, repository, branch, filePath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(account, repository, branch, ctx.session, filePath);
     };
 };
 

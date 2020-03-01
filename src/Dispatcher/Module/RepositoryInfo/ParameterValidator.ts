@@ -33,7 +33,7 @@ export const branchNames: IParameterValidator = branches;
 
 export const lastCommit: IParameterValidator = body =>
 {
-    const {account, repository, commitHash, filePath} = body;
+    const {account, repository, branch, filePath} = body;
     if (typeof account === 'undefined' || account === null
         || typeof repository === 'undefined' || repository === null)
     {
@@ -43,7 +43,7 @@ export const lastCommit: IParameterValidator = body =>
     const {name} = repository;
     return Account.validate({username, hash: 'a'.repeat(64)})
         && Repository.validate({name, isPublic: true, description: '', username: ''})
-        && typeof commitHash === 'string'
+        && typeof branch === 'string'
         && (typeof filePath === 'undefined' || typeof filePath === 'string');
 };
 

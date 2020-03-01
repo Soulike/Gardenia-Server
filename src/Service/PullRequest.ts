@@ -15,8 +15,10 @@ import {
     PullRequestComment as PullRequestCommentTable,
     Repository as RepositoryTable,
 } from '../Database';
-import {Git, Repository as RepositoryFunction} from '../Function';
+import {Repository as RepositoryFunction} from '../Function';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
+import {generateRepositoryPath} from '../Function/Repository';
+import * as Git from '../Git';
 
 export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creationTime' | 'modificationTime' | 'status'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
@@ -74,11 +76,11 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
                 `${sourceRepositoryUsername}/${sourceRepositoryName} 不是 ${targetRepositoryUsername}/${targetRepositoryName} 的 fork`));
     }
     // 检查两个仓库的被操作分支是否存在
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    const targetRepositoryPath = Git.generateRepositoryPath({
+    const targetRepositoryPath = generateRepositoryPath({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
@@ -217,11 +219,11 @@ export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
     } = pullRequests[0];
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    const targetRepositoryPath = Git.generateRepositoryPath({
+    const targetRepositoryPath = generateRepositoryPath({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
@@ -280,11 +282,11 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
             new ResponseBody(false, '只有目标仓库的合作者可合并 Pull Request'));
     }
     // 检查分支是否存在
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    const targetRepositoryPath = Git.generateRepositoryPath({
+    const targetRepositoryPath = generateRepositoryPath({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
@@ -532,11 +534,11 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     // 获取冲突信息
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    const targetRepositoryPath = Git.generateRepositoryPath({
+    const targetRepositoryPath = generateRepositoryPath({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
@@ -589,7 +591,7 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
         }
     }
     // 进行冲突解决
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });

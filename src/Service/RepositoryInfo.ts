@@ -1,12 +1,39 @@
 import {Session} from 'koa-session';
 import {Account, Branch, Commit, FileDiff, Group, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Fork as ForkTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
-import {Git, Repository as RepositoryFunction} from '../Function';
+import {Repository as RepositoryFunction} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
 import mime from 'mime-types';
 import fse from 'fs-extra';
 import {Readable} from 'stream';
+import {generateRepositoryPath} from '../Function/Repository';
+import {
+    fileExists,
+    getBranches,
+    getBranchNames,
+    getChangedFilesBetweenCommits,
+    getCommit,
+    getCommitCount,
+    getCommitFileDiffs,
+    getCommitsBetweenForks,
+    getFileCommits,
+    getFileCommitsBetweenCommits,
+    getFileDiff,
+    getFileDiffInfoBetweenCommits,
+    getFileDiffsBetweenForks,
+    getFileLastCommit,
+    getFileObjectHash,
+    getFileObjectType,
+    getFileReadStream,
+    getFileSize,
+    getLastCommit,
+    getPathInfo,
+    getRepositoryCommits,
+    getRepositoryCommitsBetweenCommits,
+    hasBranch,
+    isBinaryFile,
+} from '../Git';
 
 export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Repository | void>>
 {
@@ -31,8 +58,8 @@ export async function branches(repository: Readonly<Pick<Repository, 'username' 
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const branches = await Git.getBranches(repositoryPath);
+    const repositoryPath = generateRepositoryPath(repository);
+    const branches = await getBranches(repositoryPath);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {branches}));
 }
@@ -45,8 +72,8 @@ export async function branchNames(repository: Readonly<Pick<Repository, 'usernam
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const branchNames = await Git.getBranchNames(repositoryPath);
+    const repositoryPath = generateRepositoryPath(repository);
+    const branchNames = await getBranchNames(repositoryPath);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {branchNames}));
 }
@@ -62,12 +89,22 @@ export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, r
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username, name});
     try
     {
-        const commit = await Git.getLastCommitInfo(repositoryPath, commitHash, filePath);
-        return new ServiceResponse<Commit>(200, {},
-            new ResponseBody<Commit>(true, '', commit));
+        if (filePath !== undefined)
+        {
+            const commit = await getFileLastCommit(repositoryPath, commitHash, filePath);
+            return new ServiceResponse<Commit>(200, {},
+                new ResponseBody<Commit>(true, '', commit));
+        }
+        else
+        {
+            const commit = await getLastCommit(repositoryPath, commitHash);
+            return new ServiceResponse<Commit>(200, {},
+                new ResponseBody<Commit>(true, '', commit));
+        }
+
     }
     catch (e)
     {
@@ -88,10 +125,10 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username, name});
     try
     {
-        const fileCommitInfoList = await Git.getFileCommitInfoList(repositoryPath, commitHash, directoryPath);
+        const fileCommitInfoList = await getPathInfo(repositoryPath, commitHash, directoryPath);
 
         // 对获取的数组进行排序，类型为 TREE 的在前，BLOB 的在后
         fileCommitInfoList.sort((a, b) =>
@@ -139,10 +176,10 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username, name});
     try
     {
-        const commitCount = await Git.getCommitCount(repositoryPath, commitHash);
+        const commitCount = await getCommitCount(repositoryPath, commitHash);
         return new ServiceResponse<{ commitCount: number }>(200, {},
             new ResponseBody<{ commitCount: number }>(true, '', {commitCount}));
     }
@@ -164,10 +201,10 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username, name});
     try
     {
-        if (!(await Git.objectExists(repositoryPath, filePath, commitHash)))
+        if (!(await fileExists(repositoryPath, filePath, commitHash)))
         {
             return new ServiceResponse(200, {},
                 new ResponseBody(true, '', {exists: false}));
@@ -180,12 +217,12 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     }
 
     const [objectHash, objectType] = await Promise.all<string, ObjectType>([
-        Git.getObjectHash(repositoryPath, filePath, commitHash),
-        Git.getObjectType(repositoryPath, filePath, commitHash),
+        getFileObjectHash(repositoryPath, filePath, commitHash),
+        getFileObjectType(repositoryPath, filePath, commitHash),
     ]);
-    if (!(await Git.isBinaryObject(repositoryPath, objectHash)))
+    if (!(await isBinaryFile(repositoryPath, objectHash)))
     {
-        const size = await Git.getObjectSize(repositoryPath, objectHash);
+        const size = await getFileSize(repositoryPath, objectHash);
         return new ServiceResponse(200, {},
             new ResponseBody(
                 true, '', {
@@ -214,16 +251,16 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
     {
         return new ServiceResponse<void>(404, {});
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username, name});
     try
     {
-        if (await Git.objectExists(repositoryPath, filePath, commitHash))
+        if (await fileExists(repositoryPath, filePath, commitHash))
         {
             // 获取对象哈希
-            const objectHash = await Git.getObjectHash(repositoryPath, filePath, commitHash);
+            const objectHash = await getFileObjectHash(repositoryPath, filePath, commitHash);
             return new ServiceResponse<Readable>(200,
                 {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
-                Git.getObjectReadStream(repositoryPath, objectHash));
+                getFileReadStream(repositoryPath, objectHash));
         }
         else
         {
@@ -254,8 +291,8 @@ export async function setName(repository: Readonly<Pick<Repository, 'name'>>, ne
             new ResponseBody<void>(false, '仓库名已存在'));
     }
 
-    const repositoryPath = Git.generateRepositoryPath({username, name: repositoryName});
-    const newRepoPath = Git.generateRepositoryPath({username, name: newRepositoryName});
+    const repositoryPath = generateRepositoryPath({username, name: repositoryName});
+    const newRepoPath = generateRepositoryPath({username, name: newRepositoryName});
     try
     {
         await fse.copy(repositoryPath, newRepoPath, {
@@ -367,8 +404,8 @@ export async function commitHistoryBetweenCommits(repository: Pick<Repository, '
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const commits = await Git.getRepositoryCommitHistoryBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
+    const repositoryPath = generateRepositoryPath(repository);
+    const commits = await getRepositoryCommitsBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -381,8 +418,8 @@ export async function commitHistory(repository: Pick<Repository, 'username' | 'n
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const commits = await Git.getRepositoryCommitHistory(repositoryPath, targetCommitHash);
+    const repositoryPath = generateRepositoryPath(repository);
+    const commits = await getRepositoryCommits(repositoryPath, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -395,8 +432,8 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const commits = await Git.getFileCommitHistoryBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const repositoryPath = generateRepositoryPath(repository);
+    const commits = await getFileCommitsBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -409,8 +446,8 @@ export async function fileCommitHistory(repository: Pick<Repository, 'username' 
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const commits = await Git.getFileCommitHistory(repositoryPath, filePath, targetCommitHash);
+    const repositoryPath = generateRepositoryPath(repository);
+    const commits = await getFileCommits(repositoryPath, filePath, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -423,11 +460,11 @@ export async function diffBetweenCommits(repository: Pick<Repository, 'username'
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const diffFiles = await Git.getDiffFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
+    const repositoryPath = generateRepositoryPath(repository);
+    const diffFiles = await getChangedFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
     const fileDiffs = await Promise.all(diffFiles.map(
         async filePath =>
-            await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash)),
+            await getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash)),
     );
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {diff: fileDiffs}));
@@ -441,8 +478,8 @@ export async function fileDiffBetweenCommits(repository: Pick<Repository, 'usern
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const diff = await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const repositoryPath = generateRepositoryPath(repository);
+    const diff = await getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {diff}));
 }
@@ -455,10 +492,10 @@ export async function commit(repository: Pick<Repository, 'username' | 'name'>, 
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
+    const repositoryPath = generateRepositoryPath(repository);
     const [commit, diff] = await Promise.all([
-        Git.getCommitInfo(repositoryPath, commitHash),
-        Git.getCommitDiff(repositoryPath, commitHash),
+        getCommit(repositoryPath, commitHash),
+        getCommitFileDiffs(repositoryPath, commitHash),
     ]);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commit, diff}));
@@ -472,10 +509,10 @@ export async function fileCommit(repository: Pick<Repository, 'username' | 'name
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath(repository);
+    const repositoryPath = generateRepositoryPath(repository);
     const [commit, diff] = await Promise.all([
-        Git.getCommitInfo(repositoryPath, commitHash),
-        Git.getFileDiffInfo(repositoryPath, filePath, commitHash),
+        getCommit(repositoryPath, commitHash),
+        getFileDiff(repositoryPath, filePath, commitHash),
     ]);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commit, diff}));
@@ -576,17 +613,17 @@ export async function forkCommitHistory(sourceRepository: Readonly<Pick<Reposito
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
     }
     // 检查分支存在性
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    const targetRepositoryPath = Git.generateRepositoryPath({
+    const targetRepositoryPath = generateRepositoryPath({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
     const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
-        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
-        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+        hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        hasBranch(targetRepositoryPath, targetRepositoryBranch),
     ]);
     if (!sourceRepositoryHasBranch)
     {
@@ -599,7 +636,7 @@ export async function forkCommitHistory(sourceRepository: Readonly<Pick<Reposito
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
     }
     // 获取提交历史
-    const commits = await Git.getCommitHistoryBetweenRepositories(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    const commits = await getCommitsBetweenForks(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -624,17 +661,17 @@ export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, '
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
     }
     // 检查分支存在性
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    const targetRepositoryPath = Git.generateRepositoryPath({
+    const targetRepositoryPath = generateRepositoryPath({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
     const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
-        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
-        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+        hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        hasBranch(targetRepositoryPath, targetRepositoryBranch),
     ]);
     if (!sourceRepositoryHasBranch)
     {
@@ -647,7 +684,7 @@ export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, '
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
     }
     // 获取文件差异
-    const fileDiffs = await Git.getFileDiffBetweenRepositories(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    const fileDiffs = await getFileDiffsBetweenForks(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {fileDiffs}));
 }

@@ -3,6 +3,8 @@ import * as Authentication from './Authentication';
 import {Account as AccountTable, Collaborate as CollaborateTable, PullRequest as PullRequestTable} from '../Database';
 import {redis} from '../Singleton';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
+import path from 'path';
+import {GIT} from '../CONFIG';
 
 export async function repositoryIsAvailableToTheViewer(repository: Readonly<Repository | null>, viewer: Readonly<{ username?: Account['username'] }>): Promise<boolean>
 {
@@ -165,4 +167,10 @@ export async function closePullRequestWithBranch(repository: Readonly<Pick<Repos
     await Promise.all(pullRequests.map(async ({id}) =>
         await PullRequestTable.update({status: PULL_REQUEST_STATUS.CLOSED},
             {id})));
+}
+
+export function generateRepositoryPath(repository: Readonly<Pick<Repository, 'username' | 'name'>>): string
+{
+    const {username, name} = repository;
+    return path.join(GIT.ROOT, username, `${name}.git`);
 }

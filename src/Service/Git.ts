@@ -1,10 +1,12 @@
 import fs from 'fs';
-import {Git, Repository as RepositoryFunction} from '../Function';
+import {Repository as RepositoryFunction} from '../Function';
 import mime from 'mime-types';
 import {Repository, ServiceResponse} from '../Class';
 import path from 'path';
 import {Repository as RepositoryTable} from '../Database';
 import {Readable} from 'stream';
+import {generateRepositoryPath} from '../Function/Repository';
+import {doAdvertiseRPCCall, doRPCCall, doUpdateServerInfo, getBranchNames} from '../Git';
 
 export async function file(repository: Readonly<Pick<Repository, 'username' | 'name'>>, filePath: string, headers: Readonly<any>): Promise<ServiceResponse<Readable | string>>
 {
@@ -20,7 +22,7 @@ export async function file(repository: Readonly<Pick<Repository, 'username' | 'n
 
     return new Promise(resolve =>
     {
-        const repositoryPath = Git.generateRepositoryPath(repository);
+        const repositoryPath = generateRepositoryPath(repository);
         const absoluteFilePath = path.join(repositoryPath, filePath);
         const readStream = fs.createReadStream(absoluteFilePath);
 
@@ -56,8 +58,8 @@ export async function advertise(repository: Readonly<Pick<Repository, 'username'
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const RPCCallOutput = await Git.doAdvertiseRPCCall(repositoryPath, service);
+    const repositoryPath = generateRepositoryPath(repository);
+    const RPCCallOutput = await doAdvertiseRPCCall(repositoryPath, service);
 
     return new ServiceResponse<string | void>(200, {
         'Content-Type': `application/x-${service}-advertisement`,
@@ -82,17 +84,17 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
-    const repositoryPath = Git.generateRepositoryPath(repository);
-    const prevBranchNames = await Git.getBranchNames(repositoryPath);
-    const RPCCallOutputStream = Git.doRPCCall(repositoryPath, command, parameterStream);
+    const repositoryPath = generateRepositoryPath(repository);
+    const prevBranchNames = await getBranchNames(repositoryPath);
+    const RPCCallOutputStream = doRPCCall(repositoryPath, command, parameterStream);
 
     RPCCallOutputStream.on('close', async () =>
     {
         if (command === 'receive-pack')
         {
-            await Git.doUpdateServerInfo(repositoryPath);
+            await doUpdateServerInfo(repositoryPath);
             // 检查是不是有分支被删除，关闭相关 PR
-            const branchNames = await Git.getBranchNames(repositoryPath);
+            const branchNames = await getBranchNames(repositoryPath);
             if (branchNames.length !== prevBranchNames.length)
             {
                 await Promise.all(prevBranchNames.map(async branchName =>

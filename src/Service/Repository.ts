@@ -3,9 +3,11 @@ import {Repository as RepositoryTable} from '../Database';
 import {SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
-import {Git, Repository as RepositoryFunction, Session as SessionFunction} from '../Function';
+import {Repository as RepositoryFunction, Session as SessionFunction} from '../Function';
 import {Session} from 'koa-session';
 import fse from 'fs-extra';
+import {generateRepositoryPath} from '../Function/Repository';
+import {cloneBareRepository, hasBranch, isMergeable as isMergeable1} from '../Git';
 
 export async function create(repository: Readonly<Omit<Repository, 'username'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
@@ -17,7 +19,7 @@ export async function create(repository: Readonly<Omit<Repository, 'username'>>,
         return new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, '仓库已存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username, name});
 
     // 尝试创建文件夹及 git 裸仓库，并创建数据库记录
     try
@@ -77,7 +79,7 @@ export async function del(repository: Readonly<Pick<Repository, 'name'>>, sessio
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
-    const repositoryPath = Git.generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username, name});
     /*
     * 删除采用以下步骤：
     * 1. 创建一个临时文件夹
@@ -164,11 +166,11 @@ export async function fork(sourceRepository: Pick<Repository, 'username' | 'name
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false, '已存在同名仓库'));
     }
-    const sourceRepositoryPath = Git.generateRepositoryPath(sourceRepository);
-    const targetRepositoryPath = Git.generateRepositoryPath({username: usernameInSession, name});
+    const sourceRepositoryPath = generateRepositoryPath(sourceRepository);
+    const targetRepositoryPath = generateRepositoryPath({username: usernameInSession, name});
     try
     {
-        await Git.cloneBareRepository(sourceRepositoryPath, targetRepositoryPath);
+        await cloneBareRepository(sourceRepositoryPath, targetRepositoryPath);
         await RepositoryTable.fork(sourceRepository, {username: usernameInSession, name});
     }
     catch (e)
@@ -204,17 +206,17 @@ export async function isMergeable(sourceRepository: Readonly<Pick<Repository, 'u
                 `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
     }
     // 检查分支是否存在
-    const sourceRepositoryPath = Git.generateRepositoryPath({
+    const sourceRepositoryPath = generateRepositoryPath({
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    const targetRepositoryPath = Git.generateRepositoryPath({
+    const targetRepositoryPath = generateRepositoryPath({
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
     const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
-        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
-        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+        hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        hasBranch(targetRepositoryPath, targetRepositoryBranch),
     ]);
     if (!sourceRepositoryHasBranch)
     {
@@ -229,7 +231,7 @@ export async function isMergeable(sourceRepository: Readonly<Pick<Repository, 'u
                 `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
     }
     // 查看是否可合并
-    const isMergeable = await Git.isMergeable(sourceRepositoryPath, sourceRepositoryBranch, targetRepositoryPath, targetRepositoryBranch);
+    const isMergeable = await isMergeable1(sourceRepositoryPath, sourceRepositoryBranch, targetRepositoryPath, targetRepositoryBranch);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {isMergeable}));
 }

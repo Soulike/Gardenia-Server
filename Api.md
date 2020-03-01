@@ -563,7 +563,7 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
     json: {
         account: Pick<Account, 'username'>,
         repository: Pick<Repository, 'name'>,
-        commitHash: string,
+        branch: string,
         filePath?: string,      // 文件，相对路径
     }
 }
