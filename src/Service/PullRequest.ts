@@ -94,7 +94,6 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
     }
     // 创建 PR
     const maxNo = await PullRequestTable.selectMaxNoOfRepository({
-        sourceRepositoryUsername, sourceRepositoryName,
         targetRepositoryUsername, targetRepositoryName,
     });
     await PullRequestTable.insertAndReturnId(new PullRequest(

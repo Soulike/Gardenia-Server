@@ -78,11 +78,11 @@ export async function count(pullRequest: Readonly<Partial<PullRequest>>): Promis
 /**
  * @description 获取某个仓库 PR 目前的最大编号（no）
  * */
-export async function selectMaxNoOfRepository(pullRequest: Readonly<Pick<PullRequest, 'sourceRepositoryUsername' | 'sourceRepositoryName' | 'targetRepositoryUsername' | 'targetRepositoryName'>>): Promise<number>
+export async function selectMaxNoOfRepository(pullRequest: Readonly<Pick<PullRequest, 'targetRepositoryUsername' | 'targetRepositoryName'>>): Promise<number>
 {
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(pullRequest, 'AND');
     const {rows} = await pool.query(
-        `SELECT CASE COUNT("no") WHEN 0 THEN 0 ELSE MAX("no") END AS "maxNo"FROM "pull-requests" WHERE ${parameterizedStatement}`,
+        `SELECT CASE COUNT("no") WHEN 0 THEN 0 ELSE MAX("no") END AS "maxNo" FROM "pull-requests" WHERE ${parameterizedStatement}`,
         values);
     return Number.parseInt(rows[0]['maxNo']);
 }
