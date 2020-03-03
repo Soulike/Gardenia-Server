@@ -123,13 +123,43 @@ export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseR
         // 得到源仓库分支到目标仓库分支的历史
         // 查看两个分支之间有没有提交差异
         const commits = await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
-        if (commits.length > 1)   // 如果有，产生合并提交查看合并提交的差异
+        if (commits.length > 0)   // 如果有，产生合并提交查看合并提交的差异
         {
-            return await getFileDiffsBetweenCommits(tempRepositoryPath, commits[commits.length - 1].commitHash, commits[0].commitHash);
+            return await getFileDiffsBetweenCommits(tempRepositoryPath, `${commits[commits.length - 1].commitHash}~`, commits[0].commitHash);
         }
-        else if (commits.length === 1)   // 如果只有一个提交记录，需要特殊处理
+        else    // 没有提交差异，返回空
         {
-            return await getCommitFileDiffs(tempRepositoryPath, commits[0].commitHash);
+            return [];
+        }
+    }
+    finally
+    {
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
+        }
+    }
+}
+
+/**
+ * @description 获取两仓库提交之间的文件差异
+ * */
+export async function getFileDiffsBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string): Promise<FileDiff[]>
+{
+    let tempRepositoryPath = '';
+    try
+    {
+        // 复制源仓库
+        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath);
+        // fetch 目标仓库
+        const tempSourceRemoteName = `remote_${Date.now()}`;
+        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+        // 得到源仓库分支到目标仓库分支的历史
+        // 查看两个提交之间的提交差异
+        const commits = await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
+        if (commits.length > 0)   // 如果有，产生合并提交查看合并提交的差异
+        {
+            return await getFileDiffsBetweenCommits(tempRepositoryPath, `${commits[commits.length - 1].commitHash}~`, commits[0].commitHash);
         }
         else    // 没有提交差异，返回空
         {

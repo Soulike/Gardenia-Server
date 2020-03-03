@@ -17,14 +17,14 @@ export const add: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {
-            sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-            targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+            sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+            targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
             content, title,
         } = ctx.request.body;
         const {username} = ctx.session;
         ctx.state.serviceResponse = await PullRequestService.add({
-            sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-            targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+            sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+            targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
             content, title,
         }, username!);
     };
@@ -238,5 +238,33 @@ export const resolveConflicts: IRouteHandler = () =>
         const {pullRequest, conflicts} = ctx.request.body;
         const {username} = ctx.session;
         ctx.state.serviceResponse = await PullRequestService.resolveConflicts(pullRequest, conflicts, username!);
+    };
+};
+
+export const getCommits: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.getCommits(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.getCommits({id}, username!);
+    };
+};
+
+export const getFileDiffs: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.getFileDiffs(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.getFileDiffs({id}, username!);
     };
 };

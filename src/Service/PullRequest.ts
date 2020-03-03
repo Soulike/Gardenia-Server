@@ -1,6 +1,8 @@
 import {
     Account,
+    Commit,
     Conflict,
+    FileDiff,
     PullRequest,
     PullRequestComment,
     Repository,
@@ -20,11 +22,11 @@ import {PULL_REQUEST_STATUS} from '../CONSTANT';
 import {generateRepositoryPath} from '../Function/Repository';
 import * as Git from '../Git';
 
-export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creationTime' | 'modificationTime' | 'status'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
     const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
         content, title,
     } = pullRequest;
     // 检查源仓库存在性，检查是否有创建 PR 的权限
@@ -77,29 +79,33 @@ export async function add(pullRequest: Omit<PullRequest, 'id' | 'no' | 'creation
         name: targetRepositoryName,
     });
     const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
-        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
-        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranchName),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranchName),
     ]);
     if (!sourceRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 不存在`));
+                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranchName} 不存在`));
     }
     else if (!targetRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
+                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranchName} 不存在`));
     }
     // 创建 PR
+    // 获取编号
     const maxNo = await PullRequestTable.selectMaxNoOfRepository({
         targetRepositoryUsername, targetRepositoryName,
     });
+    // 获取双方 commit hash
+    const sourceRepositoryCommitHash = await Git.getLastCommitHash(sourceRepositoryPath, sourceRepositoryBranchName);
+    const targetRepositoryCommitHash = await Git.getLastCommitHash(targetRepositoryPath, targetRepositoryBranchName);
     await PullRequestTable.insertAndReturnId(new PullRequest(
         undefined, maxNo + 1,
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName, sourceRepositoryCommitHash,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, targetRepositoryCommitHash,
         Date.now(), Date.now(), title, content, PULL_REQUEST_STATUS.OPEN),
     );
     return new ServiceResponse<void>(200, {},
@@ -174,8 +180,8 @@ export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, use
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
     } = pullRequests[0];
     // 检查源仓库、源仓库的分支、目标仓库的分支是否还都存在
     const sourceRepositoryAmount = await RepositoryTable.count({
@@ -196,20 +202,20 @@ export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, use
         name: targetRepositoryName,
     });
     const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
-        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
-        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranchName),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranchName),
     ]);
     if (!sourceRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 已不存在`));
+                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranchName} 已不存在`));
     }
     else if (!targetRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 已不存在`));
+                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranchName} 已不存在`));
     }
     // 检查是不是目标仓库的合作者或 PR 创建者
     const targetRepositoryCollaboration = await CollaborateTable.select({
@@ -240,8 +246,8 @@ export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch, status,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, status,
     } = pullRequests[0];
     // 检查是不是开启状态
     if (status !== PULL_REQUEST_STATUS.OPEN)
@@ -259,25 +265,25 @@ export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>
         name: targetRepositoryName,
     });
     const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
-        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
-        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranchName),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranchName),
     ]);
     if (!sourceRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 不存在`));
+                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranchName} 不存在`));
     }
     else if (!targetRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
+                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranchName} 不存在`));
     }
     // 检查是否可合并
     const isMergeable = await Git.isMergeable(
-        sourceRepositoryPath, sourceRepositoryBranch,
-        targetRepositoryPath, targetRepositoryBranch,
+        sourceRepositoryPath, sourceRepositoryBranchName,
+        targetRepositoryPath, targetRepositoryBranchName,
     );
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {isMergeable}));
@@ -294,8 +300,8 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
         title, status,
     } = pullRequests[0];
     // 检查是不是开启状态
@@ -328,26 +334,26 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
         name: targetRepositoryName,
     });
     const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
-        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
-        Git.hasBranch(targetRepositoryPath, targetRepositoryBranch),
+        Git.hasBranch(sourceRepositoryPath, sourceRepositoryBranchName),
+        Git.hasBranch(targetRepositoryPath, targetRepositoryBranchName),
     ]);
     if (!sourceRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 不存在`));
+                `${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranchName} 不存在`));
     }
     else if (!targetRepositoryHasBranch)
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false,
-                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
+                `${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranchName} 不存在`));
     }
 
     // 检查是否可合并
     const isMergeable = await Git.isMergeable(
-        sourceRepositoryPath, sourceRepositoryBranch,
-        targetRepositoryPath, targetRepositoryBranch,
+        sourceRepositoryPath, sourceRepositoryBranchName,
+        targetRepositoryPath, targetRepositoryBranchName,
     );
     if (!isMergeable)
     {
@@ -356,8 +362,8 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     }
     // 进行合并操作
     await Git.merge(
-        sourceRepositoryPath, sourceRepositoryBranch,
-        targetRepositoryPath, targetRepositoryBranch,
+        sourceRepositoryPath, sourceRepositoryBranchName,
+        targetRepositoryPath, targetRepositoryBranchName,
         `合并 Pull Request #${id}\n\n${title}`,
     );
     // merge 成功再改动数据库
@@ -560,8 +566,8 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
         status,
     } = pullRequests[0];
     // 查看是不是开启状态
@@ -593,8 +599,8 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
         name: targetRepositoryName,
     });
     const conflicts = await Git.getConflicts(
-        sourceRepositoryPath, sourceRepositoryBranch,
-        targetRepositoryPath, targetRepositoryBranch);
+        sourceRepositoryPath, sourceRepositoryBranchName,
+        targetRepositoryPath, targetRepositoryBranchName);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {conflicts}));
 }
@@ -611,7 +617,7 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
     }
 
     const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
         targetRepositoryUsername, targetRepositoryName, no, status,
     } = pullRequests[0];
     // 查看是不是开启状态
@@ -652,8 +658,96 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
         username: sourceRepositoryUsername,
         name: sourceRepositoryName,
     });
-    await Git.resolveConflicts(sourceRepositoryPath, sourceRepositoryBranch,
+    await Git.resolveConflicts(sourceRepositoryPath, sourceRepositoryBranchName,
         conflicts, {no});
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
+}
+
+export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看访问权限
+    const {
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryCommitHash,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryCommitHash,
+    } = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    const sourceRepositoryPath = generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    // 获取提交历史
+    const commits = await Git.getCommitsBetweenRepositoriesCommits(
+        targetRepositoryPath, targetRepositoryCommitHash,
+        sourceRepositoryPath, sourceRepositoryCommitHash,
+    );
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commits}));
+}
+
+export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看访问权限
+    const {
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryCommitHash,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryCommitHash,
+    } = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    const sourceRepositoryPath = generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    // 获取提交历史
+    const fileDiffs = await Git.getFileDiffsBetweenRepositoriesCommits(
+        targetRepositoryPath, targetRepositoryCommitHash,
+        sourceRepositoryPath, sourceRepositoryCommitHash,
+    );
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {fileDiffs}));
 }

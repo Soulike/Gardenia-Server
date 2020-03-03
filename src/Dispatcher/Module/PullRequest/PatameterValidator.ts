@@ -5,14 +5,14 @@ import {PULL_REQUEST_STATUS} from '../../../CONSTANT';
 export const add: IParameterValidator = body =>
 {
     const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
         content, title,
     } = body;
     return PullRequest.validate(new PullRequest(
         undefined, 1,
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranch,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranch,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName, '',
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, '',
         0, 0, title, content, PULL_REQUEST_STATUS.OPEN,
     ));
 };
@@ -32,8 +32,8 @@ export const update: IParameterValidator = body =>
     }
     const {title, content} = pullRequest;
     return PullRequest.validate(new PullRequest(id, 0,
-        '', '', '',
-        '', '', '',
+        '', '', '', '',
+        '', '', '', '',
         0, 0, title, content, PULL_REQUEST_STATUS.OPEN));
 };
 
@@ -45,8 +45,8 @@ export const close: IParameterValidator = body =>
         return false;
     }
     return PullRequest.validate(new PullRequest(id, 0,
-        '', '', '',
-        '', '', '',
+        '', '', '', '',
+        '', '', '', '',
         0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 
@@ -64,7 +64,7 @@ export const get: IParameterValidator = body =>
     const {username, name} = repository;
     const {no} = pullRequest;
     return Repository.validate(new Repository(username, name, '', false))
-        && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+        && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 
 export const getByRepository: IParameterValidator = body =>
@@ -131,8 +131,8 @@ export const resolveConflicts: IParameterValidator = body =>
     }
     const {id} = pullRequest;
     if (id === undefined || !PullRequest.validate(new PullRequest(id, 0,
-        '', '', '',
-        '', '', '',
+        '', '', '', '',
+        '', '', '', '',
         0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
     {
         return false;
@@ -146,3 +146,6 @@ export const resolveConflicts: IParameterValidator = body =>
     }
     return true;
 };
+
+export const getCommits: IParameterValidator = close;
+export const getFileDiffs: IParameterValidator = close;

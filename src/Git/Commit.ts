@@ -211,10 +211,10 @@ export async function getFileFirstCommitHash(repositoryPath: string, filePath: s
 /**
  * @description 获取最后一次提交的 hash
  * */
-export async function getLastCommitHash(repositoryPath: string): Promise<string>
+export async function getLastCommitHash(repositoryPath: string, branchName: string): Promise<string>
 {
     return (await execPromise(
-        `git log --pretty=format:'%H' | head -1`
+        `git log --pretty=format:'%H' ${branchName} | head -1`
         , {cwd: repositoryPath})).trim();
 }
 
@@ -226,4 +226,29 @@ export async function getFileLastCommitHash(repositoryPath: string, filePath: st
     return (await execPromise(
         `git log --pretty=format:'%H' -- ${filePath} | tail -1`
         , {cwd: repositoryPath})).trim();
+}
+
+/**
+ * @description 获取两仓库提交之间的提交历史
+ * */
+export async function getCommitsBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string): Promise<Commit[]>
+{
+    let tempRepositoryPath = '';
+    try
+    {
+        // 复制源仓库
+        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath);
+        // fetch 目标仓库
+        const tempSourceRemoteName = `remote_${Date.now()}`;
+        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+        // 得到历史
+        return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
+    }
+    finally
+    {
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
+        }
+    }
 }

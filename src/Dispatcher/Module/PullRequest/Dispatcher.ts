@@ -7,7 +7,9 @@ import {
     GET,
     GET_BY_REPOSITORY,
     GET_COMMENTS,
+    GET_COMMITS,
     GET_CONFLICTS,
+    GET_FILE_DIFFS,
     GET_PULL_REQUEST_AMOUNT,
     IS_MERGEABLE,
     MERGE,
@@ -24,7 +26,9 @@ import {
     get,
     getByRepository,
     getComments,
+    getCommits,
     getConflicts,
+    getFileDiffs,
     getPullRequestAmount,
     isMergeable,
     merge,
@@ -50,5 +54,7 @@ export default (router: Router<IState, IContext>) =>
         .post(UPDATE_COMMENT, bodyParser(), updateComment())
         .get(GET_COMMENTS, JSONQuerystringParser(), getComments())
         .get(GET_CONFLICTS, JSONQuerystringParser(), getConflicts())
-        .post(RESOLVE_CONFLICTS, bodyParser(), resolveConflicts());
+        .post(RESOLVE_CONFLICTS, bodyParser(), resolveConflicts())
+        .get(GET_COMMITS, JSONQuerystringParser(), getCommits())
+        .get(GET_FILE_DIFFS, JSONQuerystringParser(), getFileDiffs());
 }

@@ -153,13 +153,13 @@ export async function closePullRequestWithBranch(repository: Readonly<Pick<Repos
         PullRequestTable.select({
             sourceRepositoryUsername: username,
             sourceRepositoryName: name,
-            sourceRepositoryBranch: branchName,
+            sourceRepositoryBranchName: branchName,
             status: PULL_REQUEST_STATUS.OPEN,
         }),
         PullRequestTable.select({
             targetRepositoryUsername: username,
             targetRepositoryName: name,
-            targetRepositoryBranch: branchName,
+            targetRepositoryBranchName: branchName,
             status: PULL_REQUEST_STATUS.OPEN,
         }),
     ]);

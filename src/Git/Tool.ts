@@ -3,6 +3,8 @@ import fse from 'fs-extra';
 import {ObjectType} from '../CONSTANT';
 import {Commit} from '../Class';
 import {getFileLastCommit} from './Commit';
+import os from 'os';
+import path from 'path';
 
 /**
  * @description 克隆裸仓库
@@ -15,12 +17,12 @@ export async function cloneBareRepository(sourceRepositoryPath: string, targetRe
 /**
  * @description 克隆一个临时的工作区仓库，返回临时仓库路径
  * */
-export async function makeTemporaryRepository(repositoryPath: string, branch: string): Promise<string>
+export async function makeTemporaryRepository(repositoryPath: string, branch?: string): Promise<string>
 {
-    const tempRepositoryPath = await fse.promises.mkdtemp('repository_');
+    const tempRepositoryPath = await fse.promises.mkdtemp(path.join(os.tmpdir(), 'gardenia_repository_'));
     try
     {
-        await execPromise(`git clone -b ${branch} ${repositoryPath} ${tempRepositoryPath}`);
+        await execPromise(`git clone ${branch ? `-b ${branch}` : ''} ${repositoryPath} ${tempRepositoryPath}`);
         return tempRepositoryPath;
     }
     catch (e)   // 如果克隆出问题，那么需要删除产生的临时文件夹

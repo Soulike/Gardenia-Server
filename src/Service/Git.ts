@@ -5,8 +5,7 @@ import {Repository, ServiceResponse} from '../Class';
 import path from 'path';
 import {Repository as RepositoryTable} from '../Database';
 import {Readable} from 'stream';
-import {generateRepositoryPath} from '../Function/Repository';
-import {doAdvertiseRPCCall, doRPCCall, doUpdateServerInfo, getBranchNames} from '../Git';
+import {doAdvertiseRPCCall, doRPCCall, doUpdateServerInfo, getBranchNames, updateRelatedPullRequest} from '../Git';
 
 export async function file(repository: Readonly<Pick<Repository, 'username' | 'name'>>, filePath: string, headers: Readonly<any>): Promise<ServiceResponse<Readable | string>>
 {
@@ -22,7 +21,7 @@ export async function file(repository: Readonly<Pick<Repository, 'username' | 'n
 
     return new Promise(resolve =>
     {
-        const repositoryPath = generateRepositoryPath(repository);
+        const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
         const absoluteFilePath = path.join(repositoryPath, filePath);
         const readStream = fs.createReadStream(absoluteFilePath);
 
@@ -58,7 +57,7 @@ export async function advertise(repository: Readonly<Pick<Repository, 'username'
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
-    const repositoryPath = generateRepositoryPath(repository);
+    const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
     const RPCCallOutput = await doAdvertiseRPCCall(repositoryPath, service);
 
     return new ServiceResponse<string | void>(200, {
@@ -84,7 +83,7 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
-    const repositoryPath = generateRepositoryPath(repository);
+    const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
     const prevBranchNames = await getBranchNames(repositoryPath);
     const RPCCallOutputStream = doRPCCall(repositoryPath, command, parameterStream);
 
@@ -93,6 +92,7 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
         if (command === 'receive-pack')
         {
             await doUpdateServerInfo(repositoryPath);
+            await updateRelatedPullRequest(repository);
             // 检查是不是有分支被删除，关闭相关 PR
             const branchNames = await getBranchNames(repositoryPath);
             if (branchNames.length !== prevBranchNames.length)

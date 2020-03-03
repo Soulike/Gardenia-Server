@@ -88,19 +88,21 @@ CREATE TABLE IF NOT EXISTS "forks"
 
 CREATE TABLE IF NOT EXISTS "pull-requests"
 (
-    "id"                       BIGSERIAL, /*唯一的标志 ID*/
-    "no"                       BIGINT       NOT NULL, /*在目标仓库下的编号*/
-    "sourceRepositoryUsername" VARCHAR(255),
-    "sourceRepositoryName"     VARCHAR(255),
-    "sourceRepositoryBranch"   VARCHAR(255),
-    "targetRepositoryUsername" VARCHAR(255),
-    "targetRepositoryName"     VARCHAR(255),
-    "targetRepositoryBranch"   VARCHAR(255),
-    "creationTime"             BIGINT       NOT NULL,
-    "modificationTime"         BIGINT       NOT NULL,
-    "title"                    VARCHAR(255) NOT NULL,
-    "content"                  TEXT         NOT NULL,
-    "status"                   VARCHAR(255) NOT NULL,
+    "id"                         BIGSERIAL    NOT NULL, /*唯一的标志 ID*/
+    "no"                         BIGINT       NOT NULL, /*在目标仓库下的编号*/
+    "sourceRepositoryUsername"   VARCHAR(255) NOT NULL,
+    "sourceRepositoryName"       VARCHAR(255) NOT NULL,
+    "sourceRepositoryBranchName" VARCHAR(255) NOT NULL,
+    "sourceRepositoryCommitHash" CHAR(40)     NOT NULL,
+    "targetRepositoryUsername"   VARCHAR(255) NOT NULL,
+    "targetRepositoryName"       VARCHAR(255) NOT NULL,
+    "targetRepositoryBranchName" VARCHAR(255) NOT NULL,
+    "targetRepositoryCommitHash" CHAR(40)     NOT NULL,
+    "creationTime"               BIGINT       NOT NULL,
+    "modificationTime"           BIGINT       NOT NULL,
+    "title"                      VARCHAR(255) NOT NULL,
+    "content"                    TEXT         NOT NULL,
+    "status"                     VARCHAR(255) NOT NULL,
     PRIMARY KEY ("id"),
     FOREIGN KEY ("sourceRepositoryUsername", "sourceRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ("targetRepositoryUsername", "targetRepositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
@@ -111,12 +113,12 @@ CREATE TABLE IF NOT EXISTS "pull-requests"
 
 CREATE TABLE IF NOT EXISTS "pull-request-comments"
 (
-    "id"               BIGSERIAL,
-    "username"         VARCHAR(255),
-    "belongsTo"        BIGINT,
-    "content"          TEXT   NOT NULL,
-    "creationTime"     BIGINT NOT NULL,
-    "modificationTime" BIGINT NOT NULL,
+    "id"               BIGSERIAL    NOT NULL,
+    "username"         VARCHAR(255) NOT NULL,
+    "belongsTo"        BIGINT       NOT NULL,
+    "content"          TEXT         NOT NULL,
+    "creationTime"     BIGINT       NOT NULL,
+    "modificationTime" BIGINT       NOT NULL,
     PRIMARY KEY ("id"),
     FOREIGN KEY ("belongsTo") REFERENCES "pull-requests" ("id"),
     FOREIGN KEY ("username") REFERENCES "accounts" ("username")

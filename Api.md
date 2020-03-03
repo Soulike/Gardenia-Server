@@ -131,10 +131,12 @@ class Branch
     public readonly no: number;
     public readonly sourceRepositoryUsername: string;
     public readonly sourceRepositoryName: string;
-    public readonly sourceRepositoryBranch: string;
+    public readonly sourceRepositoryBranchName: string;
+    public readonly sourceRepositoryCommitHash: string;
     public readonly targetRepositoryUsername: string;
     public readonly targetRepositoryName: string;
-    public readonly targetRepositoryBranch: string;
+    public readonly targetRepositoryBranchName: string;
+    public readonly targetRepositoryCommitHash: string;
     public readonly creationTime: number;
     public readonly modificationTime: number;
     public readonly title: string;
@@ -467,9 +469,9 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 ```ts
 {
     sourceRepository: Pick<Repository, 'username'|'name'>,
-    sourceRepositoryBranch: string,
+    sourceRepositoryBranchName: string,
     targetRepository: Pick<Repository, 'username'|'name'>,
-    targetRepositoryBranch: string,
+    targetRepositoryBranchName: string,
 }
 ```
 - 响应体：
@@ -996,9 +998,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     sourceRepository: Pick<Repository, 'username' | 'name'>,
-    sourceRepositoryBranch: string,
+    sourceRepositoryBranchName: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
-    targetRepositoryBranch: string,
+    targetRepositoryBranchName: string,
 }
 ```
 - 响应体：
@@ -1020,9 +1022,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     sourceRepository: Pick<Repository, 'username' | 'name'>,
-    sourceRepositoryBranch: string,
+    sourceRepositoryBranchName: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
-    targetRepositoryBranch: string,
+    targetRepositoryBranchName: string,
 }
 ```
 - 响应体：
@@ -1542,7 +1544,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：添加 Pull Request
 - 方法：POST
-- 请求体：`Omit<PullRequest, 'id' | 'no' | 'creationTime' | 'modificationTime' | 'status'>`
+- 请求体：`Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>`
 - 响应体：无
 - 响应消息：
   - 仓库 `${username}/${name}` 不存在
@@ -1765,4 +1767,34 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 存在二进制文件冲突，请使用命令行解决
   - 只有 Pull Request 的创建者可解决冲突
   - Pull Request 已关闭
+- 其他说明：无
+
+#### `/getCommits`
+
+- 功能：获取 Pull Request 的提交历史
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+- 其他说明：无
+
+#### `/getFileDiffs`
+
+- 功能：获取 Pull Request 的文件差异
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    fileDiffs: FileDiff[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
 - 其他说明：无
