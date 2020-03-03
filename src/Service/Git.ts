@@ -85,8 +85,7 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
 
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
     const prevBranchNames = await getBranchNames(repositoryPath);
-    const RPCCallOutputStream = doRPCCall(repositoryPath, command, parameterStream);
-
+    const RPCCallOutputStream = await doRPCCall(repositoryPath, command, parameterStream);
     RPCCallOutputStream.on('close', async () =>
     {
         if (command === 'receive-pack')
@@ -107,7 +106,6 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
             }
         }
     });
-
     return new ServiceResponse<Readable>(200, {
         'Content-Type': `application/x-git-${command}-result`,
     }, RPCCallOutputStream);

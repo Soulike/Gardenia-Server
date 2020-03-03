@@ -8,11 +8,10 @@ import groupDispatcher from './Module/Group';
 import starDispatcher from './Module/Star';
 import collaborateDispatcher from './Module/Collaborate';
 import pullRequestDispatcher from './Module/PullRequest';
-import http from 'http';
 import {IContext, IState} from './Interface';
 
 const router = new Router<IState, IContext>({
-    methods: http.METHODS,
+    methods: ['head', 'get', 'post'],
 });
 
 // 在此注入 router 到各个 dispatcher
