@@ -14,12 +14,13 @@ CREATE TABLE IF NOT EXISTS  "profiles"
     "avatar"   VARCHAR(255)
 );
 
-CREATE TABLE IF NOT EXISTS  "repositories"
+CREATE TABLE IF NOT EXISTS "repositories"
 (
     "username"    VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE NOT NULL,
     "name"        VARCHAR(255)                                                      NOT NULL,
-    "description" TEXT DEFAULT ''                                                   NOT NULL,
+    "description" TEXT                                                                       DEFAULT '' NOT NULL,
     "isPublic"    BOOLEAN                                                           NOT NULL,
+    "deleted"     BOOLEAN                                                           NOT NULL DEFAULT FALSE,
     PRIMARY KEY ("username", "name")
 );
 

@@ -5,6 +5,7 @@ import {
 } from '../Function';
 import pool from '../Pool';
 import {Group, Repository, RepositoryRepository} from '../../Class';
+import {PULL_REQUEST_STATUS} from '../../CONSTANT';
 
 export async function insert(repository: Readonly<Repository>): Promise<void>
 {
@@ -23,6 +24,9 @@ export async function insert(repository: Readonly<Repository>): Promise<void>
     }
 }
 
+/**
+ * @description 做逻辑上的删除，连带和其他表相关的操作
+ * */
 export async function deleteByUsernameAndName(repository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
@@ -31,10 +35,44 @@ export async function deleteByUsernameAndName(repository: Readonly<Pick<Reposito
         const {username, name} = repository;
         await executeTransaction(client, async client =>
         {
-            await client.query(`DELETE
-                                FROM repositories
-                                WHERE "username" = $1
-                                  AND "name" = $2`, [username, name]);
+            await Promise.all([
+                // 标记删除
+                client.query(`UPDATE
+                                  repositories
+                              SET "deleted"= TRUE
+                              WHERE "username" = $1
+                                AND "name" = $2`, [username, name]),
+                // 删除 fork
+                client.query(`DELETE
+                              FROM forks
+                              WHERE ("sourceRepositoryName" = $1
+                                  AND "sourceRepositoryName" = $2)
+                                 OR ("targetRepositoryUsername" = $1
+                                  AND "targetRepositoryName" = $2)`, [username, name]),
+                // 删除 star
+                client.query(`DELETE
+                              FROM stars
+                              WHERE "repository_username" = $1
+                                AND "repository_name" = $2`, [username, name]),
+                // 删除关联合作者
+                client.query(`DELETE
+                              FROM collaborates
+                              WHERE repository_username = $1
+                                AND repository_name = $2`, [username, name]),
+                // 删除关联小组关系
+                client.query(`DELETE
+                              FROM repository_group
+                              WHERE repository_username = $1
+                                AND repository_name = $2`, [username, name]),
+                // 关闭相关 PR
+                client.query(`UPDATE "pull-requests"
+                              SET status=$1
+                              WHERE ("sourceRepositoryUsername" = $2
+                                  AND "sourceRepositoryName" = $3)
+                                 OR ("targetRepositoryUsername" = $2
+                                  AND "targetRepositoryName" = $3)`,
+                    [PULL_REQUEST_STATUS.CLOSED, username, name]),
+            ]);
         });
     }
     finally
@@ -73,7 +111,8 @@ export async function selectByUsernameAndName(repository: Readonly<Pick<Reposito
     const {rows, rowCount} = await pool.query(`SELECT *
                                                FROM repositories
                                                WHERE "username" = $1
-                                                 AND "name" = $2`, [username, name]);
+                                                 AND "name" = $2
+                                                 AND "deleted" = FALSE`, [username, name]);
     if (rowCount === 0)
     {
         return null;
@@ -93,7 +132,7 @@ export async function select(repository: Readonly<Partial<Repository>>, offset: 
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
     const parameterAmount = values.length;
     const {rows} = await pool.query(
-        `SELECT * FROM repositories WHERE ${parameterizedStatement} OFFSET $${parameterAmount + 1} LIMIT $${parameterAmount + 2}`,
+        `SELECT * FROM repositories WHERE ${parameterizedStatement} AND "deleted"=FALSE OFFSET $${parameterAmount + 1} LIMIT $${parameterAmount + 2}`,
         [...values, offset, limit]);
     return rows.map(row => Repository.from(row));
 }
@@ -106,7 +145,7 @@ export async function count(repository: Readonly<Partial<Repository>>): Promise<
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
     const {rows} = await pool.query(
-        `SELECT COUNT(*) AS "count" FROM repositories WHERE ${parameterizedStatement}`,
+        `SELECT COUNT(*) AS "count" FROM repositories WHERE ${parameterizedStatement} AND "deleted"=FALSE`,
         [...values]);
     return Number.parseInt(rows[0]['count']);
 }
@@ -117,7 +156,8 @@ export async function getGroupsByUsernameAndName(repository: Readonly<Pick<Repos
                                      FROM repositories     r,
                                           repository_group rg,
                                           groups           g
-                                     WHERE r.username = rg.repository_username
+                                     WHERE r.deleted = FALSE
+                                       AND r.username = rg.repository_username
                                        AND r.name = rg.repository_name
                                        AND rg.group_id = g.id
                                        AND r.username = $1
@@ -131,7 +171,8 @@ export async function getGroupByUsernameAndNameAndGroupId(repository: Readonly<P
                                                FROM repositories     r,
                                                     repository_group rg,
                                                     groups           g
-                                               WHERE r.username = rg.repository_username
+                                               WHERE r.deleted = FALSE
+                                                 AND r.username = rg.repository_username
                                                  AND r.name = rg.repository_name
                                                  AND rg.group_id = g.id
                                                  AND r.username = $1

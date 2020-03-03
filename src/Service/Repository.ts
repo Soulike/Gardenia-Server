@@ -79,40 +79,33 @@ export async function del(repository: Readonly<Pick<Repository, 'name'>>, sessio
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '仓库不存在'));
     }
+    const deletedName = `[deleted]${name}_${Date.now()}`;
     const repositoryPath = generateRepositoryPath({username, name});
-    /*
-    * 删除采用以下步骤：
-    * 1. 创建一个临时文件夹
-    * 2. 将仓库文件夹移动到临时文件夹
-    * 3. 删除数据库
-    * 4. 删除临时文件夹中的仓库文件夹
-    * 如果以上有任意一步失败都将仓库文件夹移动回原位。数据库出错可以自己回滚
-    * */
-
-    // 创建临时文件夹并移动仓库文件夹
-    const tempPath = await fsPromise.mkdtemp('repo-');
+    // 复制仓库到新地址
+    const newRepositoryPath = generateRepositoryPath({username, name: deletedName});
+    await fse.copy(repositoryPath, newRepositoryPath);
     try
     {
-        await fsPromise.rename(repositoryPath, tempPath);
+        // 改名
+        await RepositoryTable.update({name: deletedName}, {username, name});
+        try
+        {
+            // 在数据库中标记删除
+            await RepositoryTable.deleteByUsernameAndName({username, name: deletedName});
+        }
+        catch (e)   // 标记删除失败了，把名字改回去
+        {
+            await RepositoryTable.update({name}, {username, name: deletedName});
+            throw e;    // 需要抛到外层
+        }
     }
-    catch (e)   // 如果这一步就失败了，就直接放弃操作
+    catch (e)   // 数据库操作失败，删除复制的仓库
     {
+        await fse.remove(newRepositoryPath);
         throw e;
     }
-
-    // 文件夹移动成功，删除数据库记录
-    try
-    {
-        await RepositoryTable.deleteByUsernameAndName({username, name});
-    }
-    catch (e)   // 数据库记录删除失败，把仓库文件夹移动回去
-    {
-        await fsPromise.rename(tempPath, repositoryPath);
-        throw e;
-    }
-    // 数据库记录删除成功，删除临时文件夹
-    await fse.remove(tempPath);
-
+    // 数据库操作成功，删除原仓库
+    await fse.remove(repositoryPath);
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
