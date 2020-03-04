@@ -21,6 +21,7 @@ import {Repository as RepositoryFunction} from '../Function';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
 import {generateRepositoryPath} from '../Function/Repository';
 import * as Git from '../Git';
+import {updateRelatedPullRequest} from '../Git';
 
 export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
@@ -302,7 +303,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
-        title, status,
+        title, status, no,
     } = pullRequests[0];
     // 检查是不是开启状态
     if (status !== PULL_REQUEST_STATUS.OPEN)
@@ -364,12 +365,14 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     await Git.merge(
         sourceRepositoryPath, sourceRepositoryBranchName,
         targetRepositoryPath, targetRepositoryBranchName,
-        `合并 Pull Request #${id}\n\n${title}`,
+        `合并 Pull Request #${no}\n\n${title}`,
     );
     // merge 成功再改动数据库
     await PullRequestTable.update(
         {status: PULL_REQUEST_STATUS.MERGED},
         {id});
+    // 更新关联分支的 pr 信息
+    await updateRelatedPullRequest({username: targetRepositoryUsername, name: targetRepositoryName});
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
 }
