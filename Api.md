@@ -122,6 +122,54 @@ class Branch
 }
 ```
 
+### `PullRequest`
+
+```ts
+ class PullRequest
+{
+    public readonly id: number | undefined;
+    public readonly no: number;
+    public readonly sourceRepositoryUsername: string;
+    public readonly sourceRepositoryName: string;
+    public readonly sourceRepositoryBranchName: string;
+    public readonly sourceRepositoryCommitHash: string;
+    public readonly targetRepositoryUsername: string;
+    public readonly targetRepositoryName: string;
+    public readonly targetRepositoryBranchName: string;
+    public readonly targetRepositoryCommitHash: string;
+    public readonly creationTime: number;
+    public readonly modificationTime: number;
+    public readonly title: string;
+    public readonly content: string;
+    public readonly status: PULL_REQUEST_STATUS;
+}
+```
+
+### `PullRequestComment`
+
+```ts
+class PullRequestComment
+{
+    public readonly id: number | undefined;
+    public readonly username: string;
+    public readonly belongsTo: number;
+    public readonly content: string;
+    public readonly creationTime: number;
+    public readonly modificationTime: number;
+}
+```
+
+### `Conflict`
+
+```ts
+class Conflict
+{
+    public readonly filePath: string;
+    public readonly isBinary: boolean;
+    public readonly content: string;
+}
+```
+
 ---
 
 ## 常量
@@ -135,6 +183,17 @@ export enum ObjectType
 {
     BLOB = 'blob',
     TREE = 'tree'
+}
+```
+
+### Pull Request Status
+
+```ts
+export enum PULL_REQUEST_STATUS
+{
+    OPEN = 'open',
+    CLOSED = 'closed',
+    MERGED = 'merged',
 }
 ```
 
@@ -389,6 +448,44 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
   - 仓库不存在
 - 其他说明：无
 
+#### `/fork`
+
+- 功能：复刻仓库
+- 方法：POST
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+  - 已存在同名仓库
+  - 不能 fork 私有仓库
+  - 不能 fork 自己的仓库
+- 其他说明：无
+
+#### `/isMergeable`
+
+- 功能：查看两仓库分支是否可自动合并
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username'|'name'>,
+    sourceRepositoryBranchName: string,
+    targetRepository: Pick<Repository, 'username'|'name'>,
+    targetRepositoryBranchName: string,
+}
+```
+- 响应体：
+```ts
+{
+    isMergeable: boolean,
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+  - 仓库 `${username}/${name}` 不存在
+  - 仓库 `${username}/${name}` 分支 `${branch}` 不存在
+- 其他说明：无
+
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息操作。
@@ -435,6 +532,29 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
 
+#### `/branchNames`
+
+- 功能：获取仓库分支名称列表
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username' | 'name'>,
+    },
+}
+```
+- 响应体：
+```ts
+{
+    branchNames: string[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+
 #### `/lastCommit`
 
 - 功能：获取仓库最后一次提交信息
@@ -445,7 +565,7 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
     json: {
         account: Pick<Account, 'username'>,
         repository: Pick<Repository, 'name'>,
-        commitHash: string,
+        branch: string,
         filePath?: string,      // 文件，相对路径
     }
 }
@@ -823,6 +943,100 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 仓库不存在
+
+#### `/forkAmount`
+
+- 功能：获取本仓库被复刻数量
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/forkRepositories`
+
+- 功能：获取由本仓库复刻的仓库列表
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    repositories: Repository[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/forkFrom`
+
+- 功能：获取仓库的复刻源仓库
+- 方法：GET
+- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 响应体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'> | null,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 如果仓库不是复刻得到则返回 `null`
+
+#### `/forkCommitHistory`
+
+- 功能：获取有 fork 关系两仓库分支之间的提交差异
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username' | 'name'>,
+    sourceRepositoryBranchName: string,
+    targetRepository: Pick<Repository, 'username' | 'name'>,
+    targetRepositoryBranchName: string,
+}
+```
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 的分支 `${branch}` 不存在
+- 其他说明：无
+
+#### `/forkFileDiff`
+
+- 功能：获取有 fork 关系两仓库分支之间的文件差异
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username' | 'name'>,
+    sourceRepositoryBranchName: string,
+    targetRepository: Pick<Repository, 'username' | 'name'>,
+    targetRepositoryBranchName: string,
+}
+```
+- 响应体：
+```ts
+{
+    fileDiffs: FileDiff[],
+}
+```
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 的分支 `${branch}` 不存在
+- 其他说明：无
 
 ### Group 模块（`/group`）
 
@@ -1322,4 +1536,265 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 用户不存在
+- 其他说明：无
+
+### Pull Request 模块（`/pullRequest`）
+
+#### `/add`
+
+- 功能：添加 Pull Request
+- 方法：POST
+- 请求体：`Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>`
+- 响应体：无
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 分支 `${branch}` 不存在
+  - `${username}/${name}` 不是 `${username}/${name}` 的 fork
+  - 只有源仓库的创建者才可创建 Pull Request
+- 其他说明：无
+
+#### `/update`
+
+- 功能：修改 Pull Request
+- 方法：POST
+- 请求体：
+```ts
+{
+    primaryKey: Pick<PullRequest, 'id'>,
+    pullRequest: Partial<Pick<PullRequest, 'title' | 'content'>>
+}
+```
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - 只有 Pull Request 的创建者可进行修改
+- 其他说明：无
+
+#### `/close`
+
+- 功能：关闭 Pull Request
+- 方法：POST
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - 只有目标仓库的合作者可关闭 Pull Request
+- 其他说明：无
+
+#### `/reopen`
+
+- 功能：重新开启 Pull Request
+- 方法：POST
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - 只有目标仓库的合作者和 Pull Request 创建者可重开 Pull Request
+  - 仓库 `${username}/${name}` 已不存在
+  - `${username}/${name}` 分支 `${branch}` 已不存在
+- 其他说明：无
+
+#### `/isMergeable`
+
+- 功能：查看 Pull Request 是否可自动合并
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    isMergeable: boolean,
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+  - `${username}/${name}` 分支 `${branch}` 不存在
+  - Pull Request 已关闭
+- 其他说明：无
+
+#### `/merge`
+
+- 功能：合并 Pull Request
+- 方法：POST
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - Pull Request 存在冲突，不能自动合并
+  - `${username}/${name}` 分支 `${branch}` 不存在
+  - Pull Request 已关闭
+  - 只有目标仓库的合作者可合并 Pull Request
+- 其他说明：无
+
+#### `/get`
+
+- 功能：获取一个 Pull Request 的信息
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    pullRequest: Pick<PullRequest, 'no'>,
+}
+```
+- 响应体：`PullRequest`
+- 响应消息：
+  - Pull Request 不存在
+- 其他说明：无
+
+#### `/getByRepository`
+
+- 功能：获取一个仓库的 Pull Request
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    status: PULL_REQUEST_STATUS | undefined, // undefined 是没有筛选条件
+    offset: number,
+    limit: number,
+}
+```
+- 响应体：
+```ts
+{
+    pullRequests: PullRequest[]
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/getPullRequestAmount`
+
+- 功能：获取仓库不同状态 Pull Request 的个数
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    status: PULL_REQUEST_STATUS | undefined, // undefined 是没有筛选条件
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/addComment`
+
+- 功能：对 Pull Request 添加评论
+- 方法：POST
+- 请求体：`Omit<PullRequestComment, 'id' | 'username' | 'creationTime' | 'modificationTime'>`
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - Pull Request 已关闭
+- 其他说明：无
+
+#### `/updateComment`
+
+- 功能：修改评论
+- 方法：POST
+- 请求体：
+```ts
+{
+    primaryKey: Pick<PullRequestComment, 'id'>,
+    pullRequestComment: Pick<PullRequestComment, 'content'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - 仅本人可编辑评论
+- 其他说明：无
+
+#### `/getComments`
+
+- 功能：获取 Pull Request 的评论
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    pullRequest: Pick<PullRequest, 'no'>,
+}
+```
+- 响应体：
+```ts
+{
+    comments: PullRequestComment[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+- 其他说明：无
+
+#### `/getConflicts`
+
+- 功能：获取 Pull Request 合并存在的冲突
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    conflicts: Conflict[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+  - Pull Request 已关闭
+- 其他说明：无
+
+#### `/resolveConflicts`
+
+- 功能：解决 Pull Request 合并存在的冲突
+- 方法：POST
+- 请求体：
+```ts
+{
+    pullRequest: Pick<PullRequest, 'id'>,
+    conflicts: Conflict[],
+}
+```
+- 响应体：无
+- 响应消息：
+  - Pull Request 不存在
+  - 存在二进制文件冲突，请使用命令行解决
+  - 只有 Pull Request 的创建者可解决冲突
+  - Pull Request 已关闭
+- 其他说明：无
+
+#### `/getCommits`
+
+- 功能：获取 Pull Request 的提交历史
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    commits: Commit[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+- 其他说明：无
+
+#### `/getFileDiffs`
+
+- 功能：获取 Pull Request 的文件差异
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    fileDiffs: FileDiff[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
 - 其他说明：无

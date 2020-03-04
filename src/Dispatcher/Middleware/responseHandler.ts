@@ -1,7 +1,5 @@
 import {IRouteHandler} from '../Interface';
 import {ServiceResponse} from '../../Class';
-import {Readable} from 'stream';
-import {Promisify} from '../../Function';
 
 const responseHandler: IRouteHandler = () =>
 {
@@ -15,17 +13,9 @@ const responseHandler: IRouteHandler = () =>
             const {statusCode, headers, body, session} = serviceResponse;
             ctx.response.set(headers);
             ctx.session = {...ctx.session, ...session};
-            if (body instanceof Readable)
-            {
-                ctx.response.status = statusCode;
-                body.pipe(ctx.res);
-                await Promisify.waitForEvent(body, 'end');
-            }
-            else
-            {
-                ctx.response.body = body;
-                ctx.response.status = statusCode;
-            }
+            // 注意以下两者不能调换位置，否则会出现返回 204
+            ctx.response.body = body;
+            ctx.response.status = statusCode;
         }
     };
 };

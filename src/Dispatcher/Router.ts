@@ -7,11 +7,11 @@ import gitDispatcher from './Module/Git';
 import groupDispatcher from './Module/Group';
 import starDispatcher from './Module/Star';
 import collaborateDispatcher from './Module/Collaborate';
-import http from 'http';
+import pullRequestDispatcher from './Module/PullRequest';
 import {IContext, IState} from './Interface';
 
 const router = new Router<IState, IContext>({
-    methods: http.METHODS,
+    methods: ['head', 'get', 'post'],
 });
 
 // 在此注入 router 到各个 dispatcher
@@ -23,5 +23,6 @@ gitDispatcher(router);
 groupDispatcher(router);
 starDispatcher(router);
 collaborateDispatcher(router);
+pullRequestDispatcher(router);
 
 export default router;

@@ -31,6 +31,20 @@ export const branches: IRouteHandler = () =>
     };
 };
 
+export const branchNames: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.branchNames(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {repository} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.branchNames(repository, username);
+    };
+};
+
 export const lastCommit: IRouteHandler = () =>
 {
     return async (ctx) =>
@@ -39,8 +53,8 @@ export const lastCommit: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {account, repository, commitHash, filePath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(account, repository, commitHash, ctx.session, filePath);
+        const {account, repository, branch, filePath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(account, repository, branch, ctx.session, filePath);
     };
 };
 
@@ -286,5 +300,75 @@ export const fileCommit: IRouteHandler = () =>
         const {username} = ctx.session;
         const {repository, filePath, commitHash} = ctx.request.body;
         ctx.state.serviceResponse = await RepositoryInfo.fileCommit(repository, filePath, commitHash, username);
+    };
+};
+
+export const forkAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkAmount({username, name}, usernameInSession);
+    };
+};
+
+export const forkRepositories: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkRepositories(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkRepositories({username, name}, usernameInSession);
+    };
+};
+
+export const forkFrom: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkFrom(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {username, name} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkFrom({username, name}, usernameInSession);
+    };
+};
+
+export const forkCommitHistory: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkCommitHistory(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkCommitHistory(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
+    };
+};
+
+export const forkFileDiff: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkFileDiff(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkFileDiff(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
     };
 };

@@ -5,7 +5,7 @@ import {advertise, file, rpc} from './Middleware';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.get(ADVERTISE, advertise());
-    router.post(RPC, rpc());
-    router.get(FILE, file());
+    router.get(ADVERTISE, advertise())
+        .post(RPC, rpc())
+        .get(FILE, file());
 }

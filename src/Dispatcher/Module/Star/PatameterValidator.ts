@@ -4,7 +4,7 @@ import {Account, Repository} from '../../../Class';
 export const add: IParameterValidator = body =>
 {
     const {repository} = body;
-    if (repository === undefined)
+    if (repository === undefined || repository === null)
     {
         return false;
     }
