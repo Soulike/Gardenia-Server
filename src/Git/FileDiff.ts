@@ -1,5 +1,5 @@
 import {BlockDiff, FileDiff} from '../Class';
-import {getFirstCommitHash, getRepositoryCommitsBetweenCommits} from './Commit';
+import {getFirstCommitHash} from './Commit';
 import fse from 'fs-extra';
 import {REGEX} from '../CONSTANT';
 import {execPromise} from '../Function/Promisify';
@@ -121,16 +121,7 @@ export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseR
         const tempSourceRemoteName = `remote_${Date.now()}`;
         await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
         // 得到源仓库分支到目标仓库分支的历史
-        // 查看两个分支之间有没有提交差异
-        const commits = await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
-        if (commits.length > 0)   // 如果有，产生合并提交查看合并提交的差异
-        {
-            return await getFileDiffsBetweenCommits(tempRepositoryPath, `${commits[commits.length - 1].commitHash}~`, commits[0].commitHash);
-        }
-        else    // 没有提交差异，返回空
-        {
-            return [];
-        }
+        return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
     }
     finally
     {
@@ -156,15 +147,7 @@ export async function getFileDiffsBetweenRepositoriesCommits(baseRepositoryPath:
         await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
         // 得到源仓库分支到目标仓库分支的历史
         // 查看两个提交之间的提交差异
-        const commits = await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
-        if (commits.length > 0)   // 如果有，产生合并提交查看合并提交的差异
-        {
-            return await getFileDiffsBetweenCommits(tempRepositoryPath, `${commits[commits.length - 1].commitHash}~`, commits[0].commitHash);
-        }
-        else    // 没有提交差异，返回空
-        {
-            return [];
-        }
+        return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
     }
     finally
     {
