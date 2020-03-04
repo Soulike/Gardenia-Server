@@ -5,7 +5,7 @@ export async function doAdvertiseRPCCall(repositoryPath: string, service: string
 {
     return new Promise((resolve, reject) =>
     {
-        const childProcess = spawn(`LANG=zh_CN git ${service.slice(4)} --stateless-rpc --advertise-refs ${repositoryPath}`, {
+        const childProcess = spawn(`LANG=zh_CN.UTF-8 git ${service.slice(4)} --stateless-rpc --advertise-refs ${repositoryPath}`, {
             shell: true,
         });
 
@@ -26,7 +26,7 @@ export async function doRPCCall(repositoryPath: string, command: string, paramet
 {
     return new Promise(((resolve, reject) =>
     {
-        const {stdout, stdin} = spawn(`LANG=zh_CN git ${command} --stateless-rpc ${repositoryPath}`, {
+        const {stdout, stdin} = spawn(`LANG=zh_CN.UTF-8 git ${command} --stateless-rpc ${repositoryPath}`, {
             shell: true,
         });
 
