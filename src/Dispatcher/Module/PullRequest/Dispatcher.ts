@@ -7,6 +7,7 @@ import {
     GET,
     GET_BY_REPOSITORY,
     GET_COMMENTS,
+    GET_COMMIT_AMOUNT,
     GET_COMMITS,
     GET_CONFLICTS,
     GET_FILE_DIFFS,
@@ -26,6 +27,7 @@ import {
     get,
     getByRepository,
     getComments,
+    getCommitAmount,
     getCommits,
     getConflicts,
     getFileDiffs,
@@ -56,5 +58,6 @@ export default (router: Router<IState, IContext>) =>
         .get(GET_CONFLICTS, JSONQuerystringParser(), getConflicts())
         .post(RESOLVE_CONFLICTS, bodyParser(), resolveConflicts())
         .get(GET_COMMITS, JSONQuerystringParser(), getCommits())
+        .get(GET_COMMIT_AMOUNT, JSONQuerystringParser(), getCommitAmount())
         .get(GET_FILE_DIFFS, JSONQuerystringParser(), getFileDiffs());
 }

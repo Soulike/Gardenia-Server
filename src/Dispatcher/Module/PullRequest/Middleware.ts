@@ -255,6 +255,20 @@ export const getCommits: IRouteHandler = () =>
     };
 };
 
+export const getCommitAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.getCommitAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.getCommitAmount({id}, username!);
+    };
+};
+
 export const getFileDiffs: IRouteHandler = () =>
 {
     return async ctx =>

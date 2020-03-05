@@ -148,4 +148,5 @@ export const resolveConflicts: IParameterValidator = body =>
 };
 
 export const getCommits: IParameterValidator = close;
+export const getCommitAmount: IParameterValidator = close;
 export const getFileDiffs: IParameterValidator = close;
