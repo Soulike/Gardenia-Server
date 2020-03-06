@@ -184,22 +184,30 @@ export async function getCommit(repositoryPath: string, commitHash: string): Pro
  * */
 export async function getCommitsBetweenForks(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Commit[]>
 {
-    let tempRepositoryPath = '';
-    try
+    // 先查看是不是同仓库，如果是同仓库不再进行克隆
+    if (baseRepositoryPath === targetRepositoryPath)
     {
-        // 复制源仓库
-        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath, baseRepositoryBranchName);
-        // fetch 目标仓库
-        const tempSourceRemoteName = `remote_${Date.now()}`;
-        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
-        // 得到源仓库分支到目标仓库分支的历史
-        return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`, offset, limit);
+        return await getRepositoryCommitsBetweenCommits(baseRepositoryPath, baseRepositoryBranchName, targetRepositoryBranchName, offset, limit);
     }
-    finally
+    else
     {
-        if (tempRepositoryPath.length > 0)
+        let tempRepositoryPath = '';
+        try
         {
-            await fse.remove(tempRepositoryPath);
+            // 复制源仓库
+            tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath, baseRepositoryBranchName);
+            // fetch 目标仓库
+            const tempSourceRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+            // 得到源仓库分支到目标仓库分支的历史
+            return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`, offset, limit);
+        }
+        finally
+        {
+            if (tempRepositoryPath.length > 0)
+            {
+                await fse.remove(tempRepositoryPath);
+            }
         }
     }
 }
@@ -249,22 +257,30 @@ export async function getFileLastCommitHash(repositoryPath: string, filePath: st
  * */
 export async function getCommitsBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Commit[]>
 {
-    let tempRepositoryPath = '';
-    try
+    // 先查看是不是同一个仓库
+    if (baseRepositoryPath === targetRepositoryPath)
     {
-        // 复制源仓库
-        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath);
-        // fetch 目标仓库
-        const tempSourceRemoteName = `remote_${Date.now()}`;
-        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
-        // 得到历史
-        return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash, offset, limit);
+        return await getRepositoryCommitsBetweenCommits(baseRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash, offset, limit);
     }
-    finally
+    else
     {
-        if (tempRepositoryPath.length > 0)
+        let tempRepositoryPath = '';
+        try
         {
-            await fse.remove(tempRepositoryPath);
+            // 复制源仓库
+            tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath);
+            // fetch 目标仓库
+            const tempSourceRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+            // 得到历史
+            return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash, offset, limit);
+        }
+        finally
+        {
+            if (tempRepositoryPath.length > 0)
+            {
+                await fse.remove(tempRepositoryPath);
+            }
         }
     }
 }
@@ -274,22 +290,30 @@ export async function getCommitsBetweenRepositoriesCommits(baseRepositoryPath: s
  * */
 export async function getCommitCountBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string): Promise<number>
 {
-    let tempRepositoryPath = '';
-    try
+    // 先查看是不是同一个仓库
+    if (baseRepositoryPath === targetRepositoryPath)
     {
-        // 复制源仓库
-        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath);
-        // fetch 目标仓库
-        const tempSourceRemoteName = `remote_${Date.now()}`;
-        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
-        // 得到历史
-        return await getCommitCountBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
+        return await getCommitCountBetweenCommits(baseRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
     }
-    finally
+    else
     {
-        if (tempRepositoryPath.length > 0)
+        let tempRepositoryPath = '';
+        try
         {
-            await fse.remove(tempRepositoryPath);
+            // 复制源仓库
+            tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath);
+            // fetch 目标仓库
+            const tempSourceRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+            // 得到历史
+            return await getCommitCountBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
+        }
+        finally
+        {
+            if (tempRepositoryPath.length > 0)
+            {
+                await fse.remove(tempRepositoryPath);
+            }
         }
     }
 }
