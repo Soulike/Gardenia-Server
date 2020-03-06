@@ -117,11 +117,20 @@ export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseR
     {
         // 复制源仓库
         tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath, baseRepositoryBranchName);
-        // fetch 目标仓库
-        const tempSourceRemoteName = `remote_${Date.now()}`;
-        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
-        // 得到源仓库分支到目标仓库分支的历史
-        return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
+        // 判断是不是同一个仓库
+        if (baseRepositoryPath === targetRepositoryPath)
+        {
+            // 只克隆的 baseRepositoryBranch，因此需要对另一个分支加上 origin
+            return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `origin/${targetRepositoryBranchName}`);
+        }
+        else
+        {
+            // fetch 目标仓库
+            const tempSourceRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+            // 得到源仓库分支到目标仓库分支的历史
+            return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
+        }
     }
     finally
     {
@@ -142,10 +151,13 @@ export async function getFileDiffsBetweenRepositoriesCommits(baseRepositoryPath:
     {
         // 复制源仓库
         tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath);
-        // fetch 目标仓库
-        const tempSourceRemoteName = `remote_${Date.now()}`;
-        await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
-        // 得到源仓库分支到目标仓库分支的历史
+        // 判断是不是同一个仓库，不是同一个仓库需要 fetch
+        if (baseRepositoryPath !== targetRepositoryPath)
+        {
+            // fetch 目标仓库
+            const tempSourceRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
+        }
         // 查看两个提交之间的提交差异
         return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
     }
