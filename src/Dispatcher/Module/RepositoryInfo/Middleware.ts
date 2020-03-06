@@ -368,8 +368,8 @@ export const forkCommitHistory: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username: usernameInSession} = ctx.session;
-        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.forkCommitHistory(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
+        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkCommitHistory(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit, usernameInSession);
     };
 };
 

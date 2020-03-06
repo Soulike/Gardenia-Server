@@ -625,7 +625,7 @@ export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>
     }
 }
 
-export async function forkCommitHistory(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+export async function forkCommitHistory(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: string): Promise<ServiceResponse<{ commits: Commit[] } | void>>
 {
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
@@ -668,7 +668,7 @@ export async function forkCommitHistory(sourceRepository: Readonly<Pick<Reposito
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
     }
     // 获取提交历史
-    const commits = await getCommitsBetweenForks(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    const commits = await getCommitsBetweenForks(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }

@@ -901,6 +901,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     baseCommitHash: string,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
@@ -1036,6 +1038,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     sourceRepositoryBranchName: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
     targetRepositoryBranchName: string,
+    offset?: number,
+    limit?: number,
+    
 }
 ```
 - 响应体：
@@ -1834,7 +1839,14 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取 Pull Request 的提交历史
 - 方法：GET
-- 请求体：`Pick<PullRequest, 'id'>`
+- 请求体：
+```ts
+{
+    pullRequest: Pick<PullRequest, 'id'>,
+    offset?: number,
+    limit?: number,
+}
+```
 - 响应体：
 ```ts
 {

@@ -182,7 +182,7 @@ export async function getCommit(repositoryPath: string, commitHash: string): Pro
 /**
  * @description 获取两仓库分支之间的提交历史
  * */
-export async function getCommitsBetweenForks(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string): Promise<Commit[]>
+export async function getCommitsBetweenForks(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Commit[]>
 {
     let tempRepositoryPath = '';
     try
@@ -193,7 +193,7 @@ export async function getCommitsBetweenForks(baseRepositoryPath: string, baseRep
         const tempSourceRemoteName = `remote_${Date.now()}`;
         await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
         // 得到源仓库分支到目标仓库分支的历史
-        return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
+        return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`, offset, limit);
     }
     finally
     {
@@ -247,7 +247,7 @@ export async function getFileLastCommitHash(repositoryPath: string, filePath: st
 /**
  * @description 获取两仓库提交之间的提交历史
  * */
-export async function getCommitsBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string): Promise<Commit[]>
+export async function getCommitsBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Commit[]>
 {
     let tempRepositoryPath = '';
     try
@@ -258,7 +258,7 @@ export async function getCommitsBetweenRepositoriesCommits(baseRepositoryPath: s
         const tempSourceRemoteName = `remote_${Date.now()}`;
         await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
         // 得到历史
-        return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
+        return await getRepositoryCommitsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash, offset, limit);
     }
     finally
     {
