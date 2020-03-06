@@ -14,6 +14,8 @@ import {
     getChangedFilesBetweenCommits,
     getCommit,
     getCommitCount,
+    getCommitCountBetweenCommits,
+    getCommitCountBetweenRepositoriesCommits,
     getCommitFileDiffs,
     getCommitsBetweenForks,
     getFileCommits,
@@ -187,6 +189,29 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
     try
     {
         const commitCount = await getCommitCount(repositoryPath, commitHash);
+        return new ServiceResponse<{ commitCount: number }>(200, {},
+            new ResponseBody<{ commitCount: number }>(true, '', {commitCount}));
+    }
+    catch (e)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '分支或提交不存在'));
+    }
+}
+
+export async function commitCountBetweenCommits(repository: Readonly<Pick<Repository, 'username' | 'name'>>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commitCount: number } | void>>
+{
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+    const repositoryPath = RepositoryFunction.generateRepositoryPath({username, name});
+    try
+    {
+        const commitCount = await getCommitCountBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
         return new ServiceResponse<{ commitCount: number }>(200, {},
             new ResponseBody<{ commitCount: number }>(true, '', {commitCount}));
     }
@@ -403,7 +428,7 @@ export async function addToGroup(repository: Readonly<Pick<Repository, 'username
         new ResponseBody<void>(true));
 }
 
-export async function commitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function commitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -412,12 +437,12 @@ export async function commitHistoryBetweenCommits(repository: Pick<Repository, '
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await getRepositoryCommitsBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
+    const commits = await getRepositoryCommitsBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
 
-export async function commitHistory(repository: Pick<Repository, 'username' | 'name'>, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function commitHistory(repository: Pick<Repository, 'username' | 'name'>, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -426,12 +451,12 @@ export async function commitHistory(repository: Pick<Repository, 'username' | 'n
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await getRepositoryCommits(repositoryPath, targetCommitHash);
+    const commits = await getRepositoryCommits(repositoryPath, targetCommitHash, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
 
-export async function fileCommitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function fileCommitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -440,12 +465,12 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await getFileCommitsBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const commits = await getFileCommitsBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
 
-export async function fileCommitHistory(repository: Pick<Repository, 'username' | 'name'>, filePath: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function fileCommitHistory(repository: Pick<Repository, 'username' | 'name'>, filePath: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -454,7 +479,7 @@ export async function fileCommitHistory(repository: Pick<Repository, 'username' 
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await getFileCommits(repositoryPath, filePath, targetCommitHash);
+    const commits = await getFileCommits(repositoryPath, filePath, targetCommitHash, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
@@ -600,7 +625,7 @@ export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>
     }
 }
 
-export async function forkCommitHistory(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+export async function forkCommitHistory(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: string): Promise<ServiceResponse<{ commits: Commit[] } | void>>
 {
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
@@ -643,9 +668,57 @@ export async function forkCommitHistory(sourceRepository: Readonly<Pick<Reposito
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
     }
     // 获取提交历史
-    const commits = await getCommitsBetweenForks(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    const commits = await getCommitsBetweenForks(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
+}
+
+export async function forkCommitAmount(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ commitAmount: number } | void>>
+{
+    const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
+    const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
+    // 检查仓库存在性和可访问性
+    const [sourceRepositoryInDatabase, targetRepositoryInDatabase] = await Promise.all([
+        RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
+        RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
+    ]);
+    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
+    }
+    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
+    }
+    // 检查分支存在性
+    const sourceRepositoryPath = RepositoryFunction.generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = RepositoryFunction.generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    const [sourceRepositoryHasBranch, targetRepositoryHasBranch] = await Promise.all([
+        hasBranch(sourceRepositoryPath, sourceRepositoryBranch),
+        hasBranch(targetRepositoryPath, targetRepositoryBranch),
+    ]);
+    if (!sourceRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 分支 ${sourceRepositoryBranch} 不存在`));
+    }
+    if (!targetRepositoryHasBranch)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
+    }
+    // 获取提交次数
+    const commitAmount = await getCommitCountBetweenRepositoriesCommits(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commitAmount}));
 }
 
 export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>

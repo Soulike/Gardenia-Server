@@ -84,6 +84,20 @@ export const commitCount: IRouteHandler = () =>
     };
 };
 
+export const commitCountBetweenCommits: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.commitCount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.commitCountBetweenCommits(repository, baseCommitHash, targetCommitHash, username);
+    };
+};
+
 export const fileInfo: IRouteHandler = () =>
 {
     return async (ctx) =>
@@ -200,8 +214,8 @@ export const commitHistoryBetweenCommits: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
-        const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.commitHistoryBetweenCommits(repository, baseCommitHash, targetCommitHash, username);
+        const {repository, baseCommitHash, targetCommitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitHistoryBetweenCommits(repository, baseCommitHash, targetCommitHash, offset, limit, username);
     };
 };
 
@@ -214,8 +228,8 @@ export const commitHistory: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
-        const {repository, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.commitHistory(repository, targetCommitHash, username);
+        const {repository, targetCommitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitHistory(repository, targetCommitHash, offset, limit, username);
     };
 };
 
@@ -228,8 +242,8 @@ export const fileCommitHistoryBetweenCommits: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
-        const {repository, filePath, baseCommitHash, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistoryBetweenCommits(repository, filePath, baseCommitHash, targetCommitHash, username);
+        const {repository, filePath, baseCommitHash, targetCommitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistoryBetweenCommits(repository, filePath, baseCommitHash, targetCommitHash, offset, limit, username);
     };
 };
 
@@ -242,8 +256,8 @@ export const fileCommitHistory: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
-        const {repository, filePath, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistory(repository, filePath, targetCommitHash, username);
+        const {repository, filePath, targetCommitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistory(repository, filePath, targetCommitHash, offset, limit, username);
     };
 };
 
@@ -354,8 +368,22 @@ export const forkCommitHistory: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username: usernameInSession} = ctx.session;
+        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkCommitHistory(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit, usernameInSession);
+    };
+};
+
+export const forkCommitAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkCommitAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
         const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.forkCommitHistory(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
+        ctx.state.serviceResponse = await RepositoryInfo.forkCommitAmount(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
     };
 };
 

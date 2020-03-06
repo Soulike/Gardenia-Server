@@ -147,5 +147,20 @@ export const resolveConflicts: IParameterValidator = body =>
     return true;
 };
 
-export const getCommits: IParameterValidator = close;
+export const getCommits: IParameterValidator = body =>
+{
+    const {pullRequest, offset, limit} = body;
+    if (pullRequest === undefined || pullRequest === null
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {id} = pullRequest;
+    return PullRequest.validate(new PullRequest(id, 0,
+        '', '', '', '',
+        '', '', '', '',
+        0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+};
+export const getCommitAmount: IParameterValidator = close;
 export const getFileDiffs: IParameterValidator = close;

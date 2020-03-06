@@ -667,7 +667,7 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
         new ResponseBody(true));
 }
 
-export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -706,9 +706,54 @@ export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>,
     const commits = await Git.getCommitsBetweenRepositoriesCommits(
         targetRepositoryPath, targetRepositoryCommitHash,
         sourceRepositoryPath, sourceRepositoryCommitHash,
+        offset, limit,
     );
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
+}
+
+export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commitAmount: number } | void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看访问权限
+    const {
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryCommitHash,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryCommitHash,
+    } = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    const sourceRepositoryPath = generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    // 获取提交历史
+    const commitAmount = await Git.getCommitCountBetweenRepositoriesCommits(
+        targetRepositoryPath, targetRepositoryCommitHash,
+        sourceRepositoryPath, sourceRepositoryCommitHash,
+    );
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {commitAmount}));
 }
 
 export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>

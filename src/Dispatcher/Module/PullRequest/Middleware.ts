@@ -249,9 +249,23 @@ export const getCommits: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
+        const {pullRequest, offset, limit} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.getCommits(pullRequest, offset, limit, username!);
+    };
+};
+
+export const getCommitAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.getCommitAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
         const {id} = ctx.request.body;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await PullRequestService.getCommits({id}, username!);
+        ctx.state.serviceResponse = await PullRequestService.getCommitAmount({id}, username!);
     };
 };
 

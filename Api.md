@@ -630,6 +630,33 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 如果是空仓库，提交次数返回 0
 
+#### `/commitCountBetweenCommits`
+
+- 功能：获取仓库两次提交之间提交次数
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username' | 'name'>,
+        baseCommitHash: string,
+        targetCommitHash: string,
+    }
+}
+```
+- 响应体：
+```ts
+{
+    commitCount: number,    // 指定分支的提交次数
+}
+```
+- 响应消息：
+  - 仓库不存在
+  - 分支或提交不存在
+- 其他说明：
+  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+  - 如果是空仓库，提交次数返回 0
+
 #### `/fileInfo`
 
 - 功能：获取指定文件信息
@@ -781,6 +808,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     baseCommitHash: string,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
@@ -801,6 +830,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
@@ -823,6 +854,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     filePath: string,
     baseCommitHash: string,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
@@ -844,6 +877,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     filePath: string,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
@@ -866,6 +901,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     baseCommitHash: string,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
@@ -1001,12 +1038,41 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     sourceRepositoryBranchName: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
     targetRepositoryBranchName: string,
+    offset?: number,
+    limit?: number,
+    
 }
 ```
 - 响应体：
 ```ts
 {
     commits: Commit[],
+}
+```
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 的分支 `${branch}` 不存在
+- 其他说明：无
+
+#### `/forkCommitAmount`
+
+- 功能：获取 Fork 仓库分支之间提交次数
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        sourceRepository: Pick<Repository, 'username' | 'name'>,
+        sourceRepositoryBranchName: string,
+        targetRepository: Pick<Repository, 'username' | 'name'>,
+        targetRepositoryBranchName: string,
+    }
+}
+```
+- 响应体：
+```ts
+{
+    commitAmount: number,    // 指定分支的提交次数
 }
 ```
 - 响应消息：
@@ -1773,11 +1839,33 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取 Pull Request 的提交历史
 - 方法：GET
-- 请求体：`Pick<PullRequest, 'id'>`
+- 请求体：
+```ts
+{
+    pullRequest: Pick<PullRequest, 'id'>,
+    offset?: number,
+    limit?: number,
+}
+```
 - 响应体：
 ```ts
 {
     commits: Commit[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+- 其他说明：无
+
+#### `/getCommitAmount`
+
+- 功能：获取 Pull Request 的提交次数
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    commitAmount: number,
 }
 ```
 - 响应消息：

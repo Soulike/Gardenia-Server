@@ -78,6 +78,18 @@ export const commitCount: IParameterValidator = body =>
         && typeof commitHash === 'string';
 };
 
+export const commitCountBetweenCommits: IParameterValidator = body =>
+{
+    const {repository, baseCommitHash, targetCommitHash} = body;
+    if (typeof repository === 'undefined' || repository === null
+        || typeof baseCommitHash !== 'string' || typeof targetCommitHash !== 'string')
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({name, isPublic: true, description: '', username});
+};
+
 export const fileInfo: IParameterValidator = body =>
 {
     const {account, repository, filePath, commitHash} = body;
@@ -159,6 +171,66 @@ export const addToGroup: IParameterValidator = body =>
 
 export const commitHistoryBetweenCommits: IParameterValidator = body =>
 {
+    const {repository, baseCommitHash, targetCommitHash, offset, limit} = body;
+    if (repository === undefined || repository === null
+        || typeof baseCommitHash !== 'string'
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const commitHistory: IParameterValidator = body =>
+{
+    const {repository, targetCommitHash, offset, limit} = body;
+    if (repository === undefined || repository === null
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
+{
+    const {repository, filePath, baseCommitHash, targetCommitHash, offset, limit} = body;
+    if (repository === undefined || repository === null
+        || typeof filePath !== 'string'
+        || typeof baseCommitHash !== 'string'
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const fileCommitHistory: IParameterValidator = body =>
+{
+    const {repository, filePath, targetCommitHash, offset, limit} = body;
+    if (repository === undefined || repository === null
+        || typeof filePath !== 'string'
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: false});
+};
+
+export const diffBetweenCommits: IParameterValidator = body =>
+{
     const {repository, baseCommitHash, targetCommitHash} = body;
     if (repository === undefined || repository === null
         || typeof baseCommitHash !== 'string'
@@ -169,20 +241,7 @@ export const commitHistoryBetweenCommits: IParameterValidator = body =>
     const {username, name} = repository;
     return Repository.validate({username, name, description: '', isPublic: false});
 };
-
-export const commitHistory: IParameterValidator = body =>
-{
-    const {repository, targetCommitHash} = body;
-    if (repository === undefined || repository === null
-        || typeof targetCommitHash !== 'string')
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
-};
-
-export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
+export const fileDiffBetweenCommits: IParameterValidator = body =>
 {
     const {repository, filePath, baseCommitHash, targetCommitHash} = body;
     if (repository === undefined || repository === null
@@ -195,22 +254,6 @@ export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
     const {username, name} = repository;
     return Repository.validate({username, name, description: '', isPublic: false});
 };
-
-export const fileCommitHistory: IParameterValidator = body =>
-{
-    const {repository, filePath, targetCommitHash} = body;
-    if (repository === undefined || repository === null
-        || typeof filePath !== 'string'
-        || typeof targetCommitHash !== 'string')
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
-};
-
-export const diffBetweenCommits: IParameterValidator = commitHistoryBetweenCommits;
-export const fileDiffBetweenCommits: IParameterValidator = fileCommitHistoryBetweenCommits;
 
 export const commit: IParameterValidator = body =>
 {
@@ -250,6 +293,40 @@ export const forkCommitHistory: IParameterValidator = body =>
     const {
         sourceRepository, sourceRepositoryBranch,
         targetRepository, targetRepositoryBranch,
+        offset, limit,
+    } = body;
+    if (sourceRepository === undefined
+        || sourceRepository === null
+        || typeof sourceRepositoryBranch !== 'string'
+        || targetRepository === undefined
+        || targetRepository === null
+        || typeof targetRepositoryBranch !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    } = sourceRepository;
+    const {
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    } = targetRepository;
+    return Repository.validate(new Repository(
+        sourceRepositoryUsername,
+        sourceRepositoryName, '', false))
+        && Repository.validate(new Repository(
+            targetRepositoryUsername,
+            targetRepositoryName, '', false));
+};
+
+export const forkCommitAmount: IParameterValidator = body =>
+{
+    const {
+        sourceRepository, sourceRepositoryBranch,
+        targetRepository, targetRepositoryBranch,
     } = body;
     if (sourceRepository === undefined
         || sourceRepository === null
@@ -275,5 +352,4 @@ export const forkCommitHistory: IParameterValidator = body =>
             targetRepositoryUsername,
             targetRepositoryName, '', false));
 };
-
-export const forkFileDiff: IParameterValidator = forkCommitHistory;
+export const forkFileDiff: IParameterValidator = forkCommitAmount;
