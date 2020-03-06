@@ -456,7 +456,7 @@ export async function commitHistory(repository: Pick<Repository, 'username' | 'n
         new ResponseBody(true, '', {commits}));
 }
 
-export async function fileCommitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function fileCommitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -465,12 +465,12 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await getFileCommitsBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const commits = await getFileCommitsBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }
 
-export async function fileCommitHistory(repository: Pick<Repository, 'username' | 'name'>, filePath: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function fileCommitHistory(repository: Pick<Repository, 'username' | 'name'>, filePath: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -479,7 +479,7 @@ export async function fileCommitHistory(repository: Pick<Repository, 'username' 
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await getFileCommits(repositoryPath, filePath, targetCommitHash);
+    const commits = await getFileCommits(repositoryPath, filePath, targetCommitHash, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commits}));
 }

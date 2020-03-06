@@ -175,8 +175,8 @@ export const commitHistoryBetweenCommits: IParameterValidator = body =>
     if (repository === undefined || repository === null
         || typeof baseCommitHash !== 'string'
         || typeof targetCommitHash !== 'string'
-        || (typeof offset !== 'number' && offset !== undefined)
-        || (typeof limit !== 'number' && limit !== undefined))
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
     {
         return false;
     }
@@ -189,8 +189,8 @@ export const commitHistory: IParameterValidator = body =>
     const {repository, targetCommitHash, offset, limit} = body;
     if (repository === undefined || repository === null
         || typeof targetCommitHash !== 'string'
-        || (typeof offset !== 'number' && offset !== undefined)
-        || (typeof limit !== 'number' && limit !== undefined))
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
     {
         return false;
     }
@@ -200,11 +200,13 @@ export const commitHistory: IParameterValidator = body =>
 
 export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
 {
-    const {repository, filePath, baseCommitHash, targetCommitHash} = body;
+    const {repository, filePath, baseCommitHash, targetCommitHash, offset, limit} = body;
     if (repository === undefined || repository === null
         || typeof filePath !== 'string'
         || typeof baseCommitHash !== 'string'
-        || typeof targetCommitHash !== 'string')
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
     {
         return false;
     }
@@ -214,10 +216,12 @@ export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
 
 export const fileCommitHistory: IParameterValidator = body =>
 {
-    const {repository, filePath, targetCommitHash} = body;
+    const {repository, filePath, targetCommitHash, offset, limit} = body;
     if (repository === undefined || repository === null
         || typeof filePath !== 'string'
-        || typeof targetCommitHash !== 'string')
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
     {
         return false;
     }

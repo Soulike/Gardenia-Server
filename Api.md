@@ -854,6 +854,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     filePath: string,
     baseCommitHash: string,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
@@ -875,6 +877,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     filePath: string,
     targetCommitHash: string,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：

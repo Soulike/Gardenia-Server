@@ -71,7 +71,7 @@ export async function getRepositoryCommitsBetweenCommits(repositoryPath: string,
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash} --skip=${offset} --max-count=${limit}`,
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${baseCommitHash}..${targetCommitHash}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -95,7 +95,7 @@ export async function getRepositoryCommits(repositoryPath: string, targetCommitH
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash} --skip=${offset} --max-count=${limit}`,
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${targetCommitHash}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -114,12 +114,12 @@ export async function getRepositoryCommits(repositoryPath: string, targetCommitH
 /**
  * @description 获取某个文件两次提交之间的提交历史
  * */
-export async function getFileCommitsBetweenCommits(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<Commit[]>
+export async function getFileCommitsBetweenCommits(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Commit[]>
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${baseCommitHash}..${targetCommitHash} -- ${filePath}`,
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${baseCommitHash}..${targetCommitHash} -- ${filePath}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -138,12 +138,12 @@ export async function getFileCommitsBetweenCommits(repositoryPath: string, fileP
 /**
  * @description 获取某个文件到 targetCommitHash 的提交历史
  * */
-export async function getFileCommits(repositoryPath: string, filePath: string, targetCommitHash: string): Promise<Commit[]>
+export async function getFileCommits(repositoryPath: string, filePath: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Commit[]>
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' ${targetCommitHash} -- ${filePath}`,
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${targetCommitHash} -- ${filePath}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];

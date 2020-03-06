@@ -242,8 +242,8 @@ export const fileCommitHistoryBetweenCommits: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
-        const {repository, filePath, baseCommitHash, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistoryBetweenCommits(repository, filePath, baseCommitHash, targetCommitHash, username);
+        const {repository, filePath, baseCommitHash, targetCommitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistoryBetweenCommits(repository, filePath, baseCommitHash, targetCommitHash, offset, limit, username);
     };
 };
 
@@ -256,8 +256,8 @@ export const fileCommitHistory: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
-        const {repository, filePath, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistory(repository, filePath, targetCommitHash, username);
+        const {repository, filePath, targetCommitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.fileCommitHistory(repository, filePath, targetCommitHash, offset, limit, username);
     };
 };
 
