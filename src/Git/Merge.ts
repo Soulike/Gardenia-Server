@@ -11,10 +11,19 @@ export async function isMergeable(sourceRepositoryPath: string, sourceRepository
     try
     {
         tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
-        const tempSourceRemoteName = `remote_${Date.now()}`;
-        await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
-        await execPromise(`git merge --no-commit --no-ff ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
-            {cwd: tempRepositoryPath});
+        // 检测是不是同一个仓库
+        if (sourceRepositoryPath === targetRepositoryPath)
+        {
+            await execPromise(`git merge --no-commit --no-ff origin/${sourceRepositoryBranch}`,
+                {cwd: tempRepositoryPath});
+        }
+        else
+        {
+            const tempSourceRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
+            await execPromise(`git merge --no-commit --no-ff ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+                {cwd: tempRepositoryPath});
+        }
         return true;
     }
     catch (e)   // 命令会在不能自动合并时抛出错误
@@ -39,10 +48,19 @@ export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch
     try
     {
         tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
-        const tempSourceRemoteName = `remote_${Date.now()}`;
-        await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
-        await execPromise(`git merge --no-ff -m '${message}' ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
-            {cwd: tempRepositoryPath});
+        // 判断是不是同一个仓库
+        if (sourceRepositoryPath === targetRepositoryPath)
+        {
+            await execPromise(`git merge --no-ff -m '${message}' origin/${sourceRepositoryBranch}`,
+                {cwd: tempRepositoryPath});
+        }
+        else
+        {
+            const tempSourceRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
+            await execPromise(`git merge --no-ff -m '${message}' ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+                {cwd: tempRepositoryPath});
+        }
         await execPromise(`git push`, {cwd: tempRepositoryPath});
     }
     finally
