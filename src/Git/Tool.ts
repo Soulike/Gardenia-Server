@@ -7,6 +7,15 @@ import os from 'os';
 import path from 'path';
 
 /**
+ * @description 获取两个提交/分支的公共祖先
+ * */
+export async function getCommonAncestor(repositoryPath: string, branchNameOrCommitHash1: string, branchNameOrCommitHash2: string): Promise<string>
+{
+    return (await execPromise(`git merge-base ${branchNameOrCommitHash1} ${branchNameOrCommitHash2}`,
+        {cwd: repositoryPath})).trim();
+}
+
+/**
  * @description 克隆裸仓库
  * */
 export async function cloneBareRepository(sourceRepositoryPath: string, targetRepositoryPath: string): Promise<void>

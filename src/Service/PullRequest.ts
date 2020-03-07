@@ -21,7 +21,7 @@ import {Repository as RepositoryFunction} from '../Function';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
 import {generateRepositoryPath} from '../Function/Repository';
 import * as Git from '../Git';
-import {updateRelatedPullRequest} from '../Git';
+import {getChangedFilesBetweenRepositoriesCommits, updateRelatedPullRequest} from '../Git';
 
 export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
@@ -756,7 +756,7 @@ export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'i
         new ResponseBody(true, '', {commitAmount}));
 }
 
-export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
+export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -795,7 +795,52 @@ export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>
     const fileDiffs = await Git.getFileDiffsBetweenRepositoriesCommits(
         targetRepositoryPath, targetRepositoryCommitHash,
         sourceRepositoryPath, sourceRepositoryCommitHash,
+        offset, limit,
     );
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {fileDiffs}));
+}
+
+export async function getFileDiffAmount(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+{
+    // 获取 PR 数据库信息
+    const {id} = pullRequest;
+    const pullRequests = await PullRequestTable.select({id});
+    if (pullRequests.length === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    // 查看访问权限
+    const {
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryCommitHash,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryCommitHash,
+    } = pullRequests[0];
+    const repositories = await RepositoryTable.select({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+        repositories[0],    // 一定存在
+        {username: usernameInSession},
+    ))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Pull Request 不存在'));
+    }
+    const sourceRepositoryPath = generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
+
+    const changedFiles = await getChangedFilesBetweenRepositoriesCommits(
+        targetRepositoryPath, targetRepositoryCommitHash,
+        sourceRepositoryPath, sourceRepositoryCommitHash);
+    const amount = changedFiles.length;
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {amount}));
 }

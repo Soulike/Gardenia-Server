@@ -231,16 +231,21 @@ export const fileCommitHistory: IParameterValidator = body =>
 
 export const diffBetweenCommits: IParameterValidator = body =>
 {
-    const {repository, baseCommitHash, targetCommitHash} = body;
+    const {repository, baseCommitHash, targetCommitHash, offset, limit} = body;
     if (repository === undefined || repository === null
         || typeof baseCommitHash !== 'string'
-        || typeof targetCommitHash !== 'string')
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
     {
         return false;
     }
     const {username, name} = repository;
     return Repository.validate({username, name, description: '', isPublic: false});
 };
+
+export const diffAmountBetweenCommits: IParameterValidator = diffBetweenCommits;
+
 export const fileDiffBetweenCommits: IParameterValidator = body =>
 {
     const {repository, filePath, baseCommitHash, targetCommitHash} = body;
@@ -265,6 +270,22 @@ export const commit: IParameterValidator = body =>
     const {username, name} = repository;
     return Repository.validate({username, name, isPublic: true, description: ''});
 };
+
+export const commitDiff: IParameterValidator = body =>
+{
+    const {repository, commitHash, offset, limit} = body;
+    if (repository === undefined || repository === null
+        || typeof commitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, isPublic: true, description: ''});
+};
+
+export const commitDiffAmount: IParameterValidator = commit;
 
 export const fileCommit: IParameterValidator = body =>
 {
@@ -352,4 +373,5 @@ export const forkCommitAmount: IParameterValidator = body =>
             targetRepositoryUsername,
             targetRepositoryName, '', false));
 };
-export const forkFileDiff: IParameterValidator = forkCommitAmount;
+export const forkFileDiff: IParameterValidator = forkCommitHistory;
+export const forkFileDiffAmount: IParameterValidator = forkCommitAmount;

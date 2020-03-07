@@ -10,6 +10,7 @@ import {
     GET_COMMIT_AMOUNT,
     GET_COMMITS,
     GET_CONFLICTS,
+    GET_FILE_DIFF_AMOUNT,
     GET_FILE_DIFFS,
     GET_PULL_REQUEST_AMOUNT,
     IS_MERGEABLE,
@@ -30,6 +31,7 @@ import {
     getCommitAmount,
     getCommits,
     getConflicts,
+    getFileDiffAmount,
     getFileDiffs,
     getPullRequestAmount,
     isMergeable,
@@ -59,5 +61,6 @@ export default (router: Router<IState, IContext>) =>
         .post(RESOLVE_CONFLICTS, bodyParser(), resolveConflicts())
         .get(GET_COMMITS, JSONQuerystringParser(), getCommits())
         .get(GET_COMMIT_AMOUNT, JSONQuerystringParser(), getCommitAmount())
-        .get(GET_FILE_DIFFS, JSONQuerystringParser(), getFileDiffs());
+        .get(GET_FILE_DIFFS, JSONQuerystringParser(), getFileDiffs())
+        .get(GET_FILE_DIFF_AMOUNT, JSONQuerystringParser(), getFileDiffAmount());
 }

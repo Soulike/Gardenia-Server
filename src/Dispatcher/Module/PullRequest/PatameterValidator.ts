@@ -163,4 +163,5 @@ export const getCommits: IParameterValidator = body =>
         0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 export const getCommitAmount: IParameterValidator = close;
-export const getFileDiffs: IParameterValidator = close;
+export const getFileDiffs: IParameterValidator = getCommits;
+export const getFileDiffAmount: IParameterValidator = close;
