@@ -975,7 +975,48 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     commit: Commit,
+}
+```
+- 响应消息：
+  - 仓库不存在
+
+#### `/commitDiff`
+
+- 功能：获取某次提交的文件差异
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    commitHash: string,
+    offset?: number,
+    limit?: number,
+}
+```
+- 响应体：
+```ts
+{
     diff: FileDiff[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+
+#### `/commitDiffAmount`
+
+- 功能：获取某次提交的文件差异数量
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    commitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,
 }
 ```
 - 响应消息：

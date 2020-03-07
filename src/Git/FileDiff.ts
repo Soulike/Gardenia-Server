@@ -16,6 +16,23 @@ export async function getChangedFilesBetweenCommits(repositoryPath: string, base
 }
 
 /**
+ * @description 获取提交被修改的文件
+ * */
+export async function getChangedFiles(repositoryPath: string, commitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
+{
+    const firstCommitHash = await getFirstCommitHash(repositoryPath);
+    if (commitHash === firstCommitHash)
+    {
+        // see https://stackoverflow.com/questions/40883798/how-to-get-git-diff-of-the-first-commit
+        return await getChangedFilesBetweenCommits(repositoryPath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash, offset, limit);
+    }
+    else
+    {
+        return await getChangedFilesBetweenCommits(repositoryPath, `${commitHash}~`, commitHash, offset, limit);
+    }
+}
+
+/**
  * @description 获取两仓库提交之间被修改的文件
  * */
 export async function getChangedFilesBetweenForks(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>

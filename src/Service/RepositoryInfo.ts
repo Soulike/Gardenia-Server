@@ -11,6 +11,7 @@ import {
     fileExists,
     getBranches,
     getBranchNames,
+    getChangedFiles,
     getChangedFilesBetweenCommits,
     getChangedFilesBetweenForks,
     getCommit,
@@ -531,7 +532,7 @@ export async function fileDiffBetweenCommits(repository: Pick<Repository, 'usern
         new ResponseBody(true, '', {diff}));
 }
 
-export async function commit(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit, diff: FileDiff[] } | void>>
+export async function commit(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
@@ -540,12 +541,38 @@ export async function commit(repository: Pick<Repository, 'username' | 'name'>, 
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const [commit, diff] = await Promise.all([
-        getCommit(repositoryPath, commitHash),
-        getCommitFileDiffs(repositoryPath, commitHash),
-    ]);
+    const commit = await getCommit(repositoryPath, commitHash);
     return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {commit, diff}));
+        new ResponseBody(true, '', {commit}));
+}
+
+export async function commitDiff(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
+    const diff = await getCommitFileDiffs(repositoryPath, commitHash, offset, limit);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {diff}));
+}
+
+export async function commitDiffAmount(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+{
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
+    const changedFiles = await getChangedFiles(repositoryPath, commitHash);
+    const amount = changedFiles.length;
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {amount}));
 }
 
 export async function fileCommit(repository: Pick<Repository, 'username' | 'name'>, filePath: string, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit, diff: FileDiff } | void>>

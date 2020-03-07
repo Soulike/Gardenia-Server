@@ -317,6 +317,34 @@ export const commit: IRouteHandler = () =>
     };
 };
 
+export const commitDiff: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.commitDiff(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, commitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitDiff(repository, commitHash, offset, limit, username);
+    };
+};
+
+export const commitDiffAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.commitDiffAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, commitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.commitDiffAmount(repository, commitHash, username);
+    };
+};
+
 export const fileCommit: IRouteHandler = () =>
 {
     return async ctx =>

@@ -271,6 +271,22 @@ export const commit: IParameterValidator = body =>
     return Repository.validate({username, name, isPublic: true, description: ''});
 };
 
+export const commitDiff: IParameterValidator = body =>
+{
+    const {repository, commitHash, offset, limit} = body;
+    if (repository === undefined || repository === null
+        || typeof commitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, isPublic: true, description: ''});
+};
+
+export const commitDiffAmount: IParameterValidator = commit;
+
 export const fileCommit: IParameterValidator = body =>
 {
     const {repository, filePath, commitHash} = body;
