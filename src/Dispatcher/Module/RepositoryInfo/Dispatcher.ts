@@ -8,6 +8,7 @@ import {
     COMMIT_COUNT_BETWEEN_COMMITS,
     COMMIT_HISTORY,
     COMMIT_HISTORY_BETWEEN_COMMITS,
+    DIFF_AMOUNT_BETWEEN_COMMITS,
     DIFF_BETWEEN_COMMITS,
     DIRECTORY,
     FILE_COMMIT,
@@ -19,6 +20,7 @@ import {
     FORK_COMMIT_AMOUNT,
     FORK_COMMIT_HISTORY,
     FORK_FILE_DIFF,
+    FORK_FILE_DIFF_AMOUNT,
     FORK_FROM,
     FORK_REPOSITORIES,
     GROUPS,
@@ -40,6 +42,7 @@ import {
     commitCountBetweenCommits,
     commitHistory,
     commitHistoryBetweenCommits,
+    diffAmountBetweenCommits,
     diffBetweenCommits,
     directory,
     fileCommit,
@@ -51,6 +54,7 @@ import {
     forkCommitAmount,
     forkCommitHistory,
     forkFileDiff,
+    forkFileDiffAmount,
     forkFrom,
     forkRepositories,
     groups,
@@ -84,6 +88,7 @@ export default (router: Router<IState, IContext>) =>
         .get(FILE_COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), fileCommitHistoryBetweenCommits())
         .get(FILE_COMMIT_HISTORY, JSONQuerystringParser(), fileCommitHistory())
         .get(DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), diffBetweenCommits())
+        .get(DIFF_AMOUNT_BETWEEN_COMMITS, JSONQuerystringParser(), diffAmountBetweenCommits())
         .get(FILE_DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), fileDiffBetweenCommits())
         .get(COMMIT, JSONQuerystringParser(), commit())
         .get(FILE_COMMIT, JSONQuerystringParser(), fileCommit())
@@ -92,5 +97,6 @@ export default (router: Router<IState, IContext>) =>
         .get(FORK_FROM, JSONQuerystringParser(), forkFrom())
         .get(FORK_COMMIT_HISTORY, JSONQuerystringParser(), forkCommitHistory())
         .get(FORK_COMMIT_AMOUNT, JSONQuerystringParser(), forkCommitAmount())
-        .get(FORK_FILE_DIFF, JSONQuerystringParser(), forkFileDiff());
+        .get(FORK_FILE_DIFF, JSONQuerystringParser(), forkFileDiff())
+        .get(FORK_FILE_DIFF_AMOUNT, JSONQuerystringParser(), forkFileDiffAmount());
 };

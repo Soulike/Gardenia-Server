@@ -243,6 +243,9 @@ export const diffBetweenCommits: IParameterValidator = body =>
     const {username, name} = repository;
     return Repository.validate({username, name, description: '', isPublic: false});
 };
+
+export const diffAmountBetweenCommits: IParameterValidator = diffBetweenCommits;
+
 export const fileDiffBetweenCommits: IParameterValidator = body =>
 {
     const {repository, filePath, baseCommitHash, targetCommitHash} = body;
@@ -355,3 +358,4 @@ export const forkCommitAmount: IParameterValidator = body =>
             targetRepositoryName, '', false));
 };
 export const forkFileDiff: IParameterValidator = forkCommitHistory;
+export const forkFileDiffAmount: IParameterValidator = forkCommitAmount;

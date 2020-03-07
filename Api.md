@@ -915,6 +915,28 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：无
 
+#### `/diffAmountBetweenCommits`
+
+- 功能：获取两个提交之间的差异文件个数
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    baseCommitHash: string,
+    targetCommitHash: string,
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,
+}
+```
+- 响应消息
+  - 仓库不存在
+- 其他说明：无
+
 #### `/fileDiffBetweenCommits`
 
 - 功能：获取某个文件在两个提交之间的差异信息
@@ -1099,6 +1121,30 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     fileDiffs: FileDiff[],
+}
+```
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 的分支 `${branch}` 不存在
+- 其他说明：无
+
+#### `/forkFileDiffAmount`
+
+- 功能：获取有 fork 关系两仓库分支之间的文件差异数量
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username' | 'name'>,
+    sourceRepositoryBranchName: string,
+    targetRepository: Pick<Repository, 'username' | 'name'>,
+    targetRepositoryBranchName: string,
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,
 }
 ```
 - 响应消息：
@@ -1890,6 +1936,21 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     fileDiffs: FileDiff[],
+}
+```
+- 响应消息：
+  - Pull Request 不存在
+- 其他说明：无
+
+#### `/getFileDiffAmount`
+
+- 功能：获取 Pull Request 的文件差异数量
+- 方法：GET
+- 请求体：`Pick<PullRequest, 'id'>`
+- 响应体：
+```ts
+{
+    amount: number,
 }
 ```
 - 响应消息：

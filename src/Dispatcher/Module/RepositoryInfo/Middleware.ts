@@ -275,6 +275,20 @@ export const diffBetweenCommits: IRouteHandler = () =>
     };
 };
 
+export const diffAmountBetweenCommits: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.diffAmountBetweenCommits(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.session;
+        const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.diffAmountBetweenCommits(repository, baseCommitHash, targetCommitHash, username);
+    };
+};
+
 export const fileDiffBetweenCommits: IRouteHandler = () =>
 {
     return async ctx =>
@@ -398,5 +412,19 @@ export const forkFileDiff: IRouteHandler = () =>
         const {username: usernameInSession} = ctx.session;
         const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit} = ctx.request.body;
         ctx.state.serviceResponse = await RepositoryInfo.forkFileDiff(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit, usernameInSession);
+    };
+};
+
+export const forkFileDiffAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.forkFileDiffAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkFileDiffAmount(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
     };
 };

@@ -282,3 +282,17 @@ export const getFileDiffs: IRouteHandler = () =>
         ctx.state.serviceResponse = await PullRequestService.getFileDiffs(pullRequest, offset, limit, username!);
     };
 };
+
+export const getFileDiffAmount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.getFileDiffAmount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await PullRequestService.getFileDiffAmount({id}, username!);
+    };
+};
