@@ -124,4 +124,34 @@ CREATE TABLE IF NOT EXISTS "pull-request-comments"
     FOREIGN KEY ("username") REFERENCES "accounts" ("username")
 );
 
+CREATE TABLE IF NOT EXISTS "issues"
+(
+    "id"                 BIGSERIAL    NOT NULL,
+    "username"           VARCHAR(255) NOT NULL,
+    "repositoryUsername" VARCHAR(255) NOT NULL,
+    "repositoryName"     VARCHAR(255) NOT NULL,
+    "no"                 BIGINT       NOT NULL,
+    "title"              VARCHAR(255) NOT NULL,
+    "creationTime"       BIGINT       NOT NULL,
+    "modificationTime"   BIGINT       NOT NULL,
+    PRIMARY KEY ("id"),
+    FOREIGN KEY ("username") REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY ("repositoryUsername", "repositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
+    UNIQUE ("no", "repositoryUsername", "repositoryName"),
+    CHECK ( "no" > 0 )
+);
+
+CREATE TABLE IF NOT EXISTS "issue-comments"
+(
+    "id"               BIGSERIAL    NOT NULL,
+    "username"         VARCHAR(255) NOT NULL,
+    "belongsTo"        BIGINT       NOT NULL,
+    "content"          TEXT         NOT NULL,
+    "creationTime"     BIGINT       NOT NULL,
+    "modificationTime" BIGINT       NOT NULL,
+    PRIMARY KEY ("id"),
+    FOREIGN KEY ("username") REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY ("belongsTo") REFERENCES "issues" ("id") ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 COMMIT;
