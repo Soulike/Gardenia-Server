@@ -8,11 +8,11 @@ import {addRemote, makeTemporaryRepository} from './Tool';
 /**
  * @description 获取两次提交之间被修改的文件
  * */
-export async function getChangedFilesBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<string[]>
+export async function getChangedFilesBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
 {
     const result = await execPromise(`git diff ${baseCommitHash}..${targetCommitHash} --name-only`, {cwd: repositoryPath});
     const files = result.split('\n');
-    return files.filter(file => file.length !== 0);
+    return files.filter(file => file.length !== 0).slice(offset, offset + limit);
 }
 
 /**
@@ -81,28 +81,28 @@ export async function getFileDiff(repositoryPath: string, filePath: string, comm
 /**
  * @description 获取某次提交的所有文件差异
  */
-export async function getCommitFileDiffs(repositoryPath: string, commitHash: string): Promise<FileDiff[]>
+export async function getCommitFileDiffs(repositoryPath: string, commitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<FileDiff[]>
 {
     const firstCommitHash = await getFirstCommitHash(repositoryPath);
     if (commitHash === firstCommitHash)
     {
         // see https://stackoverflow.com/questions/40883798/how-to-get-git-diff-of-the-first-commit
-        return await getFileDiffsBetweenCommits(repositoryPath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash);
+        return await getFileDiffsBetweenCommits(repositoryPath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash, offset, limit);
     }
     else
     {
         return await getFileDiffsBetweenCommits(repositoryPath,
             `${commitHash}~`
-            , commitHash);
+            , commitHash, offset, limit);
     }
 }
 
 /**
  * @description 获取两次提交间的所有文件差异
  */
-export async function getFileDiffsBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string): Promise<FileDiff[]>
+export async function getFileDiffsBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<FileDiff[]>
 {
-    const files = await getChangedFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
+    const files = await getChangedFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash, offset, limit);
     return await Promise.all(files.map(async filePath =>
         await getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash)));
 }
@@ -110,7 +110,7 @@ export async function getFileDiffsBetweenCommits(repositoryPath: string, baseCom
 /**
  * @description 获取两仓库分支之间的提交文件差异
  * */
-export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string): Promise<FileDiff[]>
+export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<FileDiff[]>
 {
     let tempRepositoryPath = '';
     try
@@ -121,7 +121,7 @@ export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseR
         if (baseRepositoryPath === targetRepositoryPath)
         {
             // 只克隆的 baseRepositoryBranch，因此需要对另一个分支加上 origin
-            return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `origin/${targetRepositoryBranchName}`);
+            return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `origin/${targetRepositoryBranchName}`, offset, limit);
         }
         else
         {
@@ -129,7 +129,7 @@ export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseR
             const tempSourceRemoteName = `remote_${Date.now()}`;
             await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
             // 得到源仓库分支到目标仓库分支的历史
-            return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`);
+            return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempSourceRemoteName}/${targetRepositoryBranchName}`, offset, limit);
         }
     }
     finally
@@ -144,7 +144,7 @@ export async function getFileDiffsBetweenForks(baseRepositoryPath: string, baseR
 /**
  * @description 获取两仓库提交之间的文件差异
  * */
-export async function getFileDiffsBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string): Promise<FileDiff[]>
+export async function getFileDiffsBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<FileDiff[]>
 {
     let tempRepositoryPath = '';
     try
@@ -159,7 +159,7 @@ export async function getFileDiffsBetweenRepositoriesCommits(baseRepositoryPath:
             await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
         }
         // 查看两个提交之间的提交差异
-        return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash);
+        return await getFileDiffsBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash, offset, limit);
     }
     finally
     {

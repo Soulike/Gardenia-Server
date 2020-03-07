@@ -277,8 +277,8 @@ export const getFileDiffs: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {id} = ctx.request.body;
+        const {pullRequest, offset, limit} = ctx.request.body;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await PullRequestService.getFileDiffs({id}, username!);
+        ctx.state.serviceResponse = await PullRequestService.getFileDiffs(pullRequest, offset, limit, username!);
     };
 };

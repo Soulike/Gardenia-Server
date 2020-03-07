@@ -231,10 +231,12 @@ export const fileCommitHistory: IParameterValidator = body =>
 
 export const diffBetweenCommits: IParameterValidator = body =>
 {
-    const {repository, baseCommitHash, targetCommitHash} = body;
+    const {repository, baseCommitHash, targetCommitHash, offset, limit} = body;
     if (repository === undefined || repository === null
         || typeof baseCommitHash !== 'string'
-        || typeof targetCommitHash !== 'string')
+        || typeof targetCommitHash !== 'string'
+        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
+        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
     {
         return false;
     }
@@ -352,4 +354,4 @@ export const forkCommitAmount: IParameterValidator = body =>
             targetRepositoryUsername,
             targetRepositoryName, '', false));
 };
-export const forkFileDiff: IParameterValidator = forkCommitAmount;
+export const forkFileDiff: IParameterValidator = forkCommitHistory;

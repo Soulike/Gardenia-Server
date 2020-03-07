@@ -270,8 +270,8 @@ export const diffBetweenCommits: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username} = ctx.session;
-        const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.diffBetweenCommits(repository, baseCommitHash, targetCommitHash, username);
+        const {repository, baseCommitHash, targetCommitHash, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.diffBetweenCommits(repository, baseCommitHash, targetCommitHash, offset, limit, username);
     };
 };
 
@@ -396,7 +396,7 @@ export const forkFileDiff: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {username: usernameInSession} = ctx.session;
-        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.forkFileDiff(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
+        const {sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.forkFileDiff(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, offset, limit, usernameInSession);
     };
 };

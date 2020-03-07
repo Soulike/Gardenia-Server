@@ -756,7 +756,7 @@ export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'i
         new ResponseBody(true, '', {commitAmount}));
 }
 
-export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
+export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -795,6 +795,7 @@ export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>
     const fileDiffs = await Git.getFileDiffsBetweenRepositoriesCommits(
         targetRepositoryPath, targetRepositoryCommitHash,
         sourceRepositoryPath, sourceRepositoryCommitHash,
+        offset, limit,
     );
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {fileDiffs}));
