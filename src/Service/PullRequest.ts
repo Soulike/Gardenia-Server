@@ -21,7 +21,7 @@ import {Repository as RepositoryFunction} from '../Function';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
 import {generateRepositoryPath} from '../Function/Repository';
 import * as Git from '../Git';
-import {getChangedFilesBetweenForks, updateRelatedPullRequest} from '../Git';
+import {getChangedFilesBetweenRepositoriesCommits, updateRelatedPullRequest} from '../Git';
 
 export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
@@ -837,7 +837,7 @@ export async function getFileDiffAmount(pullRequest: Readonly<Pick<PullRequest, 
         name: targetRepositoryName,
     });
 
-    const changedFiles = await getChangedFilesBetweenForks(
+    const changedFiles = await getChangedFilesBetweenRepositoriesCommits(
         targetRepositoryPath, targetRepositoryCommitHash,
         sourceRepositoryPath, sourceRepositoryCommitHash);
     const amount = changedFiles.length;

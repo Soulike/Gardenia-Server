@@ -35,7 +35,7 @@ export async function getChangedFiles(repositoryPath: string, commitHash: string
 /**
  * @description 获取两仓库提交之间被修改的文件
  * */
-export async function getChangedFilesBetweenForks(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
+export async function getChangedFilesBetweenRepositoriesCommits(baseRepositoryPath: string, baseRepositoryCommitHash: string, targetRepositoryPath: string, targetRepositoryCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
 {
     let tempRepositoryPath = '';
     try
@@ -51,6 +51,40 @@ export async function getChangedFilesBetweenForks(baseRepositoryPath: string, ba
         }
         // 查看两个提交之间的发生变化的文件
         return await getChangedFilesBetweenCommits(tempRepositoryPath, baseRepositoryCommitHash, targetRepositoryCommitHash, offset, limit);
+    }
+    finally
+    {
+        if (tempRepositoryPath.length > 0)
+        {
+            await fse.remove(tempRepositoryPath);
+        }
+    }
+}
+
+/**
+ * @description 获取两仓库提交之间被修改的文件
+ * */
+export async function getChangedFilesBetweenForks(baseRepositoryPath: string, baseRepositoryBranchName: string, targetRepositoryPath: string, targetRepositoryBranchName: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
+{
+    let tempRepositoryPath = '';
+    try
+    {
+        // 复制源仓库
+        tempRepositoryPath = await makeTemporaryRepository(baseRepositoryPath, baseRepositoryBranchName);
+        // 判断是不是同一个仓库，不是同一个仓库需要 fetch
+        if (baseRepositoryPath !== targetRepositoryPath)
+        {
+            // fetch 目标仓库
+            const tempRemoteName = `remote_${Date.now()}`;
+            await addRemote(tempRepositoryPath, targetRepositoryPath, tempRemoteName);
+            // 查看两个提交之间的发生变化的文件
+            return await getChangedFilesBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `${tempRemoteName}/${targetRepositoryBranchName}`, offset, limit);
+        }
+        else
+        {
+            // 查看两个提交之间的发生变化的文件
+            return await getChangedFilesBetweenCommits(tempRepositoryPath, baseRepositoryBranchName, `origin/${targetRepositoryBranchName}`, offset, limit);
+        }
     }
     finally
     {
