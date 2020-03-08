@@ -2,7 +2,7 @@ import {ISSUE_STATUS} from '../CONSTANT';
 
 export class Issue
 {
-    public readonly id: number;
+    public readonly id: number | undefined;
     public readonly username: string;
     public readonly repositoryUsername: string;
     public readonly repositoryName: string;
@@ -12,7 +12,7 @@ export class Issue
     public readonly creationTime: number;
     public readonly modificationTime: number;
 
-    constructor(id: number, username: string, repositoryUsername: string, repositoryName: string, no: number, title: string, status: ISSUE_STATUS, creationTime: number, modificationTime: number)
+    constructor(id: number | undefined, username: string, repositoryUsername: string, repositoryName: string, no: number, title: string, status: ISSUE_STATUS, creationTime: number, modificationTime: number)
     {
         this.id = id;
         this.username = username;
@@ -28,7 +28,7 @@ export class Issue
     public static validate(issue: Readonly<Record<keyof Issue, any>>): boolean
     {
         const {id, username, repositoryUsername, repositoryName, no, title, status, creationTime, modificationTime} = issue;
-        return typeof id === 'number'
+        return (typeof id === 'number' || id === undefined)
             && typeof username === 'string'
             && typeof repositoryUsername === 'string'
             && typeof repositoryName === 'string'

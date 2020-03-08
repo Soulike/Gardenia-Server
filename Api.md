@@ -2083,7 +2083,14 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取仓库的 Issue 列表
 - 方法：GET
-- 请求体：`Pick<Repository, 'username' | 'name'>`
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    offset?: number,
+    limit?: number,
+}
+```
 - 响应体：
 ```ts
 {
@@ -2094,6 +2101,29 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仓库不存在
 - 其他说明：
   - 按照创建时间从晚到早排序
+
+#### `/getAmountByRepository`
+
+- 功能：获取仓库的 Issue 数量
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    status: ISSUE_STATUS | undefined,
+    offset?: number,
+    limit?: number,
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,   
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
 
 #### `/get`
 
@@ -2114,6 +2144,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     comments: IssueComment[],
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应消息：

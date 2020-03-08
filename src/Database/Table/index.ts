@@ -7,8 +7,12 @@ import * as Collaborate from './Collaborate';
 import * as Fork from './Fork';
 import * as PullRequest from './PullRequest';
 import * as PullRequestComment from './PullRequestComment';
+import * as Issue from './Issue';
+import * as IssueComment from './IssueComment';
 
 export {
     Account, Profile,
-    Repository, Group, Star, Collaborate, Fork, PullRequest, PullRequestComment,
+    Repository, Group, Star, Collaborate, Fork,
+    PullRequest, PullRequestComment,
+    Issue, IssueComment,
 };

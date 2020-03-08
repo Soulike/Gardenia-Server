@@ -1,13 +1,13 @@
 export class IssueComment
 {
-    public readonly id: number;
+    public readonly id: number | undefined;
     public readonly username: number;
     public readonly belongsTo: number;
     public readonly content: string;
     public readonly creationTime: number;
     public readonly modificationTime: number;
 
-    constructor(id: number, username: number, belongsTo: number, content: string, creationTime: number, modificationTime: number)
+    constructor(id: number | undefined, username: number, belongsTo: number, content: string, creationTime: number, modificationTime: number)
     {
         this.id = id;
         this.username = username;
@@ -20,7 +20,7 @@ export class IssueComment
     public static validate(issueComment: Readonly<Record<keyof IssueComment, any>>): boolean
     {
         const {id, username, belongsTo, content, creationTime, modificationTime} = issueComment;
-        return typeof id === 'number'
+        return (typeof id === 'number' || id === undefined)
             && typeof username === 'string'
             && typeof belongsTo === 'number'
             && typeof content === 'string'
