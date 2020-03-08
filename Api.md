@@ -2111,8 +2111,6 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     status: ISSUE_STATUS | undefined,
-    offset?: number,
-    limit?: number,
 }
 ```
 - 响应体：
@@ -2139,13 +2137,18 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取 Issue 的评论
 - 方法：GET
-- 请求体：`Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>`
+- 请求体：
+```ts
+{
+    issue: Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>,
+    offset?: number,
+    limit?: number,
+}
+```
 - 响应体：
 ```ts
 {
     comments: IssueComment[],
-    offset?: number,
-    limit?: number,
 }
 ```
 - 响应消息：

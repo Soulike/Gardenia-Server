@@ -1,5 +1,5 @@
-import {Account, Issue, IssueComment, ResponseBody, ServiceResponse} from '../Class';
-import {Issue as IssueTable, Repository as RepositoryTable} from '../Database';
+import {Account, Issue, IssueComment, Repository, ResponseBody, ServiceResponse} from '../Class';
+import {Issue as IssueTable, IssueComment as IssueCommentTable, Repository as RepositoryTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 import {ISSUE_STATUS} from '../CONSTANT';
 
@@ -90,6 +90,118 @@ export async function reopen(issue: Readonly<Pick<Issue, 'repositoryUsername' | 
             new ResponseBody(false, '只有仓库合作者与 Issue 创建者可开启 Issue'));
     }
     await IssueTable.update({status: ISSUE_STATUS.OPEN}, {id});
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true));
+}
+
+export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, offset?: number, limit?: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ issues: Issue[] } | void>>
+{
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({
+        username, name,
+    });
+    if (repositoryInDatabase === null
+        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const issues = await IssueTable.select({repositoryUsername: username, repositoryName: name}, offset, limit);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {issues}));
+}
+
+export async function getAmountByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, status: ISSUE_STATUS | undefined, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+{
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({
+        username, name,
+    });
+    if (repositoryInDatabase === null
+        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    const amount = await IssueTable.count({repositoryUsername: username, repositoryName: name, status});
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {amount}));
+}
+
+export async function get(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<Issue | void>>
+{
+    const {repositoryUsername, repositoryName, no} = issue;
+    const [issuesInDatabase, repository] = await Promise.all([
+            IssueTable.select({repositoryUsername, repositoryName, no}),
+            RepositoryTable.selectByUsernameAndName({
+                username: repositoryUsername,
+                name: repositoryName,
+            }),
+        ],
+    );
+    if (issuesInDatabase === null || issuesInDatabase.length === 0
+        || repository === null
+        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Issue 不存在'));
+    }
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', issuesInDatabase[0]));
+}
+
+export async function getComments(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, offset?: number, limit?: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ comments: IssueComment[] } | void>>
+{
+    const {repositoryUsername, repositoryName, no} = issue;
+    const [issuesInDatabase, repository] = await Promise.all([
+            IssueTable.select({repositoryUsername, repositoryName, no}),
+            RepositoryTable.selectByUsernameAndName({
+                username: repositoryUsername,
+                name: repositoryName,
+            }),
+        ],
+    );
+    if (issuesInDatabase === null || issuesInDatabase.length === 0
+        || repository === null
+        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Issue 不存在'));
+    }
+    const {id} = issuesInDatabase[0];
+    const comments = await IssueCommentTable.select({belongsTo: id}, offset, limit);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {comments}));
+}
+
+export async function addComments(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, issueComment: Readonly<Pick<IssueComment, 'content'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+{
+    const {repositoryUsername, repositoryName, no} = issue;
+    const [issuesInDatabase, repository] = await Promise.all([
+            IssueTable.select({repositoryUsername, repositoryName, no}),
+            RepositoryTable.selectByUsernameAndName({
+                username: repositoryUsername,
+                name: repositoryName,
+            }),
+        ],
+    );
+    if (issuesInDatabase === null || issuesInDatabase.length === 0
+        || repository === null
+        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, 'Issue 不存在'));
+    }
+    const {id} = issuesInDatabase[0];
+    const timestamp = Date.now();
+    const {content} = issueComment;
+    await IssueCommentTable.insertAndReturnId({
+        username: usernameInSession,
+        belongsTo: id!,
+        creationTime: timestamp,
+        modificationTime: timestamp,
+        content,
+    });
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
 }
