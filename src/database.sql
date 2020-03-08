@@ -132,13 +132,15 @@ CREATE TABLE IF NOT EXISTS "issues"
     "repositoryName"     VARCHAR(255) NOT NULL,
     "no"                 BIGINT       NOT NULL,
     "title"              VARCHAR(255) NOT NULL,
+    "status"             VARCHAR(255) NOT NULL,
     "creationTime"       BIGINT       NOT NULL,
     "modificationTime"   BIGINT       NOT NULL,
     PRIMARY KEY ("id"),
     FOREIGN KEY ("username") REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ("repositoryUsername", "repositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE ("no", "repositoryUsername", "repositoryName"),
-    CHECK ( "no" > 0 )
+    CHECK ( "no" > 0 ),
+    CHECK ( "status" IN ('open', 'closed') )
 );
 
 CREATE TABLE IF NOT EXISTS "issue-comments"

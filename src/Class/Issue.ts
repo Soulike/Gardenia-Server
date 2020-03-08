@@ -1,3 +1,5 @@
+import {ISSUE_STATUS} from '../CONSTANT';
+
 export class Issue
 {
     public readonly id: number;
@@ -6,10 +8,11 @@ export class Issue
     public readonly repositoryName: string;
     public readonly no: number;
     public readonly title: string;
+    public readonly status: ISSUE_STATUS;
     public readonly creationTime: number;
     public readonly modificationTime: number;
 
-    constructor(id: number, username: string, repositoryUsername: string, repositoryName: string, no: number, title: string, creationTime: number, modificationTime: number)
+    constructor(id: number, username: string, repositoryUsername: string, repositoryName: string, no: number, title: string, status: ISSUE_STATUS, creationTime: number, modificationTime: number)
     {
         this.id = id;
         this.username = username;
@@ -17,19 +20,21 @@ export class Issue
         this.repositoryName = repositoryName;
         this.no = no;
         this.title = title;
+        this.status = status;
         this.creationTime = creationTime;
         this.modificationTime = modificationTime;
     }
 
     public static validate(issue: Readonly<Record<keyof Issue, any>>): boolean
     {
-        const {id, username, repositoryUsername, repositoryName, no, title, creationTime, modificationTime} = issue;
+        const {id, username, repositoryUsername, repositoryName, no, title, status, creationTime, modificationTime} = issue;
         return typeof id === 'number'
             && typeof username === 'string'
             && typeof repositoryUsername === 'string'
             && typeof repositoryName === 'string'
             && typeof no === 'number'
             && typeof title === 'string'
+            && Object.values(ISSUE_STATUS).includes(status)
             && typeof creationTime === 'number'
             && typeof modificationTime === 'number';
     }
@@ -40,7 +45,7 @@ export class Issue
         {
             throw new TypeError();
         }
-        const {id, username, repositoryUsername, repositoryName, no, title, creationTime, modificationTime} = issue;
-        return new Issue(id, username, repositoryUsername, repositoryName, no, title, creationTime, modificationTime);
+        const {id, username, repositoryUsername, repositoryName, no, title, status, creationTime, modificationTime} = issue;
+        return new Issue(id, username, repositoryUsername, repositoryName, no, title, status, creationTime, modificationTime);
     }
 }
