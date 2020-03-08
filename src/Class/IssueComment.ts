@@ -1,13 +1,13 @@
 export class IssueComment
 {
     public readonly id: number | undefined;
-    public readonly username: number;
+    public readonly username: string;
     public readonly belongsTo: number;
     public readonly content: string;
     public readonly creationTime: number;
     public readonly modificationTime: number;
 
-    constructor(id: number | undefined, username: number, belongsTo: number, content: string, creationTime: number, modificationTime: number)
+    constructor(id: number | undefined, username: string, belongsTo: number, content: string, creationTime: number, modificationTime: number)
     {
         this.id = id;
         this.username = username;
