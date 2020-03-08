@@ -8,6 +8,7 @@ import groupDispatcher from './Module/Group';
 import starDispatcher from './Module/Star';
 import collaborateDispatcher from './Module/Collaborate';
 import pullRequestDispatcher from './Module/PullRequest';
+import issueDispatcher from './Module/Issue';
 import {IContext, IState} from './Interface';
 
 const router = new Router<IState, IContext>({
@@ -24,5 +25,6 @@ groupDispatcher(router);
 starDispatcher(router);
 collaborateDispatcher(router);
 pullRequestDispatcher(router);
+issueDispatcher(router);
 
 export default router;

@@ -174,7 +174,7 @@ export async function getComments(issue: Readonly<Pick<Issue, 'repositoryUsernam
         new ResponseBody(true, '', {comments}));
 }
 
-export async function addComments(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, issueComment: Readonly<Pick<IssueComment, 'content'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function addComment(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, issueComment: Readonly<Pick<IssueComment, 'content'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
     const {repositoryUsername, repositoryName, no} = issue;
     const [issuesInDatabase, repository] = await Promise.all([

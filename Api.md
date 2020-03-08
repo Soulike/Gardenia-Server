@@ -2156,7 +2156,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 其他说明：
   - 按照创建时间从早到晚排序
 
-#### `/addComments`
+#### `/addComment`
 
 - 功能：添加 Issue 评论
 - 方法：POST
