@@ -94,7 +94,7 @@ export async function reopen(issue: Readonly<Pick<Issue, 'repositoryUsername' | 
         new ResponseBody(true));
 }
 
-export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, offset?: number, limit?: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ issues: Issue[] } | void>>
+export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, status: ISSUE_STATUS | undefined, offset?: number, limit?: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ issues: Issue[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({
@@ -106,7 +106,7 @@ export async function getByRepository(repository: Readonly<Pick<Repository, 'use
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, '仓库不存在'));
     }
-    const issues = await IssueTable.select({repositoryUsername: username, repositoryName: name}, offset, limit);
+    const issues = await IssueTable.select({repositoryUsername: username, repositoryName: name, status}, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {issues}));
 }

@@ -26,8 +26,9 @@ export const reopen: IParameterValidator = close;
 
 export const getByRepository: IParameterValidator = body =>
 {
-    const {repository, offset, limit} = body;
+    const {repository, status, offset, limit} = body;
     if (repository === undefined || repository === null
+        || (status !== undefined && !Object.values(ISSUE_STATUS).includes(status))
         || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
         || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
     {

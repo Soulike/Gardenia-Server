@@ -68,9 +68,9 @@ export const getByRepository: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {repository, offset, limit} = ctx.request.body;
+        const {repository, status, offset, limit} = ctx.request.body;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await IssueService.getByRepository(repository, offset, limit, username);
+        ctx.state.serviceResponse = await IssueService.getByRepository(repository, status, offset, limit, username);
     };
 };
 

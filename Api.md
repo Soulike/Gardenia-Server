@@ -2087,6 +2087,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     repository: Pick<Repository, 'username' | 'name'>,
+    status: ISSUE_STATUS | undefined,
     offset?: number,
     limit?: number,
 }
