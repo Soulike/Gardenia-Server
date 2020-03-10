@@ -170,6 +170,37 @@ class Conflict
 }
 ```
 
+### `Issue`
+
+```ts
+class Issue
+{
+    public readonly id: number;
+    public readonly username: string;
+    public readonly repositoryUsername: string;
+    public readonly repositoryName: string;
+    public readonly no: number;
+    public readonly title: string;
+    public readonly status: ISSUE_STATUS;
+    public readonly creationTime: number;
+    public readonly modificationTime: number;
+}
+```
+
+### `IssueComment`
+
+```ts
+class IssueComment
+{
+    public readonly id: number;
+    public readonly username: number;
+    public readonly belongsTo: number;
+    public readonly content: string;
+    public readonly creationTime: number;
+    public readonly modificationTime: number;
+}
+```
+
 ---
 
 ## 常量
@@ -194,6 +225,16 @@ export enum PULL_REQUEST_STATUS
     OPEN = 'open',
     CLOSED = 'closed',
     MERGED = 'merged',
+}
+```
+
+### Issue Status
+
+```ts
+enum ISSUE_STATUS
+{
+    OPEN = 'open',
+    CLOSED = 'closed'
 }
 ```
 
@@ -1996,4 +2037,138 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - Pull Request 不存在
+- 其他说明：无
+
+### Issue 模块（`/issue`）
+
+#### `/add`
+
+- 功能：添加新 Issue
+- 方法：POST
+- 请求体：
+```ts
+{
+    issue: Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'title'>,
+    issueComment: Pick<IssueComment, 'content'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/close`
+
+- 功能：关闭 Issue
+- 方法：POST
+- 请求体：`Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>`
+- 响应体：无
+- 响应消息：
+  - Issue 不存在
+  - 只有仓库合作者与 Issue 创建者可关闭 Issue
+- 其他说明：无
+
+#### `/reopen`
+
+- 功能：重新开启 Issue
+- 方法：POST
+- 请求体：`Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>`
+- 响应体：无
+- 响应消息：
+  - Issue 不存在
+  - 只有仓库合作者与 Issue 创建者可开启 Issue
+- 其他说明：无
+
+#### `/getByRepository`
+
+- 功能：获取仓库的 Issue 列表
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    status: ISSUE_STATUS | undefined,
+    offset?: number,
+    limit?: number,
+}
+```
+- 响应体：
+```ts
+{
+    issues: Issue[],
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：
+  - 按照创建时间从晚到早排序
+
+#### `/getAmountByRepository`
+
+- 功能：获取仓库的 Issue 数量
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+    status: ISSUE_STATUS | undefined,
+}
+```
+- 响应体：
+```ts
+{
+    amount: number,   
+}
+```
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
+#### `/get`
+
+- 功能：获取 Issue 信息
+- 方法：GET
+- 请求体：`Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>`
+- 响应体：`Issue`
+- 响应消息：
+  - Issue 不存在
+- 其他说明：无
+
+#### `/getComments`
+
+- 功能：获取 Issue 的评论
+- 方法：GET
+- 请求体：
+```ts
+{
+    issue: Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>,
+    offset?: number,
+    limit?: number,
+}
+```
+- 响应体：
+```ts
+{
+    comments: IssueComment[],
+}
+```
+- 响应消息：
+  - Issue 不存在
+- 其他说明：
+  - 按照创建时间从早到晚排序
+
+#### `/addComment`
+
+- 功能：添加 Issue 评论
+- 方法：POST
+- 请求体：
+```ts
+{
+    issue: Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>,
+    issueComment: Pick<IssueComment, 'content'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - Issue 不存在
 - 其他说明：无

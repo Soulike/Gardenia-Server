@@ -49,7 +49,7 @@ export async function update(pullRequestComment: Readonly<Partial<PullRequestCom
     }
 }
 
-export async function select(pullRequestComment: Readonly<Partial<PullRequestComment>>): Promise<PullRequestComment[]>
+export async function select(pullRequestComment: Readonly<Partial<PullRequestComment>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<PullRequestComment[]>
 {
     if (Object.keys(pullRequestComment).length === 0)
     {
@@ -57,7 +57,7 @@ export async function select(pullRequestComment: Readonly<Partial<PullRequestCom
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(pullRequestComment, 'AND');
     const {rows} = await pool.query(
-        `SELECT * FROM "pull-request-comments" WHERE ${parameterizedStatement}`,
+        `SELECT * FROM "pull-request-comments" WHERE ${parameterizedStatement} ORDER BY "creationTime" OFFSET ${offset} LIMIT ${limit}`,
         values);
     return rows.map(row => PullRequestComment.from(row));
 }

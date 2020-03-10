@@ -7,5 +7,9 @@ import * as Git from './Git';
 import * as Star from './Star';
 import * as Collaborate from './Collaborate';
 import * as PullRequest from './PullRequest';
+import * as Issue from './Issue';
 
-export {Account, RepositoryInfo, Repository, Profile, Group, Git, Star, Collaborate, PullRequest};
+export {
+    Account, Profile, RepositoryInfo, Repository,
+    Group, Git, Star, Collaborate, PullRequest, Issue,
+};
