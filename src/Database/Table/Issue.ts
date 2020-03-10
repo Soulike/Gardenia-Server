@@ -19,7 +19,7 @@ export async function insertAndReturnId(issue: Readonly<Omit<Issue, 'id'>>, issu
             const {values: issueValues, columnNames: issueColumnNames, parameterString: issueParameterString} = generateColumnNamesAndValuesArrayAndParameterString(issue);
             const result = await client.query(`INSERT INTO "issues" (${issueColumnNames}) VALUES (${issueParameterString}) RETURNING "id"`, issueValues);
 
-            const issueId = Number.parseInt(rows[0]['id']);
+            const issueId = Number.parseInt(result['rows'][0]['id']);
             const {username} = issue;
             const {values: commentValues, columnNames: commentColumnNames, parameterString: commentParameterString} =
                 generateColumnNamesAndValuesArrayAndParameterString(<IssueComment>{
