@@ -56,7 +56,7 @@ export async function select(issueComment: Readonly<Partial<IssueComment>>, offs
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(issueComment, 'AND');
     const {rows} = await pool.query(
-        `SELECT * FROM "issue-comments" WHERE ${parameterizedStatement} ORDER BY "creationTime" DESC OFFSET ${offset} LIMIT ${limit}`,
+        `SELECT * FROM "issue-comments" WHERE ${parameterizedStatement} ORDER BY "creationTime" OFFSET ${offset} LIMIT ${limit}`,
         values);
     return rows.map(row => IssueComment.from(row));
 }
