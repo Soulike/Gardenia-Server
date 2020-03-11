@@ -119,7 +119,7 @@ export function generateCollaborateCode(repository: Pick<Repository, 'username' 
 
 export async function setCollaborateCode(code: string, repository: Pick<Repository, 'username' | 'name'>): Promise<void>
 {
-    const result = await redis.set(code, JSON.stringify(repository), 'EX', 10 * 60);
+    const result = await redis.set(code, JSON.stringify(repository), 'EX', 7 * 24 * 60 * 60); // 单位是秒
     if (result !== 'OK')
     {
         throw new Error(result);
