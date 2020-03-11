@@ -3,11 +3,12 @@ import {Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
 import {File} from 'formidable';
 import imagemin from 'imagemin';
-import imageminWebp from 'imagemin-webp';
 import path from 'path';
 import fse from 'fs-extra';
 import os from 'os';
 import {SERVER} from '../CONFIG';
+
+const imageminJpegRecompress = require('imagemin-jpeg-recompress');
 
 export async function get(session: Readonly<Session>, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | void>>
 {
@@ -58,36 +59,19 @@ export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Ses
     * 3. 将 webp 临时文件移动到新路径
     * */
     const {path: avatarUploadPath, hash: fileHash} = avatar;
-    const avatarFileName = `${username}_${fileHash}.webp`;
+    const avatarFileName = `${username}_${fileHash}.jpg`;
     const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', avatarFileName);
-    const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(avatarUploadPath)}.webp`);
+    const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(avatarUploadPath)}`);
     try
     {
         await imagemin([avatarUploadPath], {
             destination: os.tmpdir(),
             plugins: [
-                imageminWebp({
-                    quality: 100,
-                    method: 6,
-                    resize: {
-                        width: 500,
-                        height: 500,
-                    },
-                }),
+                imageminJpegRecompress(),
             ],
         });
+        await fse.move(tempAvatarPath, avatarPath, {overwrite: true});
         await ProfileTable.update({avatar: `/avatar/${avatarFileName}`}, {username});
-        try
-        {
-            await fse.move(tempAvatarPath, avatarPath, {overwrite: true});
-        }
-        catch (e)   // 如果最后的 move 失败，用户头像不变
-        {
-            await Promise.all([
-                fse.remove(avatarPath),
-            ]);
-            throw e;
-        }
     }
     finally // 转换或数据库修改失败，数据库会自己回滚，最后必须删除所有临时文件
     {
