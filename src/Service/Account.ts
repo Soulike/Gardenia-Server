@@ -1,7 +1,9 @@
 import {Account, Group, Profile, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable, Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
-import {Session as SessionFunction} from '../Function';
+import {Authentication, Mail, Session as SessionFunction} from '../Function';
+import {VERIFICATION_CODE_TYPE} from '../CONSTANT';
+import {Interface as DispatcherInterface} from '../Dispatcher';
 
 export async function login(account: Readonly<Account>): Promise<ServiceResponse<void>>
 {
@@ -25,10 +27,23 @@ export async function login(account: Readonly<Account>): Promise<ServiceResponse
     }
 }
 
-export async function register(account: Readonly<Account>, profile: Readonly<Omit<Profile, 'username'>>): Promise<ServiceResponse<void>>
+export async function register(account: Readonly<Account>, profile: Readonly<Omit<Profile, 'username'>>, verificationCode: string, verificationInSession: DispatcherInterface.ISession['verification']): Promise<ServiceResponse<void>>
 {
+    if (verificationInSession === undefined)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, '验证码错误'));
+    }
+    const {type: verificationType, email: verificationEmail, verificationCode: verificationCodeInSession} = verificationInSession;
     const {username} = account;
     const {email} = profile;
+    if (verificationType !== VERIFICATION_CODE_TYPE.REGISTER
+        || email !== verificationEmail
+        || verificationCode !== verificationCodeInSession)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, '验证码错误'));
+    }
     if ((await AccountTable.count({username})) !== 0) // 检查用户名是不是已经存在了
     {
         return new ServiceResponse<void>(200, {},
@@ -41,7 +56,45 @@ export async function register(account: Readonly<Account>, profile: Readonly<Omi
     }
     await AccountTable.create(account, {username: account.username, ...profile});
     return new ServiceResponse<void>(200, {},
-        new ResponseBody<void>(true));
+        new ResponseBody<void>(true), {verification: undefined});
+}
+
+export async function sendVerificationCodeByUsername(profile: Readonly<Pick<Profile, 'username'>>): Promise<ServiceResponse<void>>
+{
+    // 获取用户名对应的邮箱
+    const {username} = profile;
+    const profileInDatabase = await ProfileTable.selectByUsername(username);
+    if (profileInDatabase === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '用户名不存在'));
+    }
+    const {email} = profileInDatabase;
+    const verificationCode = Authentication.generateVerificationCode();
+    await Mail.sendMail({
+        to: email,
+        subject: 'Gardenia 注册验证码',
+        text: `${username}，您好。您的 Gardenia 修改密码验证码为 ${verificationCode}`,
+    });
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true), {
+            verification: {type: VERIFICATION_CODE_TYPE.CHANGE_PASSWORD, email, verificationCode},
+        });
+}
+
+export async function sendVerificationCodeToEmail(profile: Readonly<Pick<Profile, | 'email'>>): Promise<ServiceResponse<void>>
+{
+    const {email} = profile;
+    const verificationCode = Authentication.generateVerificationCode();
+    await Mail.sendMail({
+        to: email,
+        subject: 'Gardenia 注册验证码',
+        text: `您好。您的 Gardenia 注册验证码为 ${verificationCode}`,
+    });
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true), {
+            verification: {type: VERIFICATION_CODE_TYPE.REGISTER, email, verificationCode},
+        });
 }
 
 export async function checkSession(session: Readonly<Session>): Promise<ServiceResponse<{ isValid: boolean }>>

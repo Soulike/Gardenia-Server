@@ -1,14 +1,36 @@
 import Router from '@koa/router';
-import {CHECK_PASSWORD, CHECK_SESSION, GET_ADMINISTRATING_GROUPS, GET_GROUPS, LOGIN, LOGOUT, REGISTER} from './ROUTE';
+import {
+    CHECK_PASSWORD,
+    CHECK_SESSION,
+    GET_ADMINISTRATING_GROUPS,
+    GET_GROUPS,
+    LOGIN,
+    LOGOUT,
+    REGISTER,
+    SEND_VERIFICATION_CODE_BY_USERNAME,
+    SEND_VERIFICATION_CODE_TO_EMAIL,
+} from './ROUTE';
 import bodyParser from '../../Middleware/bodyParser';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
-import {checkPassword, checkSession, getAdministratingGroups, getGroups, login, logout, register} from './Middleware';
+import {
+    checkPassword,
+    checkSession,
+    getAdministratingGroups,
+    getGroups,
+    login,
+    logout,
+    register,
+    sendVerificationCodeByUsername,
+    sendVerificationCodeToEmail,
+} from './Middleware';
 import {IContext, IState} from '../../Interface';
 
 export default (router: Router<IState, IContext>) =>
 {
     router.post(LOGIN, bodyParser(), login());
     router.post(REGISTER, bodyParser(), register());
+    router.post(SEND_VERIFICATION_CODE_BY_USERNAME, bodyParser(), sendVerificationCodeByUsername());
+    router.post(SEND_VERIFICATION_CODE_TO_EMAIL, bodyParser(), sendVerificationCodeToEmail());
     router.get(CHECK_SESSION, JSONQuerystringParser(), checkSession());
     router.post(LOGOUT, bodyParser(), logout());
     router.get(GET_GROUPS, JSONQuerystringParser(), getGroups());

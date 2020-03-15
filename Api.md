@@ -296,12 +296,33 @@ enum ISSUE_STATUS
 {
     account: Account,
     profile: Omit<ProfileClass, 'username'>,
+    verificationCode: string,
 }
 ```
 - 响应体：无
 - 响应消息：
   - 用户名已存在
   - 邮箱已被使用
+  - 验证码错误
+- 其他说明：无
+
+#### `/sendVerificationCodeToEmail`
+
+- 功能：发送验证码
+- 方法：POST
+- 请求体：`Pick<Profile, 'email'>`
+- 响应体：无
+- 响应消息：无
+- 其他说明：无
+
+#### `/sendVerificationCodeByUsername`
+
+- 功能：发送验证码
+- 方法：POST
+- 请求体：`Pick<Profile, 'username'>`
+- 响应体：无
+- 响应消息：
+  - 用户名不存在
 - 其他说明：无
 
 #### `/checkSession`

@@ -30,6 +30,19 @@ export async function update(profile: Readonly<Partial<Profile>>, primaryKey: Re
     }
 }
 
+export async function select(profile: Readonly<Partial<Profile>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Profile[]>
+{
+    if (Object.keys(profile).length === 0)
+    {
+        return [];
+    }
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(profile, 'AND');
+    const {rows} = await pool.query(
+        `SELECT * FROM "profiles" WHERE ${parameterizedStatement} OFFSET ${offset} LIMIT ${limit}`,
+        values);
+    return rows.map(row => Profile.from(row));
+}
+
 export async function selectByUsername(username: Profile['username']): Promise<Profile | null>
 {
     const {rows, rowCount} = await pool.query(
