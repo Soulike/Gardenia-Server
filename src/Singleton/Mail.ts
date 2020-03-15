@@ -1,18 +1,7 @@
 import nodemailer from 'nodemailer';
-import {SERVER} from '../CONFIG';
+import {MAIL, SERVER} from '../CONFIG';
 
-/**
- * @see https://nodemailer.com/usage/
- * */
-const transporter = nodemailer.createTransport({
-    pool: true,
-    host: 'smtp.qq.com',
-    secure: true,
-    auth: {
-        user: '',
-        pass: '',
-    },
-});
+const transporter = nodemailer.createTransport(MAIL);
 
 transporter.verify((err) =>
 {

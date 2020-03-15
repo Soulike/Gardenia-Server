@@ -8,8 +8,20 @@ export const login: IParameterValidator = body =>
 
 export const register: IParameterValidator = body =>
 {
-    const {account, profile} = body;
-    return Account.validate(account) && Profile.validate({username: '', ...profile});
+    const {account, profile, verificationCode} = body;
+    return Account.validate(account) && Profile.validate({username: '', ...profile}) && typeof verificationCode === 'string';
+};
+
+export const sendVerificationCodeByUsername: IParameterValidator = body =>
+{
+    const {username} = body;
+    return Profile.validate(new Profile(username, '', 'a@b.com', ''));
+};
+
+export const sendVerificationCodeToEmail: IParameterValidator = body =>
+{
+    const {email} = body;
+    return Profile.validate(new Profile('', '', email, ''));
 };
 
 export const getGroups: IParameterValidator = body =>

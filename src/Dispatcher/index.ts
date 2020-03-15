@@ -2,6 +2,7 @@ import router from './Router';
 import compose from 'koa-compose';
 import errorHandler from './Middleware/errorHandler';
 import responseHandler from './Middleware/responseHandler';
+import * as Interface from './Interface';
 
 export default () =>
 {
@@ -12,3 +13,5 @@ export default () =>
         router.allowedMethods(),
     ]);
 };
+
+export {Interface};

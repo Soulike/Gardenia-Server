@@ -29,9 +29,36 @@ export const register: IRouteHandler = () =>
         const {
             account: {username, hash},
             profile: {nickname, avatar, email},
+            verificationCode,
         } = ctx.request.body;
         ctx.state.serviceResponse = await AccountService.register(
-            {username, hash}, {nickname, avatar, email});
+            {username, hash}, {nickname, avatar, email}, verificationCode, ctx.session.verification);
+    };
+};
+
+export const sendVerificationCodeByUsername: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.sendVerificationCodeByUsername(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.request.body;
+        ctx.state.serviceResponse = await AccountService.sendVerificationCodeByUsername({username});
+    };
+};
+
+export const sendVerificationCodeToEmail: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.sendVerificationCodeToEmail(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {email} = ctx.request.body;
+        ctx.state.serviceResponse = await AccountService.sendVerificationCodeToEmail({email});
     };
 };
 

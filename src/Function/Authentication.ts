@@ -31,3 +31,9 @@ export function getAccountFromAuthenticationHeader(headers: any): Account | null
     }
     return {username, hash: Account.calculateHash(username, password)};
 }
+
+export function generateVerificationCode(): string
+{
+    const number = Math.round(Math.random() * 1000000) % 1000000;
+    return number.toString().padStart(6, '0');
+}
