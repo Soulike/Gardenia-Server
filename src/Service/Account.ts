@@ -73,7 +73,7 @@ export async function sendVerificationCodeByUsername(profile: Readonly<Pick<Prof
     const verificationCode = Authentication.generateVerificationCode();
     await Mail.sendMail({
         to: email,
-        subject: 'Gardenia 注册验证码',
+        subject: 'Gardenia 修改密码验证码',
         text: `${username}，您好。您的 Gardenia 修改密码验证码为 ${verificationCode}`,
     });
     return new ServiceResponse<void>(200, {},
