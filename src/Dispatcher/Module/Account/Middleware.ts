@@ -62,6 +62,20 @@ export const sendVerificationCodeToEmail: IRouteHandler = () =>
     };
 };
 
+export const changePassword: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.changePassword(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {account, verificationCode} = ctx.request.body;
+        const {verification} = ctx.session;
+        ctx.state.serviceResponse = await AccountService.changePassword(account, verificationCode, verification);
+    };
+};
+
 export const checkSession: IRouteHandler = () =>
 {
     return async (ctx) =>

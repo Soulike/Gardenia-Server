@@ -97,6 +97,42 @@ export async function sendVerificationCodeToEmail(profile: Readonly<Pick<Profile
         });
 }
 
+export async function changePassword(account: Readonly<Account>, verificationCode: string, verificationInSession: Readonly<DispatcherInterface.ISession['verification']>): Promise<ServiceResponse<void>>
+{
+    // 验证验证码是否存在
+    if (verificationInSession === undefined)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '验证码错误'));
+    }
+    const {type, email: emailInSession, verificationCode: verificationCodeInSession} = verificationInSession;
+    const {username, hash} = account;
+    // 查看验证码类型是否正确
+    if (type !== VERIFICATION_CODE_TYPE.CHANGE_PASSWORD)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '验证码错误'));
+    }
+    // 查看账号存在性
+    const profile = await ProfileTable.selectByUsername(username);
+    if (profile === null)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '用户名不存在'));
+    }
+    // 查看邮箱是否对应，验证码是否正确
+    const {email} = profile;
+    if (email !== emailInSession || verificationCodeInSession !== verificationCode)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, '验证码错误'));
+    }
+    // 修改密码，并注销 Session
+    await AccountTable.update({hash}, {username});
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true), {username: undefined, verification: undefined});
+}
+
 export async function checkSession(session: Readonly<Session>): Promise<ServiceResponse<{ isValid: boolean }>>
 {
     return new ServiceResponse<{ isValid: boolean }>(200, {},

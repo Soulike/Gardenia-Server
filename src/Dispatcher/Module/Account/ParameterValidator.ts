@@ -24,6 +24,17 @@ export const sendVerificationCodeToEmail: IParameterValidator = body =>
     return Profile.validate(new Profile('', '', email, ''));
 };
 
+export const changePassword: IParameterValidator = body =>
+{
+    const {account, verificationCode} = body;
+    if (account === undefined || account === null || typeof verificationCode !== 'string')
+    {
+        return false;
+    }
+    const {username, hash} = account;
+    return Account.validate(new Account(username, hash));
+};
+
 export const getGroups: IParameterValidator = body =>
 {
     const {username} = body;

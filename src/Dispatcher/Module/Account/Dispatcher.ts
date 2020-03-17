@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import {
+    CHANGE_PASSWORD,
     CHECK_PASSWORD,
     CHECK_SESSION,
     GET_ADMINISTRATING_GROUPS,
@@ -13,6 +14,7 @@ import {
 import bodyParser from '../../Middleware/bodyParser';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import {
+    changePassword,
     checkPassword,
     checkSession,
     getAdministratingGroups,
@@ -31,6 +33,7 @@ export default (router: Router<IState, IContext>) =>
     router.post(REGISTER, bodyParser(), register());
     router.post(SEND_VERIFICATION_CODE_BY_USERNAME, bodyParser(), sendVerificationCodeByUsername());
     router.post(SEND_VERIFICATION_CODE_TO_EMAIL, bodyParser(), sendVerificationCodeToEmail());
+    router.post(CHANGE_PASSWORD, bodyParser(), changePassword());
     router.get(CHECK_SESSION, JSONQuerystringParser(), checkSession());
     router.post(LOGOUT, bodyParser(), logout());
     router.get(GET_GROUPS, JSONQuerystringParser(), getGroups());

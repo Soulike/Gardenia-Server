@@ -325,6 +325,23 @@ enum ISSUE_STATUS
   - 用户名不存在
 - 其他说明：无
 
+#### `/changePassword`
+
+- 功能：修改密码
+- 方法：POST
+- 请求体：
+```ts
+{
+    account: Account,   // hash 域是修改后的新密码
+    verificationCode: string,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 用户名不存在
+  - 验证码错误
+- 其他说明：无
+
 #### `/checkSession`
 
 - 功能：检测当前 Session 是否有效
