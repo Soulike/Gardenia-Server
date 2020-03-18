@@ -30,28 +30,21 @@ CREATE TABLE IF NOT EXISTS  "groups"
     "name" VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS  "account_group"
+CREATE TABLE IF NOT EXISTS "account_group"
 (
     "username" VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
-    "group_id" INTEGER REFERENCES "groups" ("id") ON UPDATE CASCADE ON DELETE CASCADE              NOT NULL,
-    UNIQUE ("username", "group_id")
-);
-
-CREATE TABLE IF NOT EXISTS  "admin_group"
-(
-    "admin_username" VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
-    "group_id"       INTEGER REFERENCES "groups" ("id")              ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
-    UNIQUE ("admin_username", "group_id"),
-    FOREIGN KEY ("admin_username", "group_id") REFERENCES "account_group" ("username", "group_id") ON UPDATE CASCADE ON DELETE CASCADE
+    "groupId"  INTEGER REFERENCES "groups" ("id") ON UPDATE CASCADE ON DELETE CASCADE              NOT NULL,
+    "isAdmin"  BOOLEAN                                                                             NOT NULL,
+    UNIQUE ("username", "groupId")
 );
 
 CREATE TABLE IF NOT EXISTS  "repository_group"
 (
-    "repository_username" VARCHAR(255) NOT NULL,
-    "repository_name"     VARCHAR(255) NOT NULL,
-    "group_id"            INTEGER      NOT NULL REFERENCES "groups" ("id")  ON UPDATE CASCADE ON DELETE CASCADE,
-    FOREIGN KEY ("repository_username", "repository_name") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
-    UNIQUE ("repository_username", "repository_name", "group_id")
+    "repositoryUsername" VARCHAR(255) NOT NULL,
+    "repositoryName"     VARCHAR(255) NOT NULL,
+    "groupId"            INTEGER      NOT NULL REFERENCES "groups" ("id")  ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY ("repositoryUsername", "repositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
+    UNIQUE ("repositoryUsername", "repositoryName", "groupId")
 );
 
 CREATE TABLE IF NOT EXISTS "stars"
