@@ -7,7 +7,6 @@ import {
     RepositoryGroup as RepositoryGroupTable,
 } from '../Database';
 import {Group as GroupFunction, Repository as RepositoryFunction} from '../Function';
-import {Session} from 'koa-session';
 
 export async function add(group: Readonly<Omit<Group, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
 {
@@ -210,11 +209,10 @@ export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames
         new ResponseBody<void>(true));
 }
 
-export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Group[]>>
+export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<Group[]>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<Group[]>(404, {},

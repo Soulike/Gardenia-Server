@@ -186,7 +186,8 @@ export const getByRepository: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {repository} = ctx.request.body;
-        ctx.state.serviceResponse = await GroupService.getByRepository(repository, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await GroupService.getByRepository(repository, username);
     };
 };
 
