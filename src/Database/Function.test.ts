@@ -3,12 +3,12 @@ import {
     generateParameterizedStatementAndValuesArray,
 } from './Function';
 
-describe(`${generateParameterizedStatementAndValuesArray.name}`, () =>
+describe('generateParameterizedStatementAndValuesArray', () =>
 {
     const obj = {a: 1, b: 2, c: 3, d: 'a', e: undefined};
     const objValues = Object.values(JSON.parse(JSON.stringify(obj)));
 
-    it('should generate parameterized statement and corresponding array of values with "AND" connection', function ()
+    it('应当生成 "AND" 连接的参数字符串且返回正确参数数组', function ()
     {
         const {parameterizedStatement, values} =
             generateParameterizedStatementAndValuesArray(obj, 'AND');
@@ -17,7 +17,7 @@ describe(`${generateParameterizedStatementAndValuesArray.name}`, () =>
         expect(parameterizedStatement).toBe(expectedStatement);
     });
 
-    it('should generate parameterized statement and corresponding array of values with "," connection', function ()
+    it('应当生成 "," 连接的参数字符串且返回正确参数数组', function ()
     {
         const {parameterizedStatement, values} =
             generateParameterizedStatementAndValuesArray(obj, ',');
@@ -26,7 +26,7 @@ describe(`${generateParameterizedStatementAndValuesArray.name}`, () =>
         expect(parameterizedStatement).toBe(expectedStatement);
     });
 
-    it('should throw error when parameter object is empty', function ()
+    it('应当在传入对象没有有效键值对时抛出错误', function ()
     {
         expect(
             () => generateParameterizedStatementAndValuesArray({}, ','))
@@ -40,9 +40,9 @@ describe(`${generateParameterizedStatementAndValuesArray.name}`, () =>
     });
 });
 
-describe(`${generateColumnNamesAndValuesArrayAndParameterString.name}`, () =>
+describe('generateColumnNamesAndValuesArrayAndParameterString', () =>
 {
-    it('should generate columns\' names, values array and parameter string', async function ()
+    it('应当生产列名串及对应的参数串', function ()
     {
         const obj = {a: 1, b: 2, c: 3, d: 'a', e: undefined};
         const objValues = Object.values(JSON.parse(JSON.stringify(obj)));
@@ -54,7 +54,7 @@ describe(`${generateColumnNamesAndValuesArrayAndParameterString.name}`, () =>
         expect(parameterString).toBe(expectedParameterString);
     });
 
-    it('should throw error when parameter object is empty', function ()
+    it('应当在传入对象没有有效键值对时抛出错误', function ()
     {
         expect(() => generateColumnNamesAndValuesArrayAndParameterString({}))
             .toThrow();
