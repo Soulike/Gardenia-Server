@@ -52,13 +52,13 @@ export async function deleteByUsernameAndName(repository: Readonly<Pick<Reposito
                 // 删除 star
                 client.query(`DELETE
                               FROM stars
-                              WHERE "repository_username" = $1
-                                AND "repository_name" = $2`, [username, name]),
+                              WHERE "repositoryUsername" = $1
+                                AND "repositoryName" = $2`, [username, name]),
                 // 删除关联合作者
                 client.query(`DELETE
                               FROM collaborates
-                              WHERE repository_username = $1
-                                AND repository_name = $2`, [username, name]),
+                              WHERE "repositoryUsername" = $1
+                                AND "repositoryName" = $2`, [username, name]),
                 // 删除关联小组关系
                 client.query(`DELETE
                               FROM repository_group
