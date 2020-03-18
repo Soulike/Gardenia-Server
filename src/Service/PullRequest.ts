@@ -152,8 +152,8 @@ export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSess
     const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
     // 仓库一定存在
     const collaborates = await CollaborateTable.select({
-        repository_username: targetRepositoryUsername,
-        repository_name: targetRepositoryName,
+        repositoryUsername: targetRepositoryUsername,
+        repositoryName: targetRepositoryName,
     });
     const collaborators = collaborates.map(({username}) => username);
     if (usernameInSession === undefined
@@ -220,8 +220,8 @@ export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, use
     }
     // 检查是不是目标仓库的合作者或 PR 创建者
     const targetRepositoryCollaboration = await CollaborateTable.select({
-        repository_username: targetRepositoryUsername,
-        repository_name: targetRepositoryName,
+        repositoryUsername: targetRepositoryUsername,
+        repositoryName: targetRepositoryName,
     });
     const collaborators = targetRepositoryCollaboration.map(({username}) => username);
     if (usernameInSession !== sourceRepositoryUsername      // 不是 PR 的发起者
@@ -314,8 +314,8 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     // 检查是不是合作者操作
     // 仓库一定存在
     const collaborates = await CollaborateTable.select({
-        repository_username: targetRepositoryUsername,
-        repository_name: targetRepositoryName,
+        repositoryUsername: targetRepositoryUsername,
+        repositoryName: targetRepositoryName,
     });
     const collaborators = collaborates.map(({username}) => username);
     if (usernameInSession === undefined

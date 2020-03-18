@@ -4,33 +4,33 @@ import {Repository} from './Repository';
 export class AccountRepository
 {
     public readonly username: Account['username'];
-    public readonly repository_username: Repository['username'];
-    public readonly repository_name: Repository['name'];
+    public readonly repositoryUsername: Repository['username'];
+    public readonly repositoryName: Repository['name'];
 
-    constructor(username: string, repository_username: string, repository_name: string)
+    constructor(username: string, repositoryUsername: string, repositoryName: string)
     {
         this.username = username;
-        this.repository_username = repository_username;
-        this.repository_name = repository_name;
+        this.repositoryUsername = repositoryUsername;
+        this.repositoryName = repositoryName;
     }
 
     public static from(obj: Readonly<Record<keyof AccountRepository, any>>): AccountRepository
     {
-        const {username, repository_name, repository_username} = obj;
-        if (!AccountRepository.validate({username, repository_name, repository_username}))
+        const {username, repositoryName, repositoryUsername} = obj;
+        if (!AccountRepository.validate({username, repositoryName, repositoryUsername}))
         {
             throw new TypeError(`Source object is not a ${AccountRepository.name} instance`);
         }
-        return new AccountRepository(username, repository_username, repository_name);
+        return new AccountRepository(username, repositoryUsername, repositoryName);
     }
 
     private static validate(obj: Readonly<Record<keyof AccountRepository, any>>): boolean
     {
-        const {username, repository_name, repository_username} = obj;
+        const {username, repositoryName, repositoryUsername} = obj;
         return Account.validate({username, hash: 'a'.repeat(64)})
             && Repository.validate({
-                username: repository_username,
-                name: repository_name,
+                username: repositoryUsername,
+                name: repositoryName,
                 isPublic: false,
                 description: '',
             });

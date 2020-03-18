@@ -1,19 +1,16 @@
 import {Account, Group} from '../Class';
-import {Session} from 'koa-session';
-import {Account as AccountTable, Group as GroupTable} from '../Database';
+import {AccountGroup as AccountGroupTable, Group as GroupTable} from '../Database';
 
-export async function isGroupAdmin(group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<boolean>
+export async function isGroupAdmin(group: Readonly<Pick<Group, 'id'>>, username: string): Promise<boolean>
 {
-    const {username} = session;
     const {id: groupId} = group;
-    const adminsInGroup = await GroupTable.getAdminsById(groupId);
-    return adminsInGroup.map(({username}) => username).includes(username);
+    return await AccountGroupTable.count({username, groupId, isAdmin: true}) === 1;
 }
 
 export async function isGroupMember(group: Readonly<Pick<Group, 'id'>>, username: string): Promise<boolean>
 {
-    const accountsInGroup = await GroupTable.getAccountsById(group.id);
-    return accountsInGroup.map(({username}) => username).includes(username);
+    const {id: groupId} = group;
+    return await AccountGroupTable.count({username, groupId}) === 1;
 }
 
 export async function groupExists(group: Readonly<Pick<Group, 'id'>>): Promise<boolean>
@@ -26,6 +23,17 @@ export async function groupNameExists(account: Pick<Account, 'username'>, group:
 {
     const {username} = account;
     const {name: groupName} = group;
-    const groupInDatabase = await AccountTable.getGroupByUsernameAndGroupName(username, groupName);
-    return groupInDatabase !== null;
+    const accountGroups = await AccountGroupTable.select({username});
+    const groupIds = accountGroups.map(({groupId}) => groupId);
+    const queries: Promise<string>[] = [];
+    for (const groupId of groupIds)
+    {
+        queries.push((async () =>
+        {
+            const {name} = (await GroupTable.selectById(groupId))!; // 对应的 group 一定存在
+            return name;
+        })());
+    }
+    const groupNames = await Promise.all(queries);
+    return groupNames.includes(groupName);
 }

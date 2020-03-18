@@ -1,5 +1,5 @@
 import {IParameterValidator} from '../../Interface';
-import {Account, Group, Repository} from '../../../Class';
+import {Account, Repository} from '../../../Class';
 
 export const repository: IParameterValidator = body =>
 {
@@ -142,31 +142,6 @@ export const setIsPublic: IParameterValidator = body =>
     }
     const {name, isPublic} = repository;
     return Repository.validate({name, isPublic, username: '', description: ''});
-};
-
-export const groups: IParameterValidator = body =>
-{
-    const {repository} = body;
-    if (repository === undefined || repository === null)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: true});
-};
-
-export const addToGroup: IParameterValidator = body =>
-{
-    const {repository, group} = body;
-    if (repository === undefined || repository === null
-        || group === undefined || group === null)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    const {id} = group;
-    return Repository.validate({username, name, isPublic: true, description: ''})
-        && Group.validate({id, name: ''});
 };
 
 export const commitHistoryBetweenCommits: IParameterValidator = body =>

@@ -1,4 +1,4 @@
-import {Account, Group, Repository} from '../../Class';
+import {AccountGroup, Group} from '../../Class';
 import pool from '../Pool';
 import {
     executeTransaction,
@@ -6,20 +6,34 @@ import {
     generateParameterizedStatementAndValuesArray,
 } from '../Function';
 
-export async function insertAndReturnId(group: Readonly<Omit<Group, 'id'>>): Promise<Group['id']>
+export async function insertAndReturnId(group: Readonly<Omit<Group, 'id'>>, creatorUsername: AccountGroup['username']): Promise<Group['id']>
 {
     const client = await pool.connect();
+    // 防止 ID 传入
     const processedGroup = Group.from({id: -1, ...group});
     const {id, ...rest} = processedGroup;
     try
     {
-        const queryResult = await executeTransaction(client, async (client) =>
+        return await executeTransaction(client, async (client) =>
         {
+            // 插入小组
             const {values, columnNames, parameterString} = generateColumnNamesAndValuesArrayAndParameterString(rest);
-            return await client.query(`INSERT INTO groups (${columnNames}) VALUES (${parameterString}) RETURNING id`, values);
+            const result = await client.query(
+                `INSERT INTO groups (${columnNames}) VALUES (${parameterString}) RETURNING id`,
+                values);
+            // 获取小组的 ID
+            const {rows} = result;
+            const groupId = Number.parseInt(rows[0]['id']);
+
+            // 同时插入创建者的组员管理员身份
+            await client.query(`INSERT INTO "account_group" (username, "groupId", "isAdmin")
+                                VALUES
+                                    ($1, $2, $3)`,
+                [creatorUsername, groupId, true]);
+
+            // 返回小组 ID
+            return groupId;
         });
-        const {rows} = queryResult;
-        return Number.parseInt(rows[0]['id']);
     }
     finally
     {
@@ -88,6 +102,19 @@ export async function selectById(id: Group['id']): Promise<Group | null>
     }
 }
 
+export async function select(group: Readonly<Partial<Group>>): Promise<Group[]>
+{
+    if (Object.keys(group).length === 0)
+    {
+        return [];
+    }
+    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(group, 'AND');
+    const {rows} = await pool.query(
+        `SELECT * FROM groups WHERE ${parameterizedStatement}`,
+        values);
+    return rows.map(row => Group.from(row));
+}
+
 export async function count(group: Readonly<Partial<Group>>): Promise<number>
 {
     if (Object.keys(group).length === 0)
@@ -99,174 +126,4 @@ export async function count(group: Readonly<Partial<Group>>): Promise<number>
         `SELECT COUNT(*) AS "count" FROM groups WHERE ${parameterizedStatement}`,
         [...values]);
     return Number.parseInt(rows[0]['count']);
-}
-
-export async function getAccountsById(id: Group['id']): Promise<Account[]>
-{
-    const {rows} = await pool.query(
-            `SELECT *
-             FROM groups        g,
-                  account_group ag,
-                  accounts      a
-             WHERE g.id = ag.group_id
-               AND a.username = ag.username
-               AND g.id = $1`,
-        [id]);
-
-    return rows.map(row => Account.from(row));
-}
-
-export async function addAccounts(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
-{
-    const client = await pool.connect();
-    try
-    {
-        await executeTransaction(client, async (client) =>
-        {
-            await Promise.all(usernames.map(username => client.query(
-                    `INSERT INTO account_group (username, group_id)
-                     VALUES
-                         ($1, $2)`,
-                [username, id])));
-        });
-    }
-    finally
-    {
-        client.release();
-    }
-}
-
-export async function removeAccounts(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
-{
-    const client = await pool.connect();
-    try
-    {
-        await executeTransaction(client, async (client) =>
-        {
-            await Promise.all(usernames.map(username => client.query(
-                    `DELETE
-                     FROM account_group
-                     WHERE group_id = $1
-                       AND username = $2`,
-                [id, username])));
-        });
-    }
-    finally
-    {
-        client.release();
-    }
-}
-
-export async function getAdminsById(id: Group['id']): Promise<Account[]>
-{
-    const {rows} = await pool.query(
-            `SELECT *
-             FROM groups      g,
-                  admin_group ag,
-                  accounts    a
-             WHERE g.id = ag.group_id
-               AND a.username = ag.admin_username
-               AND g.id = $1`,
-        [id]);
-
-    return rows.map(row => Account.from(row));
-}
-
-export async function addAdmins(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
-{
-    const client = await pool.connect();
-    try
-    {
-        await executeTransaction(client, async (client) =>
-        {
-            await Promise.all(usernames.map(username => client.query(
-                    `INSERT INTO admin_group (admin_username, group_id)
-                     VALUES
-                         ($1, $2)`,
-                [username, id])));
-        });
-    }
-    finally
-    {
-        client.release();
-    }
-}
-
-export async function removeAdmins(id: Group['id'], usernames: Readonly<Account['username'][]>): Promise<void>
-{
-    const client = await pool.connect();
-    try
-    {
-        await executeTransaction(client, async (client) =>
-        {
-            await Promise.all(usernames.map(username => client.query(
-                    `DELETE
-                     FROM admin_group
-                     WHERE group_id = $1
-                       AND admin_username = $2`,
-                [id, username])));
-        });
-    }
-    finally
-    {
-        client.release();
-    }
-}
-
-export async function getRepositoriesById(id: Group['id']): Promise<Repository[]>
-{
-    const {rows} = await pool.query(
-            `SELECT *
-             FROM groups           g,
-                  repository_group rg,
-                  repositories     r
-             WHERE g.id = rg.group_id
-               AND r.username = rg.repository_username
-               AND r.name = rg.repository_name
-               AND g.id = $1`,
-        [id]);
-
-    return rows.map(row => Repository.from(row));
-}
-
-export async function addRepositories(id: Group['id'], repositories: Readonly<Readonly<Pick<Repository, 'username' | 'name'>>[]>): Promise<void>
-{
-    const client = await pool.connect();
-    try
-    {
-        await executeTransaction(client, async (client) =>
-        {
-            await Promise.all(repositories.map(({username, name}) => client.query(
-                    `INSERT INTO repository_group (repository_username, repository_name, group_id)
-                     VALUES
-                         ($1, $2, $3)`,
-                [username, name, id])));
-        });
-    }
-    finally
-    {
-        client.release();
-    }
-}
-
-export async function removeRepositories(id: Group['id'], repositories: Readonly<Readonly<Pick<Repository, 'username' | 'name'>>[]>): Promise<void>
-{
-    const client = await pool.connect();
-    try
-    {
-        await executeTransaction(client, async (client) =>
-        {
-            await Promise.all(repositories.map(({username, name}) => client.query(
-                    `DELETE
-                     FROM repository_group
-                     WHERE repository_username = $1
-                       AND repository_name = $2
-                       AND group_id = $3`,
-                [username, name, id])));
-        });
-    }
-    finally
-    {
-        client.release();
-    }
 }

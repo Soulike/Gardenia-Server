@@ -3,8 +3,6 @@ import {
     CHANGE_PASSWORD,
     CHECK_PASSWORD,
     CHECK_SESSION,
-    GET_ADMINISTRATING_GROUPS,
-    GET_GROUPS,
     LOGIN,
     LOGOUT,
     REGISTER,
@@ -17,8 +15,6 @@ import {
     changePassword,
     checkPassword,
     checkSession,
-    getAdministratingGroups,
-    getGroups,
     login,
     logout,
     register,
@@ -36,7 +32,5 @@ export default (router: Router<IState, IContext>) =>
     router.post(CHANGE_PASSWORD, bodyParser(), changePassword());
     router.get(CHECK_SESSION, JSONQuerystringParser(), checkSession());
     router.post(LOGOUT, bodyParser(), logout());
-    router.get(GET_GROUPS, JSONQuerystringParser(), getGroups());
-    router.get(GET_ADMINISTRATING_GROUPS, JSONQuerystringParser(), getAdministratingGroups());
     router.post(CHECK_PASSWORD, bodyParser(), checkPassword());
 };

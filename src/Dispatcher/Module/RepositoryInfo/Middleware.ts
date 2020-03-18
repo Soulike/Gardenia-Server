@@ -175,36 +175,6 @@ export const setIsPublic: IRouteHandler = () =>
     };
 };
 
-export const groups: IRouteHandler = () =>
-{
-    return async (ctx) =>
-    {
-        if (!ParameterValidator.groups(ctx.request.body))
-        {
-            throw new WrongParameterError();
-        }
-        const {repository} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.groups(repository, ctx.session);
-    };
-};
-
-export const addToGroup: IRouteHandler = () =>
-{
-    return async ctx =>
-    {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
-        if (!ParameterValidator.addToGroup(ctx.request.body))
-        {
-            throw new WrongParameterError();
-        }
-        const {repository, group} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.addToGroup(repository, group, ctx.session);
-    };
-};
-
 export const commitHistoryBetweenCommits: IRouteHandler = () =>
 {
     return async ctx =>

@@ -5,8 +5,12 @@ import {
     ADD,
     ADD_ACCOUNTS,
     ADD_ADMINS,
+    ADD_REPOSITORY,
     ADMINS,
     DISMISS,
+    GET_ADMINISTRATING_BY_ACCOUNT,
+    GET_BY_ACCOUNT,
+    GET_BY_REPOSITORY,
     INFO,
     IS_ADMIN,
     REMOVE_ACCOUNTS,
@@ -20,8 +24,12 @@ import {
     add,
     addAccounts,
     addAdmins,
+    addRepository,
     admins,
     dismiss,
+    getAdministratingByAccount,
+    getByAccount,
+    getByRepository,
     info,
     isAdmin,
     removeAccounts,
@@ -39,10 +47,14 @@ export default (router: Router<IState, IContext>) =>
     router.get(ACCOUNTS, JSONQuerystringParser(), accounts());
     router.post(ADD_ACCOUNTS, bodyParser(), addAccounts());
     router.post(REMOVE_ACCOUNTS, bodyParser(), removeAccounts());
+    router.get(GET_BY_ACCOUNT, JSONQuerystringParser(), getByAccount());
+    router.get(GET_ADMINISTRATING_BY_ACCOUNT, JSONQuerystringParser(), getAdministratingByAccount());
     router.get(ADMINS, JSONQuerystringParser(), admins());
     router.post(ADD_ADMINS, bodyParser(), addAdmins());
     router.post(REMOVE_ADMINS, bodyParser(), removeAdmins());
+    router.get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository());
     router.get(REPOSITORIES, JSONQuerystringParser(), repositories());
+    router.post(ADD_REPOSITORY, bodyParser(), addRepository());
     router.post(REMOVE_REPOSITORIES, bodyParser(), removeRepositories());
     router.get(IS_ADMIN, JSONQuerystringParser(), isAdmin());
 };

@@ -94,8 +94,8 @@ export async function getCollaborators(repository: Pick<Repository, 'username' |
     }
     const {username: repositoryUsername, name: repositoryName} = repositoryInDatabase;
     const collaborations = await CollaborateTable.select({
-        repository_username: repositoryUsername,
-        repository_name: repositoryName,
+        repositoryUsername: repositoryUsername,
+        repositoryName: repositoryName,
     });
     const collaboratorProfilesWithNull = await Promise.all(
         collaborations.map(async ({username}) => await ProfileTable.selectByUsername(username)),
@@ -127,8 +127,8 @@ export async function getCollaboratorsAmount(repository: Pick<Repository, 'usern
     }
     const {username: repositoryUsername, name: repositoryName} = repositoryInDatabase;
     const amount = await CollaborateTable.count({
-        repository_username: repositoryUsername,
-        repository_name: repositoryName,
+        repositoryUsername: repositoryUsername,
+        repositoryName: repositoryName,
     });
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {amount}));
@@ -144,7 +144,7 @@ export async function getCollaboratingRepositories(account: Pick<Account, 'usern
     }
     const repositoryPks = await CollaborateTable.select({username});
     const repositoriesWithNull = await Promise.all(
-        repositoryPks.map(async ({repository_username: username, repository_name: name}) =>
+        repositoryPks.map(async ({repositoryUsername: username, repositoryName: name}) =>
             await RepositoryTable.selectByUsernameAndName({username, name})),
     );
     const repositories: Repository[] = [];

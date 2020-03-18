@@ -1,4 +1,5 @@
 import {IParameterValidator} from '../../Interface';
+import {Account, Group, Repository} from '../../../Class';
 
 export const add: IParameterValidator = body =>
 {
@@ -53,13 +54,46 @@ export const addAccounts: IParameterValidator = body =>
 
 export const removeAccounts = addAccounts;
 
+export const getByAccount: IParameterValidator = body =>
+{
+    const {username} = body;
+    return Account.validate({username, hash: ''});
+};
+
+export const getAdministratingByAccount = getByAccount;
+
 export const admins = accounts;
 
 export const addAdmins = addAccounts;
 
 export const removeAdmins = removeAccounts;
 
+export const getByRepository: IParameterValidator = body =>
+{
+    const {repository} = body;
+    if (repository === undefined || repository === null)
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    return Repository.validate({username, name, description: '', isPublic: true});
+};
+
 export const repositories = dismiss;
+
+export const addRepository: IParameterValidator = body =>
+{
+    const {group, repository} = body;
+    if (group === undefined || group === null
+        || repository === undefined || repository === null)
+    {
+        return false;
+    }
+    const {id} = group;
+    const {username, name} = repository;
+    return Group.validate(new Group(id, ''))
+        && Repository.validate(new Repository(username, name, '', false));
+};
 
 export const removeRepositories: IParameterValidator = body =>
 {

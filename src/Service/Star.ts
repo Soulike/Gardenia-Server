@@ -43,7 +43,7 @@ export async function getStartedRepositories(username: Account['username']): Pro
     const staredRepositoriesPk = await StarTable.select({username});
     const staredRepositories: Repository[] = [];
     await Promise.all(staredRepositoriesPk.map(
-        async ({repository_username: username, repository_name: name}) =>
+        async ({repositoryUsername: username, repositoryName: name}) =>
         {
             staredRepositories.push(...(await RepositoryTable.select({
                 username, name,
@@ -78,8 +78,8 @@ export async function getRepositoryStarAmount(repository: Pick<Repository, 'user
             new ResponseBody(false, '仓库不存在'));
     }
     const amount = await StarTable.count({
-        repository_username: repository.username,
-        repository_name: repository.name,
+        repositoryUsername: repository.username,
+        repositoryName: repository.name,
     });
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {amount}));
@@ -95,8 +95,8 @@ export async function getRepositoryStarUsers(repository: Pick<Repository, 'usern
             new ResponseBody(false, '仓库不存在'));
     }
     const repositoryStars = await StarTable.select({
-        repository_username: repository.username,
-        repository_name: repository.name,
+        repositoryUsername: repository.username,
+        repositoryName: repository.name,
     });
     const repositoryStarUserProfiles: Profile[] = [];
     await Promise.all(repositoryStars.map(async star =>
