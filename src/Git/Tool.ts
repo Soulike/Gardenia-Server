@@ -11,6 +11,11 @@ import path from 'path';
  * */
 export async function getCommonAncestor(repositoryPath: string, branchNameOrCommitHash1: string, branchNameOrCommitHash2: string): Promise<string>
 {
+    // 特殊情况，这个命令不接受 empty tree
+    if (branchNameOrCommitHash1 === '4b825dc642cb6eb9a060e54bf8d69288fbee4904' || branchNameOrCommitHash2 === '4b825dc642cb6eb9a060e54bf8d69288fbee4904')
+    {
+        return '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+    }
     return (await execPromise(`git merge-base ${branchNameOrCommitHash1} ${branchNameOrCommitHash2}`,
         {cwd: repositoryPath})).trim();
 }
