@@ -35,14 +35,6 @@ export const changePassword: IParameterValidator = body =>
     return Account.validate(new Account(username, hash));
 };
 
-export const getGroups: IParameterValidator = body =>
-{
-    const {username} = body;
-    return Account.validate({username, hash: ''});
-};
-
-export const getAdministratingGroups = getGroups;
-
 export const checkPassword: IParameterValidator = body =>
 {
     const {hash} = body;

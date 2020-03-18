@@ -2,20 +2,20 @@ export class AccountGroup
 {
     public readonly username: string;
     public readonly groupId: number;
-    public readonly isPublic: boolean;
+    public readonly isAdmin: boolean;
 
-    constructor(username: string, groupId: number, isPublic: boolean)
+    constructor(username: string, groupId: number, isAdmin: boolean)
     {
         this.username = username;
         this.groupId = groupId;
-        this.isPublic = isPublic;
+        this.isAdmin = isAdmin;
     }
 
     public static validate(accountGroup: Readonly<Record<keyof AccountGroup, any>>): boolean
     {
-        const {username, isPublic, groupId} = accountGroup;
+        const {username, isAdmin, groupId} = accountGroup;
         return typeof username === 'string'
-            && typeof isPublic === 'boolean'
+            && typeof isAdmin === 'boolean'
             && typeof groupId === 'number';
     }
 
@@ -25,7 +25,7 @@ export class AccountGroup
         {
             throw new TypeError();
         }
-        const {username, isPublic, groupId} = accountGroup;
-        return new AccountGroup(username, groupId, isPublic);
+        const {username, isAdmin, groupId} = accountGroup;
+        return new AccountGroup(username, groupId, isAdmin);
     }
 }

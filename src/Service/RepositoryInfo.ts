@@ -1,6 +1,6 @@
 import {Session} from 'koa-session';
-import {Account, Branch, Commit, FileDiff, Group, Repository, ResponseBody, ServiceResponse} from '../Class';
-import {Fork as ForkTable, Group as GroupTable, Repository as RepositoryTable} from '../Database';
+import {Account, Branch, Commit, FileDiff, Repository, ResponseBody, ServiceResponse} from '../Class';
+import {Fork as ForkTable, Repository as RepositoryTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
@@ -374,60 +374,6 @@ export async function setIsPublic(repository: Readonly<Pick<Repository, 'name' |
     }
     await RepositoryTable.update({isPublic}, {username, name});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
-}
-
-export async function groups(repository: Readonly<Pick<Repository, 'username' | 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Group[]>>
-{
-    const {username, name} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
-    {
-        return new ServiceResponse<Group[]>(404, {},
-            new ResponseBody<Group[]>(false, '仓库不存在'));
-    }
-    const groups = await RepositoryTable.getGroupsByUsernameAndName(repository);
-    return new ServiceResponse<Group[]>(200, {},
-        new ResponseBody<Group[]>(true, '', groups));
-}
-
-export async function addToGroup(repository: Readonly<Pick<Repository, 'username' | 'name'>>, group: Readonly<Pick<Group, 'id'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
-{
-    const {username: repositoryUsername} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
-    const {username: usernameInSession} = session;
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
-    }
-    const {id: groupId} = group;
-    const groupInDatabase = await GroupTable.selectById(groupId);
-    if (groupInDatabase === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '小组不存在'));
-    }
-    if ((await RepositoryTable.getGroupByUsernameAndNameAndGroupId(repository, group)) !== null)
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '仓库已在小组中'));
-    }
-    const {username: sessionUsername} = session!;
-    if (sessionUsername !== repositoryUsername)
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '添加失败：您不是仓库的所有者'));
-    }
-    const accountsInGroup = await GroupTable.getAccountsById(groupId);
-    if (!accountsInGroup.map(account => account.username).includes(sessionUsername))
-    {
-        return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '添加失败：您不是小组的成员'));
-    }
-    await GroupTable.addRepositories(groupId, [repository]);
-    return new ServiceResponse<void>(200, {},
-        new ResponseBody<void>(true));
 }
 
 export async function commitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>

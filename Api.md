@@ -379,36 +379,6 @@ enum ISSUE_STATUS
 - 响应消息：无
 - 其他说明：无
 
-#### `/getGroups`
-
-- 功能：获取账号所属小组
-- 方法：GET
-- 请求体：
-```ts
-{
-    json: Pick<Account, 'username'>,
-}
-```
-- 响应体：`Group[]`
-- 响应消息：
-  - 用户不存在
-- 其他说明：无
-
-#### `/getAdministratingGroups`
-
-- 功能：获取账号管理的小组
-- 方法：GET
-- 请求体：
-```ts
-{
-    json: Pick<Account, 'username'>,
-}
-```
-- 响应体：`Group[]`
-- 响应消息：
-  - 用户不存在
-- 其他说明：无
-
 ### Profile 模块（`/profile`）
 
 本模块负责用户资料的相关操作。
@@ -837,45 +807,6 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - 仓库不存在
 - 其他说明：无
-
-#### `/groups`
-
-- 功能：获取仓库所属小组
-- 方法：GET
-- 请求体：
-```ts
-{
-    json: {
-        repository: Pick<Repository, 'username'|'name'>,
-    }
-}
-```
-- 响应体：`Group[]`
-- 响应消息：
-  - 仓库不存在
-- 其他说明：无
-
-#### `/addToGroup`
-
-- 功能：添加仓库到小组
-- 方法：POST
-- 请求体：
-```ts
-{
-    repository: Pick<Repository, 'username'|'name'>,
-    group: Pick<Group, 'id'>,
-}
-```
-- 响应体：无
-- 响应消息：
-  - 仓库不存在
-  - 小组不存在
-  - 仓库已在小组中
-  - 添加失败：您不是仓库的所有者
-  - 添加失败：您不是小组的成员
-- 其他说明：
-  - 仅仓库所有者可以执行本操作
-  - 仅当是小组的成员是可以执行本操作
 
 #### `/commitHistoryBetweenCommits`
 
@@ -1377,6 +1308,36 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 仅小组管理员删除请求有效，其他人均权限不足
   - 管理员不能移除自己
 
+#### `/getByAccount`
+
+- 功能：获取账号所属小组
+- 方法：GET
+- 请求体：
+```ts
+{
+    json: Pick<Account, 'username'>,
+}
+```
+- 响应体：`Group[]`
+- 响应消息：
+  - 用户不存在
+- 其他说明：无
+
+#### `/getAdministratingByAccount`
+
+- 功能：获取账号管理的小组
+- 方法：GET
+- 请求体：
+```ts
+{
+    json: Pick<Account, 'username'>,
+}
+```
+- 响应体：`Group[]`
+- 响应消息：
+  - 用户不存在
+- 其他说明：无
+
 #### `/admins`
 
 - 功能：获取小组管理员信息
@@ -1455,6 +1416,23 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 小组不存在
 - 其他说明：无
 
+#### `/getByRepository`
+
+- 功能：获取仓库所属小组
+- 方法：GET
+- 请求体：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username'|'name'>,
+    }
+}
+```
+- 响应体：`Group[]`
+- 响应消息：
+  - 仓库不存在
+- 其他说明：无
+
 #### `/repositories`
 
 - 功能：获取小组仓库信息
@@ -1471,6 +1449,26 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - 小组不存在
 - 其他说明：无
+
+#### `/addRepository`
+
+- 功能：添加小组仓库
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Pick<Group, 'id'>,
+    repository: Pick<Repository, 'username' | 'name'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 小组不存在
+  - 仓库 ${username}/${name} 不存在
+  - 添加失败：仓库创建者不是小组的成员
+  - 添加失败：您不是小组的管理员或仓库的创建者
+- 其他说明：
+  - 只有小组的管理员或仓库的创建者可以执行本操作
 
 #### `/removeRepositories`
 

@@ -50,21 +50,21 @@ CREATE TABLE IF NOT EXISTS  "repository_group"
 CREATE TABLE IF NOT EXISTS "stars"
 (
     "username"            VARCHAR(255),
-    "repository_username" VARCHAR(255),
-    "repository_name"     VARCHAR(255),
-    PRIMARY KEY ("username", "repository_username", "repository_name"),
+    "repositoryUsername" VARCHAR(255),
+    "repositoryName"     VARCHAR(255),
+    PRIMARY KEY ("username", "repositoryUsername", "repositoryName"),
     FOREIGN KEY ("username") REFERENCES "accounts" ("username") ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY ("repository_username", "repository_name") REFERENCES "repositories" ("username", "name") ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY ("repositoryUsername", "repositoryName") REFERENCES "repositories" ("username", "name") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "collaborates"
 (
-    "username"            VARCHAR(255),
-    "repository_username" VARCHAR(255),
-    "repository_name"     VARCHAR(255),
-    PRIMARY KEY ("username", "repository_username", "repository_name"),
+    "username"           VARCHAR(255),
+    "repositoryUsername" VARCHAR(255),
+    "repositoryName"     VARCHAR(255),
+    PRIMARY KEY ("username", "repositoryUsername", "repositoryName"),
     FOREIGN KEY ("username") REFERENCES "accounts" ("username") ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY ("repository_username", "repository_name") REFERENCES "repositories" ("username", "name") ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY ("repositoryUsername", "repositoryName") REFERENCES "repositories" ("username", "name") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "forks"

@@ -1,4 +1,4 @@
-import {Account, Group, Profile, ResponseBody, ServiceResponse} from '../Class';
+import {Account, Profile, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable, Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
 import {Authentication, Mail, Session as SessionFunction} from '../Function';
@@ -142,32 +142,6 @@ export async function checkSession(session: Readonly<Session>): Promise<ServiceR
 export async function logout(): Promise<ServiceResponse<void>>
 {
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true), {username: undefined});
-}
-
-export async function getGroups(account: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Group[]>>
-{
-    const {username} = account;
-    if (await AccountTable.count({username}) === 0)
-    {
-        return new ServiceResponse<Group[]>(404, {},
-            new ResponseBody<Group[]>(false, '用户不存在'));
-    }
-    const groups = await AccountTable.getGroupsByUsername(username);
-    return new ServiceResponse<Group[]>(200, {},
-        new ResponseBody<Group[]>(true, '', groups));
-}
-
-export async function getAdministratingGroups(account: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Group[]>>
-{
-    const {username} = account;
-    if (await AccountTable.count({username}) === 0)
-    {
-        return new ServiceResponse<Group[]>(404, {},
-            new ResponseBody<Group[]>(false, '用户不存在'));
-    }
-    const groups = await AccountTable.getAdministratingGroupsByUsername(username);
-    return new ServiceResponse<Group[]>(200, {},
-        new ResponseBody<Group[]>(true, '', groups));
 }
 
 export async function checkPassword(account: Readonly<Pick<Account, 'hash'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isCorrect: boolean }>>

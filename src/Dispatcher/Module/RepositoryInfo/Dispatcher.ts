@@ -1,6 +1,5 @@
 import Router from '@koa/router';
 import {
-    ADD_TO_GROUP,
     BRANCH_NAMES,
     BRANCHES,
     COMMIT,
@@ -25,7 +24,6 @@ import {
     FORK_FILE_DIFF_AMOUNT,
     FORK_FROM,
     FORK_REPOSITORIES,
-    GROUPS,
     LAST_COMMIT,
     RAW_FILE,
     REPOSITORY,
@@ -36,7 +34,6 @@ import {
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import bodyParser from '../../Middleware/bodyParser';
 import {
-    addToGroup,
     branches,
     branchNames,
     commit,
@@ -61,7 +58,6 @@ import {
     forkFileDiffAmount,
     forkFrom,
     forkRepositories,
-    groups,
     lastCommit,
     rawFile,
     repository,
@@ -85,8 +81,6 @@ export default (router: Router<IState, IContext>) =>
         .post(SET_NAME, bodyParser(), setName())
         .post(SET_DESCRIPTION, bodyParser(), setDescription())
         .post(SET_IS_PUBLIC, bodyParser(), setIsPublic())
-        .get(GROUPS, JSONQuerystringParser(), groups())
-        .post(ADD_TO_GROUP, bodyParser(), addToGroup())
         .get(COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), commitHistoryBetweenCommits())
         .get(COMMIT_HISTORY, JSONQuerystringParser(), commitHistory())
         .get(FILE_COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), fileCommitHistoryBetweenCommits())
