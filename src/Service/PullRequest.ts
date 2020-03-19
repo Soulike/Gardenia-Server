@@ -13,6 +13,7 @@ import {
 import {
     Collaborate as CollaborateTable,
     Fork as ForkTable,
+    Profile as ProfileTable,
     PullRequest as PullRequestTable,
     PullRequestComment as PullRequestCommentTable,
     Repository as RepositoryTable,
@@ -363,10 +364,13 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false, 'Pull Request 存在冲突，请解决冲突后再合并'));
     }
+    // 获取目标仓库所有者信息，用于Merge的提交
+    const {email: targetRepositoryUserEmail} = (await ProfileTable.selectByUsername(targetRepositoryUsername))!;   // 用户是一定存在的
+
     // 进行合并操作
     await Git.merge(
-        sourceRepositoryPath, sourceRepositoryBranchName,
-        targetRepositoryPath, targetRepositoryBranchName,
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, targetRepositoryUserEmail,
         `合并 Pull Request #${no}\n\n${title}`,
     );
     // merge 成功再改动数据库
@@ -595,17 +599,9 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     // 获取冲突信息
-    const sourceRepositoryPath = generateRepositoryPath({
-        username: sourceRepositoryUsername,
-        name: sourceRepositoryName,
-    });
-    const targetRepositoryPath = generateRepositoryPath({
-        username: targetRepositoryUsername,
-        name: targetRepositoryName,
-    });
     const conflicts = await Git.getConflicts(
-        sourceRepositoryPath, sourceRepositoryBranchName,
-        targetRepositoryPath, targetRepositoryBranchName);
+        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {conflicts}));
 }
@@ -623,7 +619,7 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
 
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
-        targetRepositoryUsername, targetRepositoryName, no, status,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, no, status,
     } = pullRequests[0];
     // 查看是不是开启状态
     if (status !== PULL_REQUEST_STATUS.OPEN)
@@ -658,13 +654,13 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
                 new ResponseBody(false, '存在二进制文件冲突，请使用命令行解决'));
         }
     }
+    // 获取源仓库所有者信息，用于冲突解决的提交
+    const {email: sourceRepositoryUserEmail} = (await ProfileTable.selectByUsername(sourceRepositoryUsername))!;   // 用户是一定存在的
     // 进行冲突解决
-    const sourceRepositoryPath = generateRepositoryPath({
-        username: sourceRepositoryUsername,
-        name: sourceRepositoryName,
-    });
-    await Git.resolveConflicts(sourceRepositoryPath, sourceRepositoryBranchName,
+    await Git.resolveConflicts(sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName, sourceRepositoryUserEmail,
+        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
         conflicts, {no});
+    await updateRelatedPullRequest({username: sourceRepositoryUsername, name: sourceRepositoryName});
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
 }

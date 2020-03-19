@@ -1,4 +1,4 @@
-import {execPromise} from '../Function/Promisify';
+import {Promisify, Repository} from '../Function';
 import fse from 'fs-extra';
 import {addRemote, makeTemporaryRepository} from './Tool';
 
@@ -14,14 +14,14 @@ export async function isMergeable(sourceRepositoryPath: string, sourceRepository
         // 检测是不是同一个仓库
         if (sourceRepositoryPath === targetRepositoryPath)
         {
-            await execPromise(`git merge --no-commit --no-ff origin/${sourceRepositoryBranch}`,
+            await Promisify.execPromise(`git merge --no-commit --no-ff origin/${sourceRepositoryBranch}`,
                 {cwd: tempRepositoryPath});
         }
         else
         {
             const tempSourceRemoteName = `remote_${Date.now()}`;
             await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
-            await execPromise(`git merge --no-commit --no-ff ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+            await Promisify.execPromise(`git merge --no-commit --no-ff ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
                 {cwd: tempRepositoryPath});
         }
         return true;
@@ -42,26 +42,36 @@ export async function isMergeable(sourceRepositoryPath: string, sourceRepository
 /**
  * @description 合并仓库
  * */
-export async function merge(sourceRepositoryPath: string, sourceRepositoryBranch: string, targetRepositoryPath: string, targetRepositoryBranch: string, message: string): Promise<void>
+export async function merge(sourceRepositoryUsername: string, sourceRepositoryName: string, sourceRepositoryBranch: string, targetRepositoryUsername: string, targetRepositoryName: string, targetRepositoryBranch: string, targetRepositoryUserEmail: string, message: string): Promise<void>
 {
+    const sourceRepositoryPath = Repository.generateRepositoryPath({
+        username: sourceRepositoryUsername,
+        name: sourceRepositoryName,
+    });
+    const targetRepositoryPath = Repository.generateRepositoryPath({
+        username: targetRepositoryUsername,
+        name: targetRepositoryName,
+    });
     let tempRepositoryPath = '';
     try
     {
         tempRepositoryPath = await makeTemporaryRepository(targetRepositoryPath, targetRepositoryBranch);
+        await Promisify.execPromise(`git config user.name "${targetRepositoryUsername}" && git config user.email "${targetRepositoryUserEmail}"`,
+            {cwd: tempRepositoryPath});
         // 判断是不是同一个仓库
         if (sourceRepositoryPath === targetRepositoryPath)
         {
-            await execPromise(`git merge --no-ff -m '${message}' origin/${sourceRepositoryBranch}`,
+            await Promisify.execPromise(`git merge --no-ff -m '${message}' origin/${sourceRepositoryBranch}`,
                 {cwd: tempRepositoryPath});
         }
         else
         {
             const tempSourceRemoteName = `remote_${Date.now()}`;
             await addRemote(tempRepositoryPath, sourceRepositoryPath, tempSourceRemoteName);
-            await execPromise(`git merge --no-ff -m '${message}' ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
+            await Promisify.execPromise(`git merge --no-ff -m '${message}' ${tempSourceRemoteName}/${sourceRepositoryBranch}`,
                 {cwd: tempRepositoryPath});
         }
-        await execPromise(`git push`, {cwd: tempRepositoryPath});
+        await Promisify.execPromise(`git push`, {cwd: tempRepositoryPath});
     }
     finally
     {
