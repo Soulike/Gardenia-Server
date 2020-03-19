@@ -148,8 +148,8 @@ export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSess
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
-    // 检查是不是合作者操作
-    const {targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
+    // 检查是不是合作者或者是 PR 创建者操作
+    const {sourceRepositoryUsername, targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
     // 仓库一定存在
     const collaborates = await CollaborateTable.select({
         repositoryUsername: targetRepositoryUsername,
@@ -157,11 +157,13 @@ export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSess
     });
     const collaborators = collaborates.map(({username}) => username);
     if (usernameInSession === undefined
-        || (usernameInSession !== targetRepositoryUsername
+        ||
+        (usernameInSession !== targetRepositoryUsername
+            && usernameInSession !== sourceRepositoryUsername
             && !collaborators.includes(usernameInSession)))
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有目标仓库的合作者可关闭 Pull Request'));
+            new ResponseBody(false, '只有目标仓库的合作者或 Pull Request 的创建者可关闭 Pull Request'));
     }
     // 修改数据库
     await PullRequestTable.update(

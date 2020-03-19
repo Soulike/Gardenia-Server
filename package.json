@@ -75,7 +75,7 @@
   },
   "nodemonConfig": {
     "watch": [
-      "src/"
+      "dist/"
     ]
   }
 }

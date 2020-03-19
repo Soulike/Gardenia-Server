@@ -1810,7 +1810,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - Pull Request 不存在
-  - 只有目标仓库的合作者可关闭 Pull Request
+  - 只有目标仓库的合作者或 Pull Request 的创建者可关闭 Pull Request
 - 其他说明：无
 
 #### `/reopen`
