@@ -8,10 +8,10 @@ import {addRemote, getCommonAncestor, makeTemporaryRepository} from './Tool';
 /**
  * @description 获取两次提交之间被修改的文件（累计修改，即公共祖先到 target 的修改
  * */
-export async function getChangedFilesBetweenCommits(repositoryPath: string, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
+export async function getChangedFilesBetweenCommits(repositoryPath: string, baseCommitHashOrBranchName: string, targetCommitHashOrBranchName: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
 {
-    const ancestorHash = await getCommonAncestor(repositoryPath, baseCommitHash, targetCommitHash);
-    const result = await execPromise(`git diff ${ancestorHash}..${targetCommitHash} --name-only`, {cwd: repositoryPath});
+    const ancestorHash = await getCommonAncestor(repositoryPath, baseCommitHashOrBranchName, targetCommitHashOrBranchName);
+    const result = await execPromise(`git diff ${ancestorHash}..${targetCommitHashOrBranchName} --name-only`, {cwd: repositoryPath});
     const files = result.split('\n');
     return files.filter(file => file.length !== 0).slice(offset, offset + limit);
 }
@@ -99,9 +99,9 @@ export async function getChangedFilesBetweenForks(baseRepositoryPath: string, ba
 /**
  * @description 获取某个文件在两次提交之间的差异信息
  * */
-export async function getFileDiffInfoBetweenCommits(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<FileDiff>
+export async function getFileDiffInfoBetweenCommits(repositoryPath: string, filePath: string, baseCommitHashOrBranchName: string, targetCommitHashOrBranchName: string): Promise<FileDiff>
 {
-    const gitDiffOutput = await getFileGitDiffOutput(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+    const gitDiffOutput = await getFileGitDiffOutput(repositoryPath, filePath, baseCommitHashOrBranchName, targetCommitHashOrBranchName);
     const gitDiffOutputLines = getFileGitDiffOutputLines(gitDiffOutput);
     // 确定 @@ @@ 行的下标，用于切割数组
     let infoStringLineIndexes: number[] = [];

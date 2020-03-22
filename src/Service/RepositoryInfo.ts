@@ -17,7 +17,7 @@ import {
     getCommit,
     getCommitCount,
     getCommitCountBetweenCommits,
-    getCommitCountBetweenRepositoriesCommits,
+    getCommitCountBetweenRepositoriesBranches,
     getCommitFileDiffs,
     getCommitsBetweenForks,
     getFileCommits,
@@ -704,7 +704,7 @@ export async function forkCommitAmount(sourceRepository: Readonly<Pick<Repositor
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 分支 ${targetRepositoryBranch} 不存在`));
     }
     // 获取提交次数
-    const commitAmount = await getCommitCountBetweenRepositoriesCommits(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
+    const commitAmount = await getCommitCountBetweenRepositoriesBranches(targetRepositoryPath, targetRepositoryBranch, sourceRepositoryPath, sourceRepositoryBranch);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {commitAmount}));
 }
