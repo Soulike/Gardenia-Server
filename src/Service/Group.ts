@@ -81,7 +81,12 @@ export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames:
         }
     }
     await Promise.all(usernames.map(async username =>
-        await AccountGroupTable.insert({groupId, username, isAdmin: false})));
+    {
+        if ((await AccountGroupTable.select({groupId, username})).length === 0)
+        {
+            await AccountGroupTable.insert({groupId, username, isAdmin: false});
+        }
+    }));
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
 }
@@ -200,7 +205,7 @@ export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames
     if (usernames.includes(usernameInSession))
     {
         return new ServiceResponse<void>(403, {},
-            new ResponseBody<void>(false, '不允许移除自己'));
+            new ResponseBody<void>(false, '不能撤销自己的管理员权限'));
     }
     await Promise.all(usernames.map(async username => await AccountGroupTable.update(
         {isAdmin: false},
