@@ -1,7 +1,7 @@
 import {BlockDiff, FileDiff} from '../Class';
 import {getFirstCommitHash} from './Commit';
 import fse from 'fs-extra';
-import {REGEX} from '../CONSTANT';
+import {EMPTY_TREE_HASH, REGEX} from '../CONSTANT';
 import {execPromise} from '../Function/Promisify';
 import {addRemote, getCommonAncestor, makeTemporaryRepository} from './Tool';
 
@@ -24,8 +24,7 @@ export async function getChangedFiles(repositoryPath: string, commitHash: string
     const firstCommitHash = await getFirstCommitHash(repositoryPath);
     if (commitHash === firstCommitHash)
     {
-        // see https://stackoverflow.com/questions/40883798/how-to-get-git-diff-of-the-first-commit
-        return await getChangedFilesBetweenCommits(repositoryPath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash, offset, limit);
+        return await getChangedFilesBetweenCommits(repositoryPath, EMPTY_TREE_HASH, commitHash, offset, limit);
     }
     else
     {
@@ -150,8 +149,7 @@ export async function getFileDiff(repositoryPath: string, filePath: string, comm
     const firstCommitHash = await getFirstCommitHash(repositoryPath);
     if (commitHash === firstCommitHash)
     {
-        // see https://stackoverflow.com/questions/40883798/how-to-get-git-diff-of-the-first-commit
-        return await getFileDiffInfoBetweenCommits(repositoryPath, filePath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash);
+        return await getFileDiffInfoBetweenCommits(repositoryPath, filePath, EMPTY_TREE_HASH, commitHash);
     }
     else
     {
@@ -167,8 +165,7 @@ export async function getCommitFileDiffs(repositoryPath: string, commitHash: str
     const firstCommitHash = await getFirstCommitHash(repositoryPath);
     if (commitHash === firstCommitHash)
     {
-        // see https://stackoverflow.com/questions/40883798/how-to-get-git-diff-of-the-first-commit
-        return await getFileDiffsBetweenCommits(repositoryPath, '4b825dc642cb6eb9a060e54bf8d69288fbee4904', commitHash, offset, limit);
+        return await getFileDiffsBetweenCommits(repositoryPath, EMPTY_TREE_HASH, commitHash, offset, limit);
     }
     else
     {

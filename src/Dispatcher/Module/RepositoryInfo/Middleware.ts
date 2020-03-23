@@ -426,3 +426,17 @@ export const forkFileDiffAmount: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryInfo.forkFileDiffAmount(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
     };
 };
+
+export const hasCommonAncestor: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.hasCommonAncestor(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameInSession} = ctx.session;
+        const {sourceRepository, sourceRepositoryBranchName, targetRepository, targetRepositoryBranchName} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.hasCommonAncestor(sourceRepository, sourceRepositoryBranchName, targetRepository, targetRepositoryBranchName, usernameInSession);
+    };
+};

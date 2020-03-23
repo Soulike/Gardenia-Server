@@ -1,4 +1,5 @@
 export * from './OBJECT_TYPE';
+export * from './EMPTY_TREE_HASH';
 import * as REGEX from './REGEX';
 
 export * from './PULL_REQUEST_STATUS';

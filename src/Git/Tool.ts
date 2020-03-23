@@ -1,6 +1,6 @@
 import {execPromise} from '../Function/Promisify';
 import fse from 'fs-extra';
-import {ObjectType} from '../CONSTANT';
+import {EMPTY_TREE_HASH, ObjectType} from '../CONSTANT';
 import {Commit} from '../Class';
 import {getFileLastCommit} from './Commit';
 import os from 'os';
@@ -9,15 +9,57 @@ import path from 'path';
 /**
  * @description 获取两个提交/分支的公共祖先
  * */
-export async function getCommonAncestor(repositoryPath: string, branchNameOrCommitHash1: string, branchNameOrCommitHash2: string): Promise<string>
+export async function getCommonAncestor(repositoryPath: string, branchNameOrCommitHash1: string, branchNameOrCommitHash2: string): Promise<string | null>
 {
+    let commonAncestorHash: string | null;
     // 特殊情况，这个命令不接受 empty tree
-    if (branchNameOrCommitHash1 === '4b825dc642cb6eb9a060e54bf8d69288fbee4904' || branchNameOrCommitHash2 === '4b825dc642cb6eb9a060e54bf8d69288fbee4904')
+    if (branchNameOrCommitHash1 === EMPTY_TREE_HASH || branchNameOrCommitHash2 === EMPTY_TREE_HASH)
     {
-        return '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+        commonAncestorHash = EMPTY_TREE_HASH;
     }
-    return (await execPromise(`git merge-base ${branchNameOrCommitHash1} ${branchNameOrCommitHash2}`,
-        {cwd: repositoryPath})).trim();
+    else
+    {
+        try
+        {
+            // 如果这个命令报错，证明没有公共祖先
+            commonAncestorHash = (await execPromise(`git merge-base ${branchNameOrCommitHash1} ${branchNameOrCommitHash2}`,
+                {cwd: repositoryPath})).trim();
+        }
+        catch (e)
+        {
+            commonAncestorHash = null;
+        }
+    }
+    return commonAncestorHash;
+}
+
+/**
+ * @description 判断两个仓库分支之间有没有公共祖先
+ * */
+export async function hasCommonAncestor(repositoryPath1: string, branchNameOfRepository1: string, repositoryPath2: string, branchNameOfRepository2: string): Promise<boolean>
+{
+    if (repositoryPath1 === repositoryPath2)
+    {
+        return await getCommonAncestor(repositoryPath1, branchNameOfRepository1, branchNameOfRepository2) !== null;
+    }
+    else    // repositoryPath1 !== repositoryPath2
+    {
+        let tempRepositoryPath: string | null = null;
+        try
+        {
+            tempRepositoryPath = await makeTemporaryRepository(repositoryPath1, branchNameOfRepository1);
+            const tempRemoteName = 'remote';
+            await addRemote(repositoryPath1, repositoryPath2, tempRemoteName);
+            return await getCommonAncestor(tempRepositoryPath, branchNameOfRepository1, `${tempRemoteName}/${branchNameOfRepository2}`) !== null;
+        }
+        finally
+        {
+            if (typeof tempRepositoryPath === 'string')
+            {
+                await fse.remove(tempRepositoryPath);
+            }
+        }
+    }
 }
 
 /**

@@ -24,6 +24,7 @@ import {
     FORK_FILE_DIFF_AMOUNT,
     FORK_FROM,
     FORK_REPOSITORIES,
+    HAS_COMMON_ANCESTOR,
     LAST_COMMIT,
     RAW_FILE,
     REPOSITORY,
@@ -58,6 +59,7 @@ import {
     forkFileDiffAmount,
     forkFrom,
     forkRepositories,
+    hasCommonAncestor,
     lastCommit,
     rawFile,
     repository,
@@ -98,5 +100,6 @@ export default (router: Router<IState, IContext>) =>
         .get(FORK_COMMIT_HISTORY, JSONQuerystringParser(), forkCommitHistory())
         .get(FORK_COMMIT_AMOUNT, JSONQuerystringParser(), forkCommitAmount())
         .get(FORK_FILE_DIFF, JSONQuerystringParser(), forkFileDiff())
-        .get(FORK_FILE_DIFF_AMOUNT, JSONQuerystringParser(), forkFileDiffAmount());
+        .get(FORK_FILE_DIFF_AMOUNT, JSONQuerystringParser(), forkFileDiffAmount())
+        .get(HAS_COMMON_ANCESTOR, JSONQuerystringParser(), hasCommonAncestor());
 };

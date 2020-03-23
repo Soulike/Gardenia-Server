@@ -1203,6 +1203,30 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - `${username}/${name}` 的分支 `${branch}` 不存在
 - 其他说明：无
 
+#### `/hasCommonAncestor`
+
+- 功能：判断两个仓库分支之间是否有共同的提交祖先
+- 方法：GET
+- 请求体：
+```ts
+{
+    sourceRepository: Pick<Repository, 'username' | 'name'>,
+    sourceRepositoryBranchName: string,
+    targetRepository: Pick<Repository, 'username' | 'name'>,
+    targetRepositoryBranchName: string,
+}
+```
+- 响应体：
+```ts
+{
+    hasCommonAncestor: boolean,
+}
+```
+- 响应消息：
+  - 仓库 `${username}/${name}` 不存在
+  - `${username}/${name}` 的分支 `${branch}` 不存在
+- 其他说明：无
+
 ### Group 模块（`/group`）
 
 #### `/add`
