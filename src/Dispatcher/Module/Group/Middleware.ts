@@ -53,6 +53,24 @@ export const info: IRouteHandler = () =>
     };
 };
 
+export const changeName: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.changeName(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {id, name} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await GroupService.changeName({id, name}, username!);
+    };
+};
+
 export const accounts: IRouteHandler = () =>
 {
     return async ctx =>

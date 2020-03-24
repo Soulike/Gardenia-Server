@@ -25,6 +25,12 @@ export const dismiss: IParameterValidator = body =>
 
 export const info = dismiss;
 
+export const changeName: IParameterValidator = body =>
+{
+    const {id, name} = body;
+    return Group.validate(new Group(id, name));
+};
+
 export const accounts = dismiss;
 
 export const addAccounts: IParameterValidator = body =>

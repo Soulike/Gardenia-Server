@@ -7,6 +7,7 @@ import {
     ADD_ADMINS,
     ADD_REPOSITORY,
     ADMINS,
+    CHANGE_NAME,
     DISMISS,
     GET_ADMINISTRATING_BY_ACCOUNT,
     GET_BY_ACCOUNT,
@@ -26,6 +27,7 @@ import {
     addAdmins,
     addRepository,
     admins,
+    changeName,
     dismiss,
     getAdministratingByAccount,
     getByAccount,
@@ -44,6 +46,7 @@ export default (router: Router<IState, IContext>) =>
     router.post(ADD, bodyParser(), add());
     router.post(DISMISS, bodyParser(), dismiss());
     router.get(INFO, JSONQuerystringParser(), info());
+    router.post(CHANGE_NAME, bodyParser(), changeName());
     router.get(ACCOUNTS, JSONQuerystringParser(), accounts());
     router.post(ADD_ACCOUNTS, bodyParser(), addAccounts());
     router.post(REMOVE_ACCOUNTS, bodyParser(), removeAccounts());
