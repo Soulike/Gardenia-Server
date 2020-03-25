@@ -45,6 +45,24 @@ export async function info(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceR
         new ResponseBody<Group>(true, '', groupInDatabase));
 }
 
+export async function changeName(group: Readonly<Pick<Group, 'id' | 'name'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+{
+    const {id: groupId, name: newName} = group;
+    if (await GroupTable.count({id: groupId}) === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, '小组不存在'));
+    }
+    if (!(await GroupFunction.isGroupAdmin(group, usernameInSession)))
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, `添加失败：您不是小组 #${groupId} 的管理员`));
+    }
+    await GroupTable.update({name: newName}, {id: groupId});
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true));
+}
+
 export async function accounts(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceResponse<Account[] | void>>
 {
     const {id: groupId} = group;

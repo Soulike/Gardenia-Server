@@ -1276,6 +1276,17 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 小组不存在
 - 其他说明：无
 
+#### `/changeName`
+
+- 功能：修改小组名
+- 方法：POST
+- 请求体：`Pick<Group, 'id' | 'name'>`
+- 响应体：无
+- 响应消息：
+  - 小组不存在
+  - 修改小组名失败：您不是小组 #`${id}` 的管理员
+- 其他说明：无
+
 #### `/accounts`
 
 - 功能：获取小组成员信息
