@@ -61,9 +61,14 @@ export async function getStaredRepositoriesAmount(username: Account['username'])
         new ResponseBody(true, '', {amount}));
 }
 
-export async function isStaredRepository(repository: Pick<Repository, 'username' | 'name'>, username: Account['username']): Promise<ServiceResponse<{ isStared: boolean }>>
+export async function isStaredRepository(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ isStared: boolean }>>
 {
-    const amount = await StarTable.count(new AccountRepository(username, repository.username, repository.name));
+    if (typeof usernameInSession !== 'string')
+    {
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {isStared: false}));
+    }
+    const amount = await StarTable.count(new AccountRepository(usernameInSession, repository.username, repository.name));
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {isStared: amount !== 0}));
 }

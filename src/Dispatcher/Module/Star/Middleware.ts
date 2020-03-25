@@ -100,10 +100,6 @@ export const isStaredRepository: IRouteHandler = () =>
     return async (ctx) =>
     {
         const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.isStaredRepository(ctx.request.body))
         {
             throw new WrongParameterError();
