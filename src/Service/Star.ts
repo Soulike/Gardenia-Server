@@ -38,9 +38,9 @@ export async function remove(repository: Pick<Repository, 'username' | 'name'>, 
         new ResponseBody(true));
 }
 
-export async function getStartedRepositories(username: Account['username']): Promise<ServiceResponse<{ repositories: Repository[] }>>
+export async function getStartedRepositories(username: Account['username'], offset: number, limit: number): Promise<ServiceResponse<{ repositories: Repository[] }>>
 {
-    const staredRepositoriesPk = await StarTable.select({username});
+    const staredRepositoriesPk = await StarTable.select({username}, offset, limit);
     const staredRepositories: Repository[] = [];
     await Promise.all(staredRepositoriesPk.map(
         async ({repositoryUsername: username, repositoryName: name}) =>

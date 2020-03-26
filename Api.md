@@ -1569,6 +1569,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     account?: Pick<Account, 'username'>,  // 优先级高于从会话获取
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：

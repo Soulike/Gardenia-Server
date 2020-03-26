@@ -43,7 +43,7 @@ export async function del(star: Readonly<Partial<AccountRepository>>): Promise<v
     }
 }
 
-export async function select(star: Readonly<Partial<AccountRepository>>): Promise<AccountRepository[]>
+export async function select(star: Readonly<Partial<AccountRepository>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<AccountRepository[]>
 {
     if (Object.keys(star).length === 0)
     {
@@ -51,7 +51,7 @@ export async function select(star: Readonly<Partial<AccountRepository>>): Promis
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(star, 'AND');
     const {rows} = await pool.query(
-        `SELECT * FROM stars WHERE ${parameterizedStatement}`,
+        `SELECT * FROM stars WHERE ${parameterizedStatement} OFFSET ${offset} LIMIT ${limit}`,
         values);
     return rows.map(row => AccountRepository.from(row));
 }

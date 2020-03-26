@@ -47,12 +47,12 @@ export const getStaredRepositories: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {account} = ctx.request.body;
+        const {account, offset, limit} = ctx.request.body;
         if (account !== undefined)
         {
             const {username} = account;
             ctx.state.serviceResponse =
-                await StarService.getStartedRepositories(username);
+                await StarService.getStartedRepositories(username, offset, limit);
         }
         else    // account === undefined
         {
@@ -62,7 +62,7 @@ export const getStaredRepositories: IRouteHandler = () =>
                 throw new InvalidSessionError();
             }
             ctx.state.serviceResponse =
-                await StarService.getStartedRepositories(username);
+                await StarService.getStartedRepositories(username, offset, limit);
         }
     };
 };
