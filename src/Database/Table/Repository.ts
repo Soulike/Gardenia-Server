@@ -123,6 +123,9 @@ export async function selectByUsernameAndName(repository: Readonly<Pick<Reposito
     }
 }
 
+/**
+ * @description 按照 Star 数进行排序，从高到低
+ * */
 export async function select(repository: Readonly<Partial<Repository>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Repository[]>
 {
     if (Object.keys(repository).length === 0)
@@ -130,10 +133,22 @@ export async function select(repository: Readonly<Partial<Repository>>, offset: 
         return [];
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(repository, 'AND');
-    const parameterAmount = values.length;
+
     const {rows} = await pool.query(
-        `SELECT * FROM repositories WHERE ${parameterizedStatement} AND "deleted"=FALSE OFFSET $${parameterAmount + 1} LIMIT $${parameterAmount + 2}`,
-        [...values, offset, limit]);
+        `
+SELECT "repositories".*
+FROM "repositories"
+         JOIN (
+    SELECT "r"."username" AS "countUsername", "r"."name" AS "countName", count("s"."username") AS "starAmount"
+    FROM "repositories" AS "r"
+             LEFT OUTER JOIN "stars" AS "s"
+                             ON "r"."username" = "s"."repositoryUsername" AND "r"."name" = "s"."repositoryName"
+    GROUP BY "r"."username", "r"."name"
+) AS "t" ON "username" = "countUsername" AND "name" = "countName"
+WHERE ${parameterizedStatement}
+  AND "deleted" = FALSE
+ORDER BY "starAmount" DESC OFFSET ${offset}
+LIMIT ${limit}`, values);
     return rows.map(row => Repository.from(row));
 }
 
