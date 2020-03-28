@@ -5,9 +5,22 @@ import {getBranches} from './Branch';
 import {addRemote, makeTemporaryRepository} from './Tool';
 
 /**
+ * @description 获取仓库的最后一次提交信息
+ * */
+export async function getLastCommit(repositoryPath: string): Promise<Commit>
+{
+    const SEPARATOR = '|àωⓈ⒧|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' --all -1`,
+        {cwd: repositoryPath});
+    const info = stdout.split(SEPARATOR);
+    return new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
+}
+
+/**
  * @description 获取某个分支最后一次提交信息
  * */
-export async function getLastCommit(repositoryPath: string, branchName: string): Promise<Commit>
+export async function getBranchLastCommit(repositoryPath: string, branchName: string): Promise<Commit>
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const stdout = await execPromise(

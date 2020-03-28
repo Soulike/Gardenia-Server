@@ -52,7 +52,7 @@ export async function branchNames(repository: Readonly<Pick<Repository, 'usernam
         new ResponseBody(true, '', {branchNames}));
 }
 
-export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, commitHash: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>
+export async function lastBranchCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, branch: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>
 {
     const {username} = account;
     const {name} = repository;
@@ -68,9 +68,9 @@ export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, r
     {
         if (filePath !== undefined)
         {
-            if (await Git.fileExists(repositoryPath, filePath, commitHash))
+            if (await Git.fileExists(repositoryPath, filePath, branch))
             {
-                const commit = await Git.getFileLastCommit(repositoryPath, commitHash, filePath);
+                const commit = await Git.getFileLastCommit(repositoryPath, branch, filePath);
                 return new ServiceResponse<Commit>(200, {},
                     new ResponseBody<Commit>(true, '', commit));
             }
@@ -82,7 +82,7 @@ export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, r
         }
         else
         {
-            const commit = await Git.getLastCommit(repositoryPath, commitHash);
+            const commit = await Git.getBranchLastCommit(repositoryPath, branch);
             return new ServiceResponse<Commit>(200, {},
                 new ResponseBody<Commit>(true, '', commit));
         }
@@ -93,6 +93,29 @@ export async function lastCommit(account: Readonly<Pick<Account, 'username'>>, r
         SERVER.WARN_LOGGER(e);
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, '分支或文件不存在'));
+    }
+}
+
+export async function lastCommit(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<Commit | null | void>>
+{
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
+    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody<void>(false, '仓库不存在'));
+    }
+    const repositoryPath = RepositoryFunction.generateRepositoryPath({username, name});
+    try
+    {
+        const commit = await Git.getLastCommit(repositoryPath);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', commit));
+    }
+    catch (e)
+    {
+        return new ServiceResponse<null>(404, {},
+            new ResponseBody(false, '', null));
     }
 }
 

@@ -45,6 +45,19 @@ export const branchNames: IRouteHandler = () =>
     };
 };
 
+export const lastBranchCommit: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.lastBranchCommit(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {account, repository, branch, filePath} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryInfo.lastBranchCommit(account, repository, branch, ctx.session, filePath);
+    };
+};
+
 export const lastCommit: IRouteHandler = () =>
 {
     return async (ctx) =>
@@ -53,8 +66,9 @@ export const lastCommit: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {account, repository, branch, filePath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(account, repository, branch, ctx.session, filePath);
+        const {repository} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.lastCommit(repository, username);
     };
 };
 
