@@ -8,6 +8,7 @@ import mime from 'mime-types';
 import fse from 'fs-extra';
 import {Readable} from 'stream';
 import * as Git from '../Git';
+import path from 'path';
 
 export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Repository | void>>
 {
@@ -287,7 +288,7 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
             // 获取对象哈希
             const objectHash = await Git.getFileObjectHash(repositoryPath, filePath, commitHash);
             return new ServiceResponse<Readable>(200,
-                {'Content-Type': mime.contentType(filePath) || 'application/octet-stream'},
+                {'Content-Type': mime.contentType(path.extname(filePath)) || 'application/octet-stream'},
                 Git.getFileReadStream(repositoryPath, objectHash));
         }
         else
