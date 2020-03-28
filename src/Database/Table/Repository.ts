@@ -147,7 +147,7 @@ FROM "repositories"
 ) AS "t" ON "username" = "countUsername" AND "name" = "countName"
 WHERE ${parameterizedStatement}
   AND "deleted" = FALSE
-ORDER BY "starAmount" DESC OFFSET ${offset}
+ORDER BY "starAmount" DESC, "username", "name" OFFSET ${offset}
 LIMIT ${limit}`, values);
     return rows.map(row => Repository.from(row));
 }
