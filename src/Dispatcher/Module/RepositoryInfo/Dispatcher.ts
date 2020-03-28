@@ -25,6 +25,7 @@ import {
     FORK_FROM,
     FORK_REPOSITORIES,
     HAS_COMMON_ANCESTOR,
+    LAST_BRANCH_COMMIT,
     LAST_COMMIT,
     RAW_FILE,
     REPOSITORY,
@@ -60,6 +61,7 @@ import {
     forkFrom,
     forkRepositories,
     hasCommonAncestor,
+    lastBranchCommit,
     lastCommit,
     rawFile,
     repository,
@@ -74,6 +76,7 @@ export default (router: Router<IState, IContext>) =>
     router.get(REPOSITORY, JSONQuerystringParser(), repository())
         .get(BRANCHES, JSONQuerystringParser(), branches())
         .get(BRANCH_NAMES, JSONQuerystringParser(), branchNames())
+        .get(LAST_BRANCH_COMMIT, JSONQuerystringParser(), lastBranchCommit())
         .get(LAST_COMMIT, JSONQuerystringParser(), lastCommit())
         .get(DIRECTORY, JSONQuerystringParser(), directory())
         .get(COMMIT_COUNT, JSONQuerystringParser(), commitCount())

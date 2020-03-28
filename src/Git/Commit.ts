@@ -5,15 +5,36 @@ import {getBranches} from './Branch';
 import {addRemote, makeTemporaryRepository} from './Tool';
 
 /**
+ * @description 获取仓库的最后一次提交信息
+ * */
+export async function getLastCommit(repositoryPath: string): Promise<Commit>
+{
+    const SEPARATOR = '|àωⓈ⒧|';
+    const stdout = await execPromise(
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' --all -1`,
+        {cwd: repositoryPath});
+    const info = stdout.split(SEPARATOR);
+    if (info.length !== 6)
+    {
+        throw new Error('仓库没有提交');
+    }
+    return new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
+}
+
+/**
  * @description 获取某个分支最后一次提交信息
  * */
-export async function getLastCommit(repositoryPath: string, branchName: string): Promise<Commit>
+export async function getBranchLastCommit(repositoryPath: string, branchName: string): Promise<Commit>
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName}`,
         {cwd: repositoryPath});
     const info = stdout.split(SEPARATOR);
+    if (info.length !== 6)
+    {
+        throw new Error('仓库没有提交');
+    }
     return new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
 }
 
@@ -27,6 +48,10 @@ export async function getFileLastCommit(repositoryPath: string, branchName: stri
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName} -- ${filePath}`,
         {cwd: repositoryPath});
     const info = stdout.split(SEPARATOR);
+    if (info.length !== 6)
+    {
+        throw new Error('仓库没有提交');
+    }
     return new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
 
 }
