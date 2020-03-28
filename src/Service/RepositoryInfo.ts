@@ -115,7 +115,7 @@ export async function lastCommit(repository: Readonly<Pick<Repository, 'username
     catch (e)
     {
         return new ServiceResponse<null>(404, {},
-            new ResponseBody(false, '', null));
+            new ResponseBody(true, '', null));
     }
 }
 
