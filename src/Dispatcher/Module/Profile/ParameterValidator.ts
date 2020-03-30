@@ -12,6 +12,12 @@ export const get: IParameterValidator = body =>
     return Account.validate({username, hash: 'a'.repeat(64)});
 };
 
+export const getByEmail: IParameterValidator = body =>
+{
+    const {email} = body;
+    return typeof email === 'string'; // 这里不用 validate 方法是因为允许 email 是不是邮箱的字符串
+};
+
 export const set: IParameterValidator = body =>
 {
     const {email, nickname} = body;

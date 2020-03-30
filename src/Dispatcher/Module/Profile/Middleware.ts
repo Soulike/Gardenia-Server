@@ -17,6 +17,19 @@ export const get: IRouteHandler = () =>
     };
 };
 
+export const getByEmail: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        if (!ParameterValidator.getByEmail(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {email} = ctx.request.body;
+        ctx.state.serviceResponse = await Profile.getByEmail(email);
+    };
+};
+
 export const set: IRouteHandler = () =>
 {
     return async ctx =>

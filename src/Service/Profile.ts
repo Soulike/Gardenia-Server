@@ -28,6 +28,13 @@ export async function get(session: Readonly<Session>, account?: Readonly<Pick<Ac
         new ResponseBody<Profile>(true, '', profile));
 }
 
+export async function getByEmail(email: string): Promise<ServiceResponse<Profile | null>>
+{
+    const profile = await ProfileTable.selectByEmail(email);
+    return new ServiceResponse<Profile | null>(profile === null ? 404 : 200,
+        {}, new ResponseBody(true, '', profile));
+}
+
 export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'username'>>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
 {
     const {username} = session;

@@ -401,6 +401,22 @@ enum ISSUE_STATUS
 - 其他说明：
   - 如果未提供 `username`，就根据 session 获取
 
+#### `/getByEmail`
+
+- 功能：根据邮箱获取用户资料
+- 方法：GET
+- 请求体：
+```ts
+{
+    json: {
+        email: string,
+    },
+}
+```
+- 响应体：`Profile | null`
+- 响应消息：无
+- 其他说明：无
+
 #### `/set`
 
 - 功能：修改用户资料
