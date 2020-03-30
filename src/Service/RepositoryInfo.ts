@@ -10,7 +10,7 @@ import {Readable} from 'stream';
 import * as Git from '../Git';
 import path from 'path';
 
-export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Repository | void>>
+export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Repository | null>>
 {
     const {username} = account;
     const {name} = repository;
@@ -18,8 +18,8 @@ export async function repository(account: Readonly<Pick<Account, 'username'>>, r
     const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
+        return new ServiceResponse<null>(404, {},
+            new ResponseBody(true, '', null));
     }
     return new ServiceResponse<Repository>(200, {},
         new ResponseBody<Repository>(true, '', repositoryInDatabase!));

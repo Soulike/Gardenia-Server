@@ -383,7 +383,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
         new ResponseBody(true));
 }
 
-export async function get(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<PullRequest | void>>
+export async function get(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<PullRequest | null>>
 {
     // 获取 PR 数据库信息
     const {username, name} = repository;
@@ -395,8 +395,8 @@ export async function get(repository: Readonly<Pick<Repository, 'username' | 'na
     });
     if (pullRequests.length === 0)
     {
-        return new ServiceResponse(404, {},
-            new ResponseBody(false, 'Pull Request 不存在'));
+        return new ServiceResponse<null>(404, {},
+            new ResponseBody(true, '', null));
     }
     // 访问权限查看
     const repositories = await RepositoryTable.select({username, name});
@@ -404,8 +404,8 @@ export async function get(repository: Readonly<Pick<Repository, 'username' | 'na
         repositories[0],    // 一定存在
         {username: usernameInSession}))
     {
-        return new ServiceResponse(404, {},
-            new ResponseBody(false, 'Pull Request 不存在'));
+        return new ServiceResponse<null>(404, {},
+            new ResponseBody(true, '', null));
     }
     // 返回 PR
     return new ServiceResponse(200, {},

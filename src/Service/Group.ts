@@ -32,14 +32,14 @@ export async function dismiss(group: Readonly<Pick<Group, 'id'>>, usernameInSess
         new ResponseBody<void>(true));
 }
 
-export async function info(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceResponse<Group | void>>
+export async function info(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceResponse<Group | null>>
 {
     const {id: groupId} = group;
     const groupInDatabase = await GroupTable.selectById(groupId);
     if (groupInDatabase === null)
     {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '小组不存在'));
+        return new ServiceResponse<null>(404, {},
+            new ResponseBody(true, '', null));
     }
     return new ServiceResponse<Group>(200, {},
         new ResponseBody<Group>(true, '', groupInDatabase));

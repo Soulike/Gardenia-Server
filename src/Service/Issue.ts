@@ -128,7 +128,7 @@ export async function getAmountByRepository(repository: Readonly<Pick<Repository
         new ResponseBody(true, '', {amount}));
 }
 
-export async function get(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<Issue | void>>
+export async function get(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<Issue | null>>
 {
     const {repositoryUsername, repositoryName, no} = issue;
     const [issuesInDatabase, repository] = await Promise.all([
@@ -143,8 +143,8 @@ export async function get(issue: Readonly<Pick<Issue, 'repositoryUsername' | 're
         || repository === null
         || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
     {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, 'Issue 不存在'));
+        return new ServiceResponse<null>(404, {},
+            new ResponseBody(true, '', null));
     }
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', issuesInDatabase[0]));
