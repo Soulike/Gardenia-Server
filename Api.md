@@ -395,9 +395,8 @@ enum ISSUE_STATUS
     },
 }
 ```
-- 响应体：`Profile` 类实例
-- 响应消息：
-  - 用户不存在
+- 响应体：`Profile | null`
+- 响应消息：无
 - 其他说明：
   - 如果未提供 `username`，就根据 session 获取
 
@@ -568,9 +567,8 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
     }
 }
 ```
-- 响应体：`Repository`
-- 响应消息：
-  - 仓库不存在
+- 响应体：`Repository | null`
+- 响应消息：无
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
 
@@ -1306,9 +1304,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     }
 }
 ```
-- 响应体：`Group`
-- 响应消息：
-  - 小组不存在
+- 响应体：`Group | null`
+- 响应消息：无
 - 其他说明：无
 
 #### `/changeName`
@@ -1941,9 +1938,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     pullRequest: Pick<PullRequest, 'no'>,
 }
 ```
-- 响应体：`PullRequest`
-- 响应消息：
-  - Pull Request 不存在
+- 响应体：`PullRequest | null`
+- 响应消息：无
 - 其他说明：无
 
 #### `/getByRepository`
@@ -2238,9 +2234,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 功能：获取 Issue 信息
 - 方法：GET
 - 请求体：`Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>`
-- 响应体：`Issue`
-- 响应消息：
-  - Issue 不存在
+- 响应体：`Issue | null`
+- 响应消息：无
 - 其他说明：无
 
 #### `/getComments`

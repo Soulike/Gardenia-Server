@@ -10,22 +10,17 @@ import {SERVER} from '../CONFIG';
 
 const imageminJpegRecompress = require('imagemin-jpeg-recompress');
 
-export async function get(session: Readonly<Session>, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | void>>
+export async function get(session: Readonly<Session>, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | null>>
 {
     if (typeof account === 'undefined' && typeof session.username !== 'string')
     {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '用户不存在'));
+        return new ServiceResponse<null>(200, {},
+            new ResponseBody(false, '', null));
     }
     const {username} = account || session;
     const profile = await ProfileTable.selectByUsername(username);
-    if (profile === null)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '用户不存在'));
-    }
-    return new ServiceResponse<Profile>(200, {},
-        new ResponseBody<Profile>(true, '', profile));
+    return new ServiceResponse<Profile | null>(200, {},
+        new ResponseBody(true, '', profile));
 }
 
 export async function getByEmail(email: string): Promise<ServiceResponse<Profile | null>>
