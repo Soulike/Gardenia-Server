@@ -395,9 +395,8 @@ enum ISSUE_STATUS
     },
 }
 ```
-- 响应体：`Profile` 类实例
-- 响应消息：
-  - 用户不存在
+- 响应体：`Profile | null`
+- 响应消息：无
 - 其他说明：
   - 如果未提供 `username`，就根据 session 获取
 
