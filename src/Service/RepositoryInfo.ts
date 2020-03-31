@@ -386,9 +386,18 @@ export async function commitHistoryBetweenCommits(repository: Pick<Repository, '
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath({username, name});
-    const commits = await Git.getRepositoryCommitsBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash, offset, limit);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {commits}));
+    try
+    {
+        const commits = await Git.getRepositoryCommitsBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash, offset, limit);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {commits}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交不存在'));
+    }
 }
 
 export async function commitHistory(repository: Pick<Repository, 'username' | 'name'>, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
@@ -401,9 +410,18 @@ export async function commitHistory(repository: Pick<Repository, 'username' | 'n
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await Git.getRepositoryCommits(repositoryPath, targetCommitHash, offset, limit);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {commits}));
+    try
+    {
+        const commits = await Git.getRepositoryCommits(repositoryPath, targetCommitHash, offset, limit);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {commits}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交不存在'));
+    }
 }
 
 export async function fileCommitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
@@ -416,9 +434,18 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await Git.getFileCommitsBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash, offset, limit);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {commits}));
+    try
+    {
+        const commits = await Git.getFileCommitsBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash, offset, limit);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {commits}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交或文件不存在'));
+    }
 }
 
 export async function fileCommitHistory(repository: Pick<Repository, 'username' | 'name'>, filePath: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
@@ -432,9 +459,19 @@ export async function fileCommitHistory(repository: Pick<Repository, 'username' 
 
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commits = await Git.getFileCommits(repositoryPath, filePath, targetCommitHash, offset, limit);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {commits}));
+    try
+    {
+        const commits = await Git.getFileCommits(repositoryPath, filePath, targetCommitHash, offset, limit);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {commits}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交或文件不存在'));
+    }
+
 }
 
 export async function diffBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
@@ -447,13 +484,22 @@ export async function diffBetweenCommits(repository: Pick<Repository, 'username'
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const diffFiles = await Git.getChangedFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash, offset, limit);
-    const fileDiffs = await Promise.all(diffFiles.map(
-        async filePath =>
-            await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash)),
-    );
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {diff: fileDiffs}));
+    try
+    {
+        const diffFiles = await Git.getChangedFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash, offset, limit);
+        const fileDiffs = await Promise.all(diffFiles.map(
+            async filePath =>
+                await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash)),
+        );
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {diff: fileDiffs}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交不存在'));
+    }
 }
 
 export async function diffAmountBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
@@ -466,9 +512,18 @@ export async function diffAmountBetweenCommits(repository: Pick<Repository, 'use
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const diffFiles = await Git.getChangedFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {amount: diffFiles.length}));
+    try
+    {
+        const diffFiles = await Git.getChangedFilesBetweenCommits(repositoryPath, baseCommitHash, targetCommitHash);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {amount: diffFiles.length}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交不存在'));
+    }
 }
 
 export async function fileDiffBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff } | void>>
@@ -481,9 +536,18 @@ export async function fileDiffBetweenCommits(repository: Pick<Repository, 'usern
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const diff = await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {diff}));
+    try
+    {
+        const diff = await Git.getFileDiffInfoBetweenCommits(repositoryPath, filePath, baseCommitHash, targetCommitHash);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {diff}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交或文件不存在'));
+    }
 }
 
 export async function commit(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit } | void>>
@@ -496,9 +560,18 @@ export async function commit(repository: Pick<Repository, 'username' | 'name'>, 
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const commit = await Git.getCommit(repositoryPath, commitHash);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {commit}));
+    try
+    {
+        const commit = await Git.getCommit(repositoryPath, commitHash);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {commit}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交不存在'));
+    }
 }
 
 export async function commitDiff(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
@@ -511,9 +584,18 @@ export async function commitDiff(repository: Pick<Repository, 'username' | 'name
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const diff = await Git.getCommitFileDiffs(repositoryPath, commitHash, offset, limit);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {diff}));
+    try
+    {
+        const diff = await Git.getCommitFileDiffs(repositoryPath, commitHash, offset, limit);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {diff}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交不存在'));
+    }
 }
 
 export async function commitDiffAmount(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
@@ -526,10 +608,19 @@ export async function commitDiffAmount(repository: Pick<Repository, 'username' |
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const changedFiles = await Git.getChangedFiles(repositoryPath, commitHash);
-    const amount = changedFiles.length;
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {amount}));
+    try
+    {
+        const changedFiles = await Git.getChangedFiles(repositoryPath, commitHash);
+        const amount = changedFiles.length;
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {amount}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交不存在'));
+    }
 }
 
 export async function fileCommit(repository: Pick<Repository, 'username' | 'name'>, filePath: string, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit, diff: FileDiff } | void>>
@@ -542,12 +633,21 @@ export async function fileCommit(repository: Pick<Repository, 'username' | 'name
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const [commit, diff] = await Promise.all([
-        Git.getCommit(repositoryPath, commitHash),
-        Git.getFileDiff(repositoryPath, filePath, commitHash),
-    ]);
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {commit, diff}));
+    try
+    {
+        const [commit, diff] = await Promise.all([
+            Git.getCommit(repositoryPath, commitHash),
+            Git.getFileDiff(repositoryPath, filePath, commitHash),
+        ]);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {commit, diff}));
+    }
+    catch (e)
+    {
+        SERVER.ERROR_LOGGER(e);
+        return new ServiceResponse(404, {},
+            new ResponseBody(true, '提交或文件不存在'));
+    }
 }
 
 export async function forkAmount(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>

@@ -856,6 +856,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：无
 
 #### `/commitHistory`
@@ -879,6 +880,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：无
 
 #### `/fileCommitHistoryBetweenCommits`
@@ -904,6 +906,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交或文件不存在
 - 其他说明：无
 
 #### `/fileCommitHistory`
@@ -928,6 +931,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交或文件不存在
 - 其他说明：无
 
 #### `/diffBetweenCommits`
@@ -952,6 +956,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：无
 
 #### `/diffAmountBetweenCommits`
@@ -974,6 +979,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：无
 
 #### `/fileDiffBetweenCommits`
@@ -997,6 +1003,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交或文件不存在
 - 其他说明：无
 
 #### `/commit`
@@ -1018,6 +1025,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：无
 
 #### `/commitDiff`
@@ -1041,6 +1049,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：无
 
 #### `/commitDiffAmount`
@@ -1062,6 +1071,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：无
 
 #### `/fileCommit`
@@ -1085,6 +1095,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交或文件不存在
 - 其他说明：无
 
 #### `/forkAmount`
