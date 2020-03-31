@@ -396,7 +396,7 @@ export async function commitHistoryBetweenCommits(repository: Pick<Repository, '
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交不存在'));
+            new ResponseBody(false, '提交不存在'));
     }
 }
 
@@ -420,7 +420,7 @@ export async function commitHistory(repository: Pick<Repository, 'username' | 'n
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交不存在'));
+            new ResponseBody(false, '提交不存在'));
     }
 }
 
@@ -444,7 +444,7 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交或文件不存在'));
+            new ResponseBody(false, '提交或文件不存在'));
     }
 }
 
@@ -469,7 +469,7 @@ export async function fileCommitHistory(repository: Pick<Repository, 'username' 
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交或文件不存在'));
+            new ResponseBody(false, '提交或文件不存在'));
     }
 
 }
@@ -498,7 +498,7 @@ export async function diffBetweenCommits(repository: Pick<Repository, 'username'
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交不存在'));
+            new ResponseBody(false, '提交不存在'));
     }
 }
 
@@ -522,7 +522,7 @@ export async function diffAmountBetweenCommits(repository: Pick<Repository, 'use
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交不存在'));
+            new ResponseBody(false, '提交不存在'));
     }
 }
 
@@ -546,7 +546,7 @@ export async function fileDiffBetweenCommits(repository: Pick<Repository, 'usern
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交或文件不存在'));
+            new ResponseBody(false, '提交或文件不存在'));
     }
 }
 
@@ -570,7 +570,7 @@ export async function commit(repository: Pick<Repository, 'username' | 'name'>, 
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交不存在'));
+            new ResponseBody(false, '提交不存在'));
     }
 }
 
@@ -594,7 +594,7 @@ export async function commitDiff(repository: Pick<Repository, 'username' | 'name
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交不存在'));
+            new ResponseBody(false, '提交不存在'));
     }
 }
 
@@ -619,7 +619,7 @@ export async function commitDiffAmount(repository: Pick<Repository, 'username' |
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交不存在'));
+            new ResponseBody(false, '提交不存在'));
     }
 }
 
@@ -646,7 +646,7 @@ export async function fileCommit(repository: Pick<Repository, 'username' | 'name
     {
         SERVER.ERROR_LOGGER(e);
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '提交或文件不存在'));
+            new ResponseBody(false, '提交或文件不存在'));
     }
 }
 
