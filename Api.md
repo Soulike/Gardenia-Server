@@ -281,9 +281,8 @@ enum ISSUE_STATUS
 - 请求体：`Account`
 - 响应体：无
 - 响应消息：
-  - 用户名或密码错误
+  - 200：用户名或密码错误（在账号和密码正确之外的情况返回）
 - 其他说明：
-  - 在用户名不存在时，也返回用户名或密码错误
   - 散列值计算方法：H(H(*username*) || H(*password*))，算法采用 SHA256
   - 数据库只存储散列
 
@@ -301,9 +300,9 @@ enum ISSUE_STATUS
 ```
 - 响应体：无
 - 响应消息：
-  - 用户名已存在
-  - 邮箱已被使用
-  - 验证码错误
+  - 200：用户名 `${username}` 已存在
+  - 200：邮箱 `${email}` 已被使用
+  - 200：验证码错误
 - 其他说明：无
 
 #### `/sendVerificationCodeToEmail`
@@ -322,7 +321,7 @@ enum ISSUE_STATUS
 - 请求体：`Pick<Profile, 'username'>`
 - 响应体：无
 - 响应消息：
-  - 用户名不存在
+  - 404：用户名 `${username}` 不存在
 - 其他说明：无
 
 #### `/changePassword`
@@ -338,8 +337,8 @@ enum ISSUE_STATUS
 ```
 - 响应体：无
 - 响应消息：
-  - 用户名不存在
-  - 验证码错误
+  - 404：用户名 `${username}` 不存在
+  - 200：验证码错误
 - 其他说明：无
 
 #### `/checkSession`
@@ -423,7 +422,7 @@ enum ISSUE_STATUS
 - 请求体：`Partial<Omit<Profile, 'avatar' | 'username'>>`
 - 响应体：无
 - 响应消息：
-  - 邮箱已被使用
+  - 200：邮箱已被使用
 - 其他说明：
   - 修改 Session 对应的账号资料
 
@@ -432,8 +431,8 @@ enum ISSUE_STATUS
 - 功能：上传头像
 - 方法：POST
 - 请求体：`FormData`，头像数据保存在 `avatar` 键中
-- 响应消息：
-  - 用户不存在
+- 响应体：无
+- 响应消息：无
 - 其他说明：
   - 修改 Session 对应的账号头像
 
@@ -464,7 +463,7 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 - 其他说明：
   - 对公有库
     - 所有人都可获取文件
-  - 对私有哭
+  - 对私有库
     - 仅具有权限的人才能获取仓库文件，否则返回 404
 
 ### Repository 模块（`/repository`）
@@ -499,7 +498,7 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 - 请求体：`Omit<RepositoryClass, 'username'>`
 - 响应体：无
 - 响应消息：
-  - 仓库已存在
+  - 200：仓库 `${username}/${name}` 已存在
 - 其他说明：无
 
 #### `/del`
@@ -509,7 +508,7 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 - 请求体：`Pick<Repository, 'name'>`
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/fork`
@@ -519,10 +518,10 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 - 请求体：`Pick<Repository, 'username' | 'name'>`
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
-  - 已存在同名仓库
-  - 不能 fork 私有仓库
-  - 不能 fork 自己的仓库
+  - 404：仓库 `${username}/${name}` 不存在
+  - 200：已存在同名仓库 `${username}/${name}`
+  - 200：不能 fork 私有仓库
+  - 200：不能 fork 自己的仓库
 - 其他说明：无
 
 #### `/isMergeable`
@@ -545,14 +544,15 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
-  - 仓库 `${username}/${name}` 不存在
-  - 仓库 `${username}/${name}` 分支 `${branch}` 不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：仓库 `${username}/${name}` 分支 `${branch}` 不存在
 - 其他说明：无
 
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息操作。
+
+*注：对无权限访问的仓库，响应表现与仓库不存在相同。*
 
 #### `/repository`
 
@@ -569,8 +569,7 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 ```
 - 响应体：`Repository | null`
 - 响应消息：无
-- 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+- 其他说明：无
 
 #### `/branches`
 
@@ -591,9 +590,8 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 }
 ```
 - 响应消息：
-  - 仓库不存在
-- 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/branchNames`
 
@@ -614,9 +612,8 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 }
 ```
 - 响应消息：
-  - 仓库不存在
-- 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/lastBranchCommit`
 
@@ -635,10 +632,10 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 ```
 - 响应体：`Commit` 类实例
 - 响应消息：
-  - 仓库不存在
-  - 分支或文件不存在
-- 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：分支 `${branch}` 不存在
+  - 404：文件不存在
+- 其他说明：无
 
 #### `/lastCommit`
 
@@ -654,9 +651,8 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 ```
 - 响应体：`Commit | null`
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 当仓库从未提交时返回 `null`
 
 #### `/directory`
@@ -679,10 +675,9 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
 Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
-  - 仓库不存在
-  - 文件不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：文件或目录不存在
 - 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 对数组进行排序，类型为 TREE 的在前，BLOB 的在后
 
 #### `/commitCount`
@@ -706,8 +701,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
-  - 分支或提交不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：分支或提交不存在
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 如果是空仓库，提交次数返回 0
@@ -733,10 +728,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
-  - 分支或提交不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：分支或提交不存在
 - 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 如果是空仓库，提交次数返回 0
 
 #### `/fileInfo`
@@ -764,10 +758,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
-  - 分支或提交不存在
+  - 404：仓库不存在
+  - 404：分支或提交不存在
 - 其他说明：
-  - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 在文件不存在时，不返回 404
 
 #### `/rawFile`
@@ -787,9 +780,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：二进制文件流
 - 响应消息：
-  - 仓库不存在
-  - 文件不存在
-  - 提交不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：文件不存在
+  - 404：分支或提交不存在
 - 其他说明：
   - 如果仓库是私有的，不是本人请求就返回 HTTP 404
   - 直接调用标准输出流和响应流进行发送
@@ -807,8 +800,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
-  - 仓库名已存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 200：仓库 `${username}/${name}` 已存在
 - 其他说明：无
 
 #### `/setDescription`
@@ -823,7 +816,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/setIsPublic`
@@ -838,7 +831,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/commitHistoryBetweenCommits`
@@ -862,7 +855,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/commitHistory`
 
@@ -884,7 +878,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/fileCommitHistoryBetweenCommits`
 
@@ -908,7 +903,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/fileCommitHistory`
 
@@ -931,7 +927,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/diffBetweenCommits`
@@ -955,7 +951,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/diffAmountBetweenCommits`
@@ -977,7 +973,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/fileDiffBetweenCommits`
@@ -1000,7 +996,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/commit`
@@ -1021,7 +1017,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/commitDiff`
 
@@ -1043,7 +1040,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/commitDiffAmount`
 
@@ -1063,7 +1061,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/fileCommit`
 
@@ -1085,7 +1084,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
 
 #### `/forkAmount`
 
@@ -1099,7 +1099,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/forkRepositories`
@@ -1114,7 +1114,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/forkFrom`
@@ -1129,7 +1129,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
   - 如果仓库不是复刻得到则返回 `null`
 
@@ -1156,8 +1156,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库 `${username}/${name}` 不存在
-  - `${username}/${name}` 的分支 `${branch}` 不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：`${username}/${name}` 的分支 `${branch}` 不存在
 - 其他说明：无
 
 #### `/forkCommitAmount`
@@ -1182,8 +1182,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库 `${username}/${name}` 不存在
-  - `${username}/${name}` 的分支 `${branch}` 不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：`${username}/${name}` 的分支 `${branch}` 不存在
 - 其他说明：无
 
 #### `/forkFileDiff`
@@ -1208,8 +1208,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库 `${username}/${name}` 不存在
-  - `${username}/${name}` 的分支 `${branch}` 不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：`${username}/${name}` 的分支 `${branch}` 不存在
 - 其他说明：无
 
 #### `/forkFileDiffAmount`
@@ -1232,8 +1232,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库 `${username}/${name}` 不存在
-  - `${username}/${name}` 的分支 `${branch}` 不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：`${username}/${name}` 的分支 `${branch}` 不存在
 - 其他说明：无
 
 #### `/hasCommonAncestor`
@@ -1256,8 +1256,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库 `${username}/${name}` 不存在
-  - `${username}/${name}` 的分支 `${branch}` 不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：`${username}/${name}` 的分支 `${branch}` 不存在
 - 其他说明：无
 
 ### Group 模块（`/group`）
@@ -1498,7 +1498,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：`Group[]`
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/repositories`
@@ -1571,7 +1571,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
   - 如果仓库已经被收藏，则返回成功
   - 如果仓库是不可访问的，返回仓库不存在
@@ -1588,7 +1588,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
   - 如果仓库已经被删除收藏，则返回成功
   - 如果仓库是不可访问的，也执行删除
@@ -1650,7 +1650,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
   - 如果仓库是不可访问的，返回仓库不存在
 
@@ -1671,7 +1671,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：  
   - 如果仓库是不可访问的，返回仓库不存在
 
@@ -1692,7 +1692,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
   - 如果仓库是不可访问的，返回仓库不存在
 
@@ -1717,7 +1717,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
   - 只有仓库创建者可以生成邀请码
   - 生成代码格式：`[username]_[repositoryName]_[Date.now()]`
@@ -1754,7 +1754,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
   - 用户不存在
 - 其他说明：
   - 如果被移除的用户不是合作者，也返回成功
@@ -1777,7 +1777,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/getCollaboratorsAmount`
@@ -1797,7 +1797,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/getCollaboratingRepositories`
@@ -1962,7 +1962,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/getPullRequestAmount`
@@ -1983,7 +1983,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/addComment`
@@ -2159,7 +2159,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/close`
@@ -2204,7 +2204,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：
   - 按照创建时间从晚到早排序
 
@@ -2226,7 +2226,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 仓库不存在
+  - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
 #### `/get`

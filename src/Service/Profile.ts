@@ -39,7 +39,7 @@ export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'us
         if (await ProfileTable.count({email}) !== 0)
         {
             return new ServiceResponse<void>(200, {},
-                new ResponseBody(false, '邮箱已被使用'));
+                new ResponseBody(false, `邮箱 ${email} 已被使用`));
         }
     }
     await ProfileTable.update(profile, {username});
@@ -47,21 +47,15 @@ export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'us
         new ResponseBody<void>(true));
 }
 
-export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
-    const {username} = session;
-    if (await ProfileTable.count({username}) === 0)
-    {
-        return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '用户不存在'));
-    }
     /*
     * 1. 将头像转换到 webp 临时文件
     * 2. 更新数据库为新路径
     * 3. 将 webp 临时文件移动到新路径
     * */
     const {path: avatarUploadPath, hash: fileHash} = avatar;
-    const avatarFileName = `${username}_${fileHash}.jpg`;
+    const avatarFileName = `${usernameInSession}_${fileHash}.jpg`;
     const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', avatarFileName);
     const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(avatarUploadPath)}`);
     try
@@ -73,7 +67,7 @@ export async function uploadAvatar(avatar: Readonly<File>, session: Readonly<Ses
             ],
         });
         await fse.move(tempAvatarPath, avatarPath, {overwrite: true});
-        await ProfileTable.update({avatar: `/avatar/${avatarFileName}`}, {username});
+        await ProfileTable.update({avatar: `/avatar/${avatarFileName}`}, {username: usernameInSession});
     }
     finally // 转换或数据库修改失败，数据库会自己回滚，最后必须删除所有临时文件
     {

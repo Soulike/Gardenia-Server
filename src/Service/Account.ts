@@ -47,12 +47,12 @@ export async function register(account: Readonly<Account>, profile: Readonly<Omi
     if ((await AccountTable.count({username})) !== 0) // 检查用户名是不是已经存在了
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody<void>(false, '用户名已存在'));
+            new ResponseBody<void>(false, `用户名 ${username} 已存在`));
     }
     if ((await ProfileTable.count({email})) !== 0)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody<void>(false, '邮箱已被使用'));
+            new ResponseBody<void>(false, `邮箱 ${email} 已被使用`));
     }
     await AccountTable.create(account, {username: account.username, ...profile});
     return new ServiceResponse<void>(200, {},
@@ -67,7 +67,7 @@ export async function sendVerificationCodeByUsername(profile: Readonly<Pick<Prof
     if (profileInDatabase === null)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '用户名不存在'));
+            new ResponseBody(false, `用户名 ${username} 不存在`));
     }
     const {email} = profileInDatabase;
     const verificationCode = Authentication.generateVerificationCode();
@@ -118,7 +118,7 @@ export async function changePassword(account: Readonly<Account>, verificationCod
     if (profile === null)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '用户名不存在'));
+            new ResponseBody(false, `用户名 ${username} 不存在`));
     }
     // 查看邮箱是否对应，验证码是否正确
     const {email} = profile;

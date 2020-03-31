@@ -17,7 +17,7 @@ export async function create(repository: Readonly<Omit<Repository, 'username'>>,
     if ((await RepositoryTable.count({username, name})) !== 0)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody<void>(false, '仓库已存在'));
+            new ResponseBody<void>(false, `仓库 ${username}/${name} 已存在`));
     }
     const repositoryPath = generateRepositoryPath({username, name});
 
@@ -77,7 +77,7 @@ export async function del(repository: Readonly<Pick<Repository, 'name'>>, sessio
     if ((await RepositoryTable.count({username, name})) === 0)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, '仓库不存在'));
+            new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     const deletedName = `[deleted]${name}_${Date.now()}`;
     const repositoryPath = generateRepositoryPath({username, name});
@@ -143,7 +143,7 @@ export async function fork(sourceRepository: Pick<Repository, 'username' | 'name
     if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     if (!sourceRepositoryInDatabase.isPublic)
     {
@@ -157,7 +157,7 @@ export async function fork(sourceRepository: Pick<Repository, 'username' | 'name
     if (targetRepositoryInDatabase !== null)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '已存在同名仓库'));
+            new ResponseBody(false, `已存在同名仓库 ${usernameInSession}/${name}`));
     }
     const sourceRepositoryPath = generateRepositoryPath(sourceRepository);
     const targetRepositoryPath = generateRepositoryPath({username: usernameInSession, name});
