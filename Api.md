@@ -1859,10 +1859,10 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>`
 - 响应体：无
 - 响应消息：
-  - 仓库 `${username}/${name}` 不存在
-  - `${username}/${name}` 分支 `${branch}` 不存在
-  - `${username}/${name}` 不是 `${username}/${name}` 的 fork
-  - 只有源仓库的创建者才可创建 Pull Request
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：`${username}/${name}` 分支 `${branch}` 不存在
+  - 404：`${username}/${name}` 不是 `${username}/${name}` 的 fork
+  - 404：只有源仓库 `${username}/${name}` 的创建者才可创建 Pull Request
 - 其他说明：无
 
 #### `/update`
@@ -1878,8 +1878,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - Pull Request 不存在
-  - 只有 Pull Request 的创建者可进行修改
+  - 404：Pull Request 不存在
+  - 200：只有 Pull Request #`${no}` 的创建者可进行修改
 - 其他说明：无
 
 #### `/close`
@@ -1889,8 +1889,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Pick<PullRequest, 'id'>`
 - 响应体：无
 - 响应消息：
-  - Pull Request 不存在
-  - 只有目标仓库的合作者或 Pull Request 的创建者可关闭 Pull Request
+  - 404：Pull Request 不存在
+  - 200：只有目标仓库 `${username}/${name}` 的合作者或 Pull Request #`${no}` 的创建者可关闭 Pull Request
 - 其他说明：无
 
 #### `/reopen`
@@ -1900,10 +1900,10 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Pick<PullRequest, 'id'>`
 - 响应体：无
 - 响应消息：
-  - Pull Request 不存在
-  - 只有目标仓库的合作者和 Pull Request 创建者可重开 Pull Request
-  - 仓库 `${username}/${name}` 已不存在
-  - `${username}/${name}` 分支 `${branch}` 已不存在
+  - 404：Pull Request 不存在
+  - 200：只有目标仓库 `${username}/${name}` 的合作者和 Pull Request #`${no}` 的创建者可重开 Pull Request
+  - 404：仓库 `${username}/${name}` 已不存在
+  - 404：`${username}/${name}` 分支 `${branch}` 已不存在
 - 其他说明：无
 
 #### `/isMergeable`
@@ -1918,9 +1918,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
-  - `${username}/${name}` 分支 `${branch}` 不存在
-  - Pull Request 已关闭
+  - 404：Pull Request 不存在
+  - 404：`${username}/${name}` 分支 `${branch}` 不存在
+  - 404：Pull Request 已关闭
 - 其他说明：无
 
 #### `/merge`
@@ -1930,11 +1930,11 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Pick<PullRequest, 'id'>`
 - 响应体：无
 - 响应消息：
-  - Pull Request 不存在
-  - Pull Request 存在冲突，不能自动合并
-  - `${username}/${name}` 分支 `${branch}` 不存在
-  - Pull Request 已关闭
-  - 只有目标仓库的合作者可合并 Pull Request
+  - 404：Pull Request 不存在
+  - 200：Pull Request #`${no}` 存在冲突，请解决冲突后再合并
+  - 404：`${username}/${name}` 分支 `${branch}` 不存在
+  - 200：Pull Request 已关闭
+  - 200：只有目标仓库 `${username}/${name}` 的合作者可合并 Pull Request #`${no}`
 - 其他说明：无
 
 #### `/get`
@@ -2003,8 +2003,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Omit<PullRequestComment, 'id' | 'username' | 'creationTime' | 'modificationTime'>`
 - 响应体：无
 - 响应消息：
-  - Pull Request 不存在
-  - Pull Request 已关闭
+  - 404：Pull Request 不存在
+  - 200 Request #`${no}` 已关闭
 - 其他说明：无
 
 #### `/updateComment`
@@ -2020,8 +2020,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - Pull Request 不存在
-  - 仅本人可编辑评论
+  - 404：Pull Request 不存在
+  - 200：仅本人可编辑评论
 - 其他说明：无
 
 #### `/getComments`
@@ -2042,7 +2042,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
+  - 404：Pull Request 不存在
 - 其他说明：无
 
 #### `/getConflicts`
@@ -2057,8 +2057,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
-  - Pull Request 已关闭
+  - 404：Pull Request 不存在
+  - 200：Pull Request #`${no}` 已关闭
 - 其他说明：无
 
 #### `/resolveConflicts`
@@ -2074,10 +2074,10 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - Pull Request 不存在
-  - 存在二进制文件冲突，请使用命令行解决
-  - 只有 Pull Request 的创建者可解决冲突
-  - Pull Request 已关闭
+  - 404：Pull Request 不存在
+  - 200：存在二进制文件冲突，请使用命令行解决
+  - 200：只有 Pull Request #`${no}` 的创建者可解决冲突
+  - 200：Pull Request #`${no}` 已关闭
 - 其他说明：无
 
 #### `/getCommits`
@@ -2099,7 +2099,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
+  - 404：Pull Request 不存在
 - 其他说明：无
 
 #### `/getCommitAmount`
@@ -2114,7 +2114,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
+  - 404：Pull Request 不存在
 - 其他说明：无
 
 #### `/getFileDiffs`
@@ -2136,7 +2136,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
+  - 404：Pull Request 不存在
 - 其他说明：无
 
 #### `/getFileDiffAmount`
@@ -2151,7 +2151,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Pull Request 不存在
+  - 404：Pull Request 不存在
 - 其他说明：无
 
 ### Issue 模块（`/issue`）

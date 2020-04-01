@@ -45,7 +45,7 @@ export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 
     if (sourceRepositories[0].username !== usernameInSession)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有源仓库的创建者才可创建 Pull Request'));
+            new ResponseBody(false, `只有源仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 的创建者才可创建 Pull Request`));
     }
     // 检查目标仓库存在性，检查是否是 fork 关系
     const [targetRepositoryAmount, forkAmount] = await Promise.all([
@@ -122,14 +122,14 @@ export async function update(primaryKey: Readonly<Pick<PullRequest, 'id'>>, pull
     if (pullRequests.length === 0)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, 'Pull Request 不存在'));
+            new ResponseBody(false, `Pull Request 不存在`));
     }
     // 检查是否是创建者操作
-    const {sourceRepositoryUsername} = pullRequests[0];
+    const {sourceRepositoryUsername, no} = pullRequests[0];
     if (usernameInSession !== sourceRepositoryUsername)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有 Pull Request 的创建者可进行修改'));
+            new ResponseBody(false, `只有 Pull Request #${no} 的创建者可进行修改`));
     }
     // 修改数据库
     const {title, content} = pullRequest;
@@ -150,7 +150,7 @@ export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSess
             new ResponseBody(false, 'Pull Request 不存在'));
     }
     // 检查是不是合作者或者是 PR 创建者操作
-    const {sourceRepositoryUsername, targetRepositoryUsername, targetRepositoryName} = pullRequests[0];
+    const {sourceRepositoryUsername, targetRepositoryUsername, targetRepositoryName, no} = pullRequests[0];
     // 仓库一定存在
     const collaborates = await CollaborateTable.select({
         repositoryUsername: targetRepositoryUsername,
@@ -164,7 +164,7 @@ export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSess
             && !collaborators.includes(usernameInSession)))
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有目标仓库的合作者或 Pull Request 的创建者可关闭 Pull Request'));
+            new ResponseBody(false, `只有目标仓库 ${targetRepositoryUsername}/${targetRepositoryName} 的合作者或 Pull Request #${no} 的创建者可关闭 Pull Request`));
     }
     // 修改数据库
     await PullRequestTable.update(
@@ -186,6 +186,7 @@ export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, use
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
+        no,
     } = pullRequests[0];
     // 检查源仓库、源仓库的分支、目标仓库的分支是否还都存在
     const sourceRepositoryAmount = await RepositoryTable.count({
@@ -233,7 +234,7 @@ export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, use
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false,
-                '只有目标仓库的合作者和 Pull Request 创建者可重开 Pull Request'));
+                `只有目标仓库 ${targetRepositoryUsername}/${targetRepositoryName} 的合作者和 Pull Request #${no} 的创建者可重开 Pull Request`));
     }
     await PullRequestTable.update({status: PULL_REQUEST_STATUS.OPEN}, {id});
     return new ServiceResponse<void>(200, {}, new ResponseBody(true));
@@ -252,12 +253,13 @@ export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, status,
+        no,
     } = pullRequests[0];
     // 检查是不是开启状态
     if (status !== PULL_REQUEST_STATUS.OPEN)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, 'Pull Request 已关闭'));
+            new ResponseBody(false, `Pull Request #${no} 已关闭`));
     }
     // 检查分支是否存在
     const sourceRepositoryPath = generateRepositoryPath({
@@ -312,7 +314,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     if (status !== PULL_REQUEST_STATUS.OPEN)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, 'Pull Request 已关闭'));
+            new ResponseBody(false, `Pull Request #${no} 已关闭`));
     }
     // 检查是不是合作者操作
     // 仓库一定存在
@@ -326,7 +328,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
             && !collaborators.includes(usernameInSession)))
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有目标仓库的合作者可合并 Pull Request'));
+            new ResponseBody(false, `只有目标仓库 ${targetRepositoryUsername}/${targetRepositoryName} 的合作者可合并 Pull Request #${no}`));
     }
     // 检查分支是否存在
     const sourceRepositoryPath = generateRepositoryPath({
@@ -362,7 +364,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
     if (!isMergeable)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, 'Pull Request 存在冲突，请解决冲突后再合并'));
+            new ResponseBody(false, `Pull Request #${no} 存在冲突，请解决冲突后再合并`));
     }
     // 获取目标仓库所有者信息，用于Merge的提交
     const {email: targetRepositoryUserEmail} = (await ProfileTable.selectByUsername(targetRepositoryUsername))!;   // 用户是一定存在的
@@ -420,13 +422,13 @@ export async function getByRepository(repository: Pick<Repository, 'username' | 
     if (repositories.length === 0)
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     // 查看访问权限
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositories[0], {username: usernameInSession}))
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     // 获取 PR 列表
     const pullRequests = await PullRequestTable.select({
@@ -445,12 +447,12 @@ export async function getPullRequestAmount(repository: Readonly<Pick<Repository,
     if (repositories.length === 0)
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositories[0], {username: usernameInSession}))
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const amount = await PullRequestTable.count({
         targetRepositoryUsername: username,
@@ -471,12 +473,12 @@ export async function addComment(pullRequestComment: Readonly<Omit<PullRequestCo
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, 'Pull Request 不存在'));
     }
-    const {targetRepositoryUsername, targetRepositoryName, status} = pullRequests[0];
+    const {targetRepositoryUsername, targetRepositoryName, status, no} = pullRequests[0];
     // 查看是不是开启状态
     if (status !== PULL_REQUEST_STATUS.OPEN)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, 'Pull Request 已关闭'));
+            new ResponseBody(false, `Pull Request #${no} 已关闭`));
     }
     // 查看提交者是否有权限
     const repositories = await RepositoryTable.select({
@@ -577,13 +579,13 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
-        status,
+        status, no,
     } = pullRequests[0];
     // 查看是不是开启状态
     if (status !== PULL_REQUEST_STATUS.OPEN)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, 'Pull Request 已关闭'));
+            new ResponseBody(false, `Pull Request #${no} 已关闭`));
     }
     // 查看访问权限
     const repositories = await RepositoryTable.select({
@@ -625,13 +627,13 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
     if (status !== PULL_REQUEST_STATUS.OPEN)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, 'Pull Request 已关闭'));
+            new ResponseBody(false, `Pull Request #${no} 已关闭`));
     }
     // 查看访问权限
     if (sourceRepositoryUsername !== usernameInSession)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有 Pull Request 的创建者可解决冲突'));
+            new ResponseBody(false, `只有 Pull Request #${no} 的创建者可解决冲突`));
     }
     const repositories = await RepositoryTable.select({
         username: targetRepositoryUsername,
