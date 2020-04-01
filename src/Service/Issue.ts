@@ -14,7 +14,7 @@ export async function add(issue: Readonly<Pick<Issue, 'repositoryUsername' | 're
     if (repository === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${repositoryUsername}/${repositoryName} 不存在`));
     }
     const maxNo = await IssueTable.selectMaxNoOfRepository({repositoryUsername, repositoryName});
     const timestamp = Date.now();
@@ -50,14 +50,14 @@ export async function close(issue: Readonly<Pick<Issue, 'repositoryUsername' | '
         || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, 'Issue 不存在'));
+            new ResponseBody(false, `Issue #${no} 不存在`));
     }
     const {id, username} = issuesInDatabase[0];
     if (username !== usernameInSession  // 不是 Issue 的创建者
         && !await RepositoryFunction.repositoryIsModifiableToTheViewer(repository, {username: usernameInSession}))  // 也不是仓库的合作者
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有仓库合作者与 Issue 创建者可关闭 Issue'));
+            new ResponseBody(false, `只有仓库 ${repositoryUsername}/${repositoryName} 的合作者与 Issue #${no} 的创建者可关闭 Issue`));
     }
     await IssueTable.update({status: ISSUE_STATUS.CLOSED}, {id});
     return new ServiceResponse<void>(200, {},
@@ -80,14 +80,14 @@ export async function reopen(issue: Readonly<Pick<Issue, 'repositoryUsername' | 
         || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, 'Issue 不存在'));
+            new ResponseBody(false, `Issue #${no} 不存在`));
     }
     const {id, username} = issuesInDatabase[0];
     if (username !== usernameInSession  // 不是 Issue 的创建者
         && !await RepositoryFunction.repositoryIsModifiableToTheViewer(repository, {username: usernameInSession}))  // 也不是仓库的合作者
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody(false, '只有仓库合作者与 Issue 创建者可开启 Issue'));
+            new ResponseBody(false, `只有仓库 ${repositoryUsername}/${repositoryName} 的合作者与 Issue #${no} 的创建者可开启 Issue`));
     }
     await IssueTable.update({status: ISSUE_STATUS.OPEN}, {id});
     return new ServiceResponse<void>(200, {},
@@ -104,7 +104,7 @@ export async function getByRepository(repository: Readonly<Pick<Repository, 'use
         || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const issues = await IssueTable.select({repositoryUsername: username, repositoryName: name, status}, offset, limit);
     return new ServiceResponse(200, {},
@@ -121,7 +121,7 @@ export async function getAmountByRepository(repository: Readonly<Pick<Repository
         || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const amount = await IssueTable.count({repositoryUsername: username, repositoryName: name, status});
     return new ServiceResponse(200, {},
@@ -166,7 +166,7 @@ export async function getComments(issue: Readonly<Pick<Issue, 'repositoryUsernam
         || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, 'Issue 不存在'));
+            new ResponseBody(false, `Issue #${no} 不存在`));
     }
     const {id} = issuesInDatabase[0];
     const comments = await IssueCommentTable.select({belongsTo: id}, offset, limit);
@@ -190,7 +190,7 @@ export async function addComment(issue: Readonly<Pick<Issue, 'repositoryUsername
         || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, 'Issue 不存在'));
+            new ResponseBody(false, `Issue #${no} 不存在`));
     }
     const {id} = issuesInDatabase[0];
     const timestamp = Date.now();

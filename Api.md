@@ -2179,8 +2179,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>`
 - 响应体：无
 - 响应消息：
-  - Issue 不存在
-  - 只有仓库合作者与 Issue 创建者可关闭 Issue
+  - 404：Issue #`${no}` 不存在
+  - 400：只有仓库 `${username}/${name}` 的合作者与 Issue #`${no}` 的创建者可关闭 Issue
 - 其他说明：无
 
 #### `/reopen`
@@ -2190,8 +2190,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>`
 - 响应体：无
 - 响应消息：
-  - Issue 不存在
-  - 只有仓库合作者与 Issue 创建者可开启 Issue
+  - 404：Issue #`${no}` 不存在
+  - 200：只有仓库 ${username}/${name} 的合作者与 Issue #`${no}` 的创建者可开启 Issue
 - 其他说明：无
 
 #### `/getByRepository`
@@ -2267,7 +2267,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - Issue 不存在
+  - 404：Issue #`${no}` 不存在
 - 其他说明：
   - 按照创建时间从早到晚排序
 
@@ -2284,5 +2284,5 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - Issue 不存在
+  - 404：Issue #`${no}` 不存在
 - 其他说明：无
