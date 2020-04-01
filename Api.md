@@ -1285,7 +1285,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：`Pick<Group, 'id'>`
 - 响应消息：
-  - 小组名已存在
+  - 200：已存在同名小组
 - 其他说明：无
 
 #### `/dismiss`
@@ -1300,7 +1300,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 解散失败：您不是小组的管理员
+  - 200：您不是小组 #`${id}` 的管理员
 - 其他说明：无
 
 #### `/info`
@@ -1326,8 +1326,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：`Pick<Group, 'id' | 'name'>`
 - 响应体：无
 - 响应消息：
-  - 小组不存在
-  - 修改小组名失败：您不是小组 #`${id}` 的管理员
+  - 404：小组 #`${id}` 不存在
+  - 200：您不是小组 #`${id}` 的管理员
 - 其他说明：无
 
 #### `/accounts`
@@ -1344,7 +1344,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：`Account[]`
 - 响应消息：
-  - 小组不存在
+  - 404：小组 #`${id}` 不存在
 - 其他说明：无
 
 #### `/addAccounts`
@@ -1360,9 +1360,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 小组不存在
-  - 用户${username}不存在
-  - 添加失败：您不是小组的管理员
+  - 404：小组 #`${id}` 不存在
+  - 404：用户 `${username}` 不存在
+  - 200：您不是小组 #`${id}` 的管理员
 - 其他说明：
   - 仅小组管理员添加请求有效，其他人均权限不足
 
@@ -1379,9 +1379,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 小组不存在
-  - 不允许移除自己
-  - 删除失败：您不是小组的管理员
+  - 404：小组 #`${id}` 不存在
+  - 200：不能从小组中移除自己
+  - 200：您不是小组 #`${id}` 的管理员
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足
   - 管理员不能移除自己
@@ -1398,7 +1398,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：`Group[]`
 - 响应消息：
-  - 用户不存在
+  - 404：用户 ${username} 不存在
 - 其他说明：无
 
 #### `/getAdministratingByAccount`
@@ -1413,7 +1413,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：`Group[]`
 - 响应消息：
-  - 用户不存在
+  - 404：用户 `${username}` 不存在
 - 其他说明：无
 
 #### `/admins`
@@ -1430,7 +1430,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：`Account[]`
 - 响应消息：
-  - 小组不存在
+  - 404：小组 #`${id}` 不存在
 - 其他说明：无
 
 #### `/addAdmins`
@@ -1446,10 +1446,10 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 小组不存在
-  - 用户${username}不存在
-  - 用户${username}不是小组成员
-  - 添加失败：您不是小组的管理员
+  - 404：小组 #`${id}` 不存在
+  - 404：用户 `${username}` 不存在
+  - 200：用户 `${username}` 不是小组 #`${id}` 的成员
+  - 200：您不是小组 #`${id}` 的管理员
 - 其他说明：
   - 仅小组管理员添加请求有效，其他人均权限不足
   - 仅小组成员可以成为管理员
@@ -1467,9 +1467,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 小组不存在
-  - 不能撤销自己的管理员权限
-  - 删除失败：您不是小组的管理员
+  - 404：小组 #`${id}` 不存在
+  - 200：不能撤销自己的管理员权限
+  - 200：您不是小组 #`${id}` 的管理员
 - 其他说明：
   - 仅小组管理员删除请求有效，其他人均权限不足
 
@@ -1492,7 +1492,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 小组不存在
+  - 404：小组 #`${id}` 不存在
 - 其他说明：无
 
 #### `/getByRepository`
@@ -1526,7 +1526,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：`Repository[]`
 - 响应消息：
-  - 小组不存在
+  - 404：小组 #`${id}` 不存在
 - 其他说明：无
 
 #### `/addRepository`
@@ -1542,10 +1542,10 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 小组不存在
-  - 仓库 ${username}/${name} 不存在
-  - 添加失败：仓库创建者不是小组的成员
-  - 添加失败：您不是小组的管理员或仓库的创建者
+  - 404：小组 #`${id}` 不存在
+  - 404：仓库 `${username}/${name}` 不存在
+  - 200：仓库 `${username}/${name}` 的创建者不是小组 #`${id}` 的成员
+  - 200：您不是小组 #`${id}` 的管理员或仓库 `${username}/${name}` 的创建者
 - 其他说明：
   - 只有小组的管理员或仓库的创建者可以执行本操作
 
@@ -1562,9 +1562,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 小组不存在
-  - 仓库${name}不存在
-  - 删除失败：您不是小组的管理员
+  - 404：小组 `${username}/${name}` 不存在
+  - 404：仓库 `${name}` 不存在
+  - 200：您不是小组 #`${id}` 的管理员
 - 其他说明：
   - 只有小组的管理员可以执行本操作
 
