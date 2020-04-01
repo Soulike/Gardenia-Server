@@ -7,12 +7,18 @@ import {
     Repository as RepositoryTable,
 } from '../Database';
 
-export async function generateCode(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ code: string } | void>>
+export async function generateCode(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ code: string } | void>>
 {
-    if (await RepositoryTable.count(repository) === 0 || repository.username !== username)
+    const {username, name} = repository;
+    if (username !== usernameInSession)
+    {
+        return new ServiceResponse(200, {},
+            new ResponseBody(false, `只有仓库 ${username}/${name} 的创建者可以生成邀请码`));
+    }
+    if (await RepositoryTable.count(repository) === 0)
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const code = RepositoryFunction.generateCollaborateCode(repository);
     await RepositoryFunction.setCollaborateCode(code, repository);
@@ -25,20 +31,20 @@ export async function add(code: string, username: Account['username']): Promise<
     const repositoryPk = await RepositoryFunction.getCollaborateCodeRepository(code);
     if (repositoryPk === null)
     {
-        return new ServiceResponse<void>(404, {},
+        return new ServiceResponse<void>(200, {},
             new ResponseBody(false, '邀请码无效'));
     }
     const repository = await RepositoryTable.selectByUsernameAndName(repositoryPk);
     if (repository === null)
     {
-        return new ServiceResponse<void>(404, {},
+        return new ServiceResponse<void>(200, {},
             new ResponseBody(false, '邀请码无效'));
     }
     const account = await AccountTable.selectByUsername(username);
     if (account === null)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '用户不存在'));
+            new ResponseBody(false, `用户 ${username} 不存在`));
     }
     const {username: repositoryUsername, name: repositoryName} = repository;
     if (username === repositoryUsername)
@@ -59,19 +65,19 @@ export async function remove(repository: Pick<Repository, 'username' | 'name'>, 
     if (repositoryInDatabase === null)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
     const {username} = account;
     const accountInDatabase = await AccountTable.selectByUsername(account.username);
     if (accountInDatabase === null)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '用户不存在'));
+            new ResponseBody(false, `用户 ${username} 不存在`));
     }
     if (!(await RepositoryFunction.repositoryIsModifiableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
     await CollaborateTable.del(
         new AccountRepository(username, repositoryInDatabase.username, repositoryInDatabase.name));
@@ -85,12 +91,12 @@ export async function getCollaborators(repository: Pick<Repository, 'username' |
     if (repositoryInDatabase === null)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
     if (!(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
     const {username: repositoryUsername, name: repositoryName} = repositoryInDatabase;
     const collaborations = await CollaborateTable.select({
@@ -118,12 +124,12 @@ export async function getCollaboratorsAmount(repository: Pick<Repository, 'usern
     if (repositoryInDatabase === null)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
     if (!(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
     const {username: repositoryUsername, name: repositoryName} = repositoryInDatabase;
     const amount = await CollaborateTable.count({
@@ -140,7 +146,7 @@ export async function getCollaboratingRepositories(account: Pick<Account, 'usern
     if (await AccountTable.count({username}) === 0)
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '用户不存在'));
+            new ResponseBody(true, `用户 ${username} 不存在`));
     }
     const repositoryPks = await CollaborateTable.select({username});
     const repositoriesWithNull = await Promise.all(
@@ -165,7 +171,7 @@ export async function getCollaboratingRepositoriesAmount(account: Pick<Account, 
     if (await AccountTable.count({username}) === 0)
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(true, '用户不存在'));
+            new ResponseBody(true, `用户 ${username} 不存在`));
     }
     const amount = await CollaborateTable.count({username});
     return new ServiceResponse(200, {},

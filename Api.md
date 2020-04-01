@@ -1727,10 +1727,11 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 200：只有仓库 `${username}/${name}` 的创建者可以生成邀请码
 - 其他说明：
   - 只有仓库创建者可以生成邀请码
   - 生成代码格式：`[username]_[repositoryName]_[Date.now()]`
-  - 代码有效时间 10 分钟
+  - 代码有效时间 7 天
   - 一个代码只能被一人使用，用后作废
 
 #### `/add`
@@ -1745,9 +1746,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应体：无
 - 响应消息：
-  - 邀请码无效
-  - 用户不存在
-  - 不能添加自己为合作者
+  - 200：邀请码无效
+  - 404：用户 `${username}` 不存在
+  - 200：不能添加自己为合作者
 - 其他说明：无
 
 #### `/remove`
@@ -1764,7 +1765,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
-  - 用户不存在
+  - 404：用户 `${username}` 不存在
 - 其他说明：
   - 如果被移除的用户不是合作者，也返回成功
   - 只有可修改仓库的人有权限
@@ -1826,7 +1827,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 用户不存在
+  - 404：用户 ${username} 不存在
 - 其他说明：无
 
 #### `/getCollaboratingRepositoriesAmount`
@@ -1846,7 +1847,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 用户不存在
+  - 404：用户 ${username} 不存在
 - 其他说明：无
 
 ### Pull Request 模块（`/pullRequest`）
