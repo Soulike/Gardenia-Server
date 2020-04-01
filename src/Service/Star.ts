@@ -2,16 +2,17 @@ import {Account, AccountRepository, Profile, Repository, ResponseBody, ServiceRe
 import {Profile as ProfileTable, Repository as RepositoryTable, Star as StarTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 
-export async function add(repository: Pick<Repository, 'username' | 'name'>, username: Account['username']): Promise<ServiceResponse<void>>
+export async function add(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
+    const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
+        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
-    const star = new AccountRepository(username, repository.username, repository.name);
+    const star = new AccountRepository(usernameInSession, repository.username, repository.name);
     if ((await StarTable.count(star)) === 0)
     {
         await StarTable.insert(star);
@@ -20,16 +21,17 @@ export async function add(repository: Pick<Repository, 'username' | 'name'>, use
         new ResponseBody(true));
 }
 
-export async function remove(repository: Pick<Repository, 'username' | 'name'>, username: Account['username']): Promise<ServiceResponse<void>>
+export async function remove(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
+    const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
+        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
-    const star = new AccountRepository(username, repository.username, repository.name);
+    const star = new AccountRepository(usernameInSession, repository.username, repository.name);
     if ((await StarTable.count(star)) !== 0)
     {
         await StarTable.del(star);
@@ -73,35 +75,37 @@ export async function isStaredRepository(repository: Pick<Repository, 'username'
         new ResponseBody(true, '', {isStared: amount !== 0}));
 }
 
-export async function getRepositoryStarAmount(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function getRepositoryStarAmount(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
+    const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
+        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const amount = await StarTable.count({
-        repositoryUsername: repository.username,
-        repositoryName: repository.name,
+        repositoryUsername: username,
+        repositoryName: name,
     });
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {amount}));
 }
 
-export async function getRepositoryStarUsers(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ users: Profile[] } | void>>
+export async function getRepositoryStarUsers(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ users: Profile[] } | void>>
 {
+    const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
+        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody(false, '仓库不存在'));
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryStars = await StarTable.select({
-        repositoryUsername: repository.username,
-        repositoryName: repository.name,
+        repositoryUsername: username,
+        repositoryName: name,
     });
     const repositoryStarUserProfiles: Profile[] = [];
     await Promise.all(repositoryStars.map(async star =>

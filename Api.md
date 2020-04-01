@@ -1660,10 +1660,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     isStared: boolean,
 }
 ```
-- 响应消息：
-  - 404：仓库 `${username}/${name}` 不存在
-- 其他说明：
-  - 如果仓库是不可访问的，返回仓库不存在
+- 响应消息：无
+- 其他说明：无
 
 #### `/getRepositoryStarAmount`
 
