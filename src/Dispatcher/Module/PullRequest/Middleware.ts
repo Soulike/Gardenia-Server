@@ -203,9 +203,9 @@ export const getComments: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {repository, pullRequest} = ctx.request.body;
+        const {repository, pullRequest, offset, limit} = ctx.request.body;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await PullRequestService.getComments(repository, pullRequest, username);
+        ctx.state.serviceResponse = await PullRequestService.getComments(repository, pullRequest, offset, limit, username);
     };
 };
 

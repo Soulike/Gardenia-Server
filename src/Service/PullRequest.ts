@@ -529,7 +529,7 @@ export async function updateComment(primaryKey: Readonly<Pick<PullRequestComment
         new ResponseBody(true));
 }
 
-export async function getComments(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
+export async function getComments(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
 {
     // 获取 PR 数据库信息
     const {username, name} = repository;
@@ -561,7 +561,7 @@ export async function getComments(repository: Readonly<Pick<Repository, 'usernam
     // 获取所有评论
     const pullRequestComments = await PullRequestCommentTable.select({
         belongsTo: id,
-    });
+    }, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {comments: pullRequestComments}));
 }

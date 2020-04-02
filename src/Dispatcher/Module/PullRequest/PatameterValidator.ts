@@ -119,7 +119,26 @@ export const updateComment: IParameterValidator = body =>
     ));
 };
 
-export const getComments: IParameterValidator = get;
+export const getComments: IParameterValidator = body =>
+{
+    const {pullRequest, repository, offset, limit} = body;
+    if (pullRequest === undefined || pullRequest === null
+        || repository === undefined || repository === null
+        || (offset !== undefined && typeof offset !== 'number')
+        || (limit !== undefined && typeof limit !== 'number'))
+    {
+        return false;
+    }
+    if (offset < 0 || limit < 0)
+    {
+        return false;
+    }
+    const {username, name} = repository;
+    const {no} = pullRequest;
+    return Repository.validate(new Repository(username, name, '', false))
+        && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+};
+
 export const getConflicts: IParameterValidator = close;
 
 export const resolveConflicts: IParameterValidator = body =>

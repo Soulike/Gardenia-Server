@@ -2033,6 +2033,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     pullRequest: Pick<PullRequest, 'no'>,
+    offset?: number,
+    limit?: number,
 }
 ```
 - 响应体：
