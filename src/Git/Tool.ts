@@ -67,7 +67,7 @@ export async function hasCommonAncestor(repositoryPath1: string, branchNameOfRep
  * */
 export async function cloneBareRepository(sourceRepositoryPath: string, targetRepositoryPath: string): Promise<void>
 {
-    await execPromise(`git clone --bare ${sourceRepositoryPath} ${targetRepositoryPath}`);
+    await execPromise(`git clone --bare '${sourceRepositoryPath}' '${targetRepositoryPath}'`);
 }
 
 /**
@@ -78,7 +78,7 @@ export async function makeTemporaryRepository(repositoryPath: string, branch?: s
     const tempRepositoryPath = await fse.promises.mkdtemp(path.join(os.tmpdir(), 'gardenia_repository_'));
     try
     {
-        await execPromise(`git clone ${branch ? `-b ${branch}` : ''} ${repositoryPath} ${tempRepositoryPath}`);
+        await execPromise(`git clone ${branch ? `-b ${branch}` : ''} '${repositoryPath}' '${tempRepositoryPath}'`);
         return tempRepositoryPath;
     }
     catch (e)   // 如果克隆出问题，那么需要删除产生的临时文件夹
@@ -93,7 +93,7 @@ export async function makeTemporaryRepository(repositoryPath: string, branch?: s
  * */
 export async function addRemote(repositoryPath: string, remoteRepositoryPath: string, remoteName: string): Promise<void>
 {
-    await execPromise(`git remote add -f ${remoteName} ${remoteRepositoryPath}`,
+    await execPromise(`git remote add -f '${remoteName}' '${remoteRepositoryPath}'`,
         {cwd: repositoryPath});
     await execPromise(`git remote update`, {cwd: repositoryPath});
 }
@@ -104,13 +104,15 @@ export async function addRemote(repositoryPath: string, remoteRepositoryPath: st
 export async function getPathInfo(repositoryPath: string, commitHash: string, path: string): Promise<Array<{ type: ObjectType, path: string, commit: Commit }>>
 {
     // 输出格式为 100644 blob 717a1cf8df1d86acd7daef6193298b6f7e4c1ccb	README.md
-    const stdout = await execPromise(`git ls-tree ${commitHash} ${path}`,
+    // 注意前面的分隔符是空格，但是文件名之前的分隔符是 TAB
+    const stdout = await execPromise(`git ls-tree ${commitHash} '${path}'`,
         {cwd: repositoryPath});
     const fileInfoStrings = stdout.split(/\n/).filter(file => file.length !== 0);
     const fileInfos: Array<{ type: ObjectType, path: string, commit: Commit }> = [];
     await Promise.all(fileInfoStrings.map(async fileInfoString =>
     {
-        const [, type, , filePath] = fileInfoString.split(/\s+/);
+        const [restInfo, filePath] = fileInfoString.split('\t');
+        const [, type, ] = restInfo.split(' ');
         let fileType: ObjectType = ObjectType.BLOB;
         switch (type)
         {

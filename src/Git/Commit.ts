@@ -45,7 +45,7 @@ export async function getFileLastCommit(repositoryPath: string, branchName: stri
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName} -- ${filePath}`,
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName} -- '${filePath}'`,
         {cwd: repositoryPath});
     if (stdout.trim().length === 0)
     {
@@ -68,7 +68,7 @@ export async function getCommitCount(repositoryPath: string, commitHashOrBranchN
         return 0;
     }
     // 以下命令会因为不存在 master 分支报错
-    const stdout = await execPromise(`git rev-list ${commitHashOrBranchName} --count`, {cwd: repositoryPath});
+    const stdout = await execPromise(`git rev-list '${commitHashOrBranchName}' --count`, {cwd: repositoryPath});
     return Number.parseInt(stdout);
 }
 
@@ -144,7 +144,7 @@ export async function getFileCommitsBetweenCommits(repositoryPath: string, fileP
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${baseCommitHashOrBranchName}..${targetCommitHashOrBranchName} -- ${filePath}`,
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${baseCommitHashOrBranchName}..${targetCommitHashOrBranchName} -- '${filePath}'`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -273,7 +273,7 @@ export async function getLastCommitHash(repositoryPath: string, branchName: stri
 export async function getFileLastCommitHash(repositoryPath: string, filePath: string): Promise<string>
 {
     return (await execPromise(
-        `git log --pretty=format:'%H' -- ${filePath} | tail -1`
+        `git log --pretty=format:'%H' -- '${filePath}' | tail -1`
         , {cwd: repositoryPath})).trim();
 }
 

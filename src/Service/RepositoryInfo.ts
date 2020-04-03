@@ -137,7 +137,6 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
     try
     {
         const fileCommitInfoList = await Git.getPathInfo(repositoryPath, commitHash, directoryPath);
-
         // 对获取的数组进行排序，类型为 TREE 的在前，BLOB 的在后
         fileCommitInfoList.sort((a, b) =>
         {
