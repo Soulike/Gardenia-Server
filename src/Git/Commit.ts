@@ -13,11 +13,11 @@ export async function getLastCommit(repositoryPath: string): Promise<Commit>
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' --all -1`,
         {cwd: repositoryPath});
-    const info = stdout.split(SEPARATOR);
-    if (info.length !== 6)
+    if (stdout.trim().length === 0)
     {
-        throw new Error('仓库没有提交');
+        throw new Error(`仓库提交不存在`);
     }
+    const info = stdout.split(SEPARATOR);
     return new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
 }
 
@@ -30,11 +30,11 @@ export async function getBranchLastCommit(repositoryPath: string, branchName: st
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName}`,
         {cwd: repositoryPath});
-    const info = stdout.split(SEPARATOR);
-    if (info.length !== 6)
+    if (stdout.trim().length === 0)
     {
-        throw new Error('仓库没有提交');
+        throw new Error(`仓库提交不存在`);
     }
+    const info = stdout.split(SEPARATOR);
     return new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
 }
 
@@ -47,11 +47,11 @@ export async function getFileLastCommit(repositoryPath: string, branchName: stri
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName} -- ${filePath}`,
         {cwd: repositoryPath});
-    const info = stdout.split(SEPARATOR);
-    if (info.length !== 6)
+    if (stdout.trim().length === 0)
     {
-        throw new Error('仓库没有提交');
+        throw new Error(`仓库提交不存在`);
     }
+    const info = stdout.split(SEPARATOR);
     return new Commit(info[0], info[1], info[2], Number.parseInt(info[3]) * 1000, info[4], info[5]);
 
 }
