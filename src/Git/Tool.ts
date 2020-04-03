@@ -103,6 +103,10 @@ export async function addRemote(repositoryPath: string, remoteRepositoryPath: st
  * */
 export async function getPathInfo(repositoryPath: string, commitHash: string, path: string): Promise<Array<{ type: ObjectType, path: string, commit: Commit }>>
 {
+    if (path.length === 0)
+    {
+        path = '.';
+    }
     // 输出格式为 100644 blob 717a1cf8df1d86acd7daef6193298b6f7e4c1ccb	README.md
     // 注意前面的分隔符是空格，但是文件名之前的分隔符是 TAB
     const stdout = await execPromise(`git ls-tree ${commitHash} '${path}'`,
@@ -112,7 +116,7 @@ export async function getPathInfo(repositoryPath: string, commitHash: string, pa
     await Promise.all(fileInfoStrings.map(async fileInfoString =>
     {
         const [restInfo, filePath] = fileInfoString.split('\t');
-        const [, type, ] = restInfo.split(' ');
+        const [, type] = restInfo.split(' ');
         let fileType: ObjectType = ObjectType.BLOB;
         switch (type)
         {

@@ -9,6 +9,10 @@ import {spawn} from 'child_process';
  * */
 export async function getFileObjectHash(repositoryPath: string, filePath: string, commitHashOrBranchName: string): Promise<string>
 {
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
     const lsTreeOut = await execPromise(`git ls-tree ${commitHashOrBranchName} -- '${filePath}'`,
         {cwd: repositoryPath});
@@ -27,6 +31,10 @@ export async function getFileObjectHash(repositoryPath: string, filePath: string
  * */
 export async function getFileObjectType(repositoryPath: string, filePath: string, commitHashOrBranchName: string): Promise<ObjectType>
 {
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     // 格式为 "100644 blob bbdf566e2f8da7288558241c5ffba6c32f943826	yarn.lock"
     const lsTreeOut = await execPromise(`git ls-tree ${commitHashOrBranchName} -- '${filePath}'`,
         {cwd: repositoryPath});
@@ -46,6 +54,10 @@ export async function getFileObjectType(repositoryPath: string, filePath: string
  * */
 export async function fileExists(repositoryPath: string, filePath: string, commitHashOrBranchName: string): Promise<boolean>
 {
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     const stdout = await execPromise(`git ls-tree ${commitHashOrBranchName} -- '${filePath}'`, {cwd: repositoryPath});
     return stdout.length !== 0;
 }

@@ -44,6 +44,10 @@ export async function getBranchLastCommit(repositoryPath: string, branchName: st
 export async function getFileLastCommit(repositoryPath: string, branchName: string, filePath: string): Promise<Commit>
 {
     const SEPARATOR = '|àωⓈ⒧|';
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName} -- '${filePath}'`,
         {cwd: repositoryPath});
@@ -143,6 +147,10 @@ export async function getFileCommitsBetweenCommits(repositoryPath: string, fileP
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${baseCommitHashOrBranchName}..${targetCommitHashOrBranchName} -- '${filePath}'`,
         {cwd: repositoryPath});
@@ -167,6 +175,10 @@ export async function getFileCommits(repositoryPath: string, filePath: string, t
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     const stdout = await execPromise(
         `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${targetCommitHashOrBranchName} -- ${filePath}`,
         {cwd: repositoryPath});
@@ -252,8 +264,12 @@ export async function getFirstCommitHash(repositoryPath: string): Promise<string
  * */
 export async function getFileFirstCommitHash(repositoryPath: string, filePath: string): Promise<string>
 {
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     return (await execPromise(
-        `git log --pretty=format:'%H' -- ${filePath} | tail -1`
+        `git log --pretty=format:'%H' -- '${filePath}' | tail -1`
         , {cwd: repositoryPath})).trim();
 }
 
@@ -272,6 +288,10 @@ export async function getLastCommitHash(repositoryPath: string, branchName: stri
  * */
 export async function getFileLastCommitHash(repositoryPath: string, filePath: string): Promise<string>
 {
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     return (await execPromise(
         `git log --pretty=format:'%H' -- '${filePath}' | tail -1`
         , {cwd: repositoryPath})).trim();

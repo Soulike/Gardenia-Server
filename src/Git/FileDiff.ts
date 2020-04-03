@@ -253,8 +253,12 @@ export async function getFileDiffsBetweenRepositoriesCommits(baseRepositoryPath:
  * */
 async function getFileGitDiffOutput(repositoryPath: string, filePath: string, baseCommitHash: string, targetCommitHash: string): Promise<string>
 {
+    if (filePath.length === 0)
+    {
+        filePath = '.';
+    }
     const ancestorHash = await getCommonAncestor(repositoryPath, baseCommitHash, targetCommitHash);
-    return await execPromise(`git diff ${ancestorHash}..${targetCommitHash} -- ${filePath}`, {cwd: repositoryPath});
+    return await execPromise(`git diff ${ancestorHash}..${targetCommitHash} -- '${filePath}'`, {cwd: repositoryPath});
 }
 
 function getFileGitDiffOutputLines(gitDiffOutput: string): string[]
