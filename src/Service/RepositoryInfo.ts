@@ -250,9 +250,9 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
         Git.getFileObjectHash(repositoryPath, filePath, commitHash),
         Git.getFileObjectType(repositoryPath, filePath, commitHash),
     ]);
+    const size = await Git.getFileSize(repositoryPath, objectHash);
     if (!(await Git.isBinaryFile(repositoryPath, objectHash)))
     {
-        const size = await Git.getFileSize(repositoryPath, objectHash);
         return new ServiceResponse(200, {},
             new ResponseBody(
                 true, '', {
@@ -265,7 +265,7 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
         return new ServiceResponse(200, {},
             new ResponseBody(
                 true, '', {
-                    exists: true, isBinary: true,
+                    exists: true, isBinary: true, size,
                 },
             ));
     }
