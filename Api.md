@@ -201,6 +201,24 @@ class IssueComment
 }
 ```
 
+### `CodeComment`
+
+```ts
+class CodeComment
+{
+    public readonly id: number;
+    public readonly repositoryUsername: string;
+    public readonly repositoryName: string;
+    public readonly filePath: string;
+    public readonly columnNumber: number;
+    public readonly content: string;
+    public readonly creatorUsername: string;
+    public readonly creationCommitHash: string;
+    public readonly creationTimestamp: number;
+    public readonly modificationTimestamp: number;
+}
+```
+
 ---
 
 ## 常量
@@ -2288,3 +2306,61 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应消息：
   - 404：Issue #`${no}` 不存在
 - 其他说明：无
+
+### CodeComment 模块（`/codeComment`）
+
+#### `/add`
+
+- 功能：添加代码批注
+- 方法：POST
+- 请求体：`Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath' | 'columnNumber' | 'content' | 'creationCommitHash'>`
+- 响应体：无
+- 响应消息：
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
+
+#### `/del`
+
+- 功能：删除代码批注
+- 方法：POST
+- 请求体：`Pick<CodeComment, 'id'>`
+- 响应体：无
+- 响应消息：
+  - 404：代码批注不存在
+  - 200：只有仓库的合作者或代码批注的创建者可以删除代码批注
+- 其他说明：
+  - 只有仓库的合作者或代码批注的创建者可以删除代码批注
+
+#### `/get`
+
+- 功能：获取某文件的所有代码批注
+- 方法：GET
+- 请求体：`Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>`
+- 响应体：
+```ts
+{
+    codeComments: CodeComment[]
+}
+```
+- 响应消息：
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：
+  - 访问权限规则同 RepositoryInfo 模块
+
+#### `/update`
+
+- 功能：修改代码批注内容
+- 方法：POST
+- 请求体：
+```ts
+{
+    codeComment: Pick<CodeComment, 'content'>,
+    primaryKey: Pick<CodeComment, 'id'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 404：代码批注不存在
+  - 200：只有代码批注创建者可以修改此批注
+- 其他说明：
+  - 只有代码批注创建者可以修改批注
