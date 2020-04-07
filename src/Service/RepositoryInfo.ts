@@ -331,6 +331,7 @@ export async function setName(repository: Readonly<Pick<Repository, 'name'>>, ne
         await fse.copy(repositoryPath, newRepoPath, {
             overwrite: false,
             errorOnExist: true,
+            preserveTimestamps: true,
         });
         const {username} = repositoryInDatabase!;
         await RepositoryTable.update({name: newRepositoryName}, {username, name: repositoryName});
