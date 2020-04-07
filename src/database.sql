@@ -150,4 +150,22 @@ CREATE TABLE IF NOT EXISTS "issue-comments"
     FOREIGN KEY ("belongsTo") REFERENCES "issues" ("id") ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE "code_comments"
+(
+    "id"                    BIGSERIAL    NOT NULL,
+    "repositoryUsername"    VARCHAR(255) NOT NULL,
+    "repositoryName"        VARCHAR(255) NOT NULL,
+    "filePath"              VARCHAR(255) NOT NULL,
+    "columnNumber"          BIGINT       NOT NULL,
+    "content"               TEXT         NOT NULL,
+    "creatorUsername"       VARCHAR(255) NOT NULL,
+    "creationCommitHash"    CHAR(40)     NOT NULL,
+    "creationTimestamp"     BIGINT       NOT NULL,
+    "modificationTimestamp" BIGINT       NOT NULL,
+    PRIMARY KEY ("id"),
+    FOREIGN KEY ("repositoryUsername", "repositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY ("creatorUsername") REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE,
+    CHECK ( "columnNumber" > 0 )
+);
+
 COMMIT;
