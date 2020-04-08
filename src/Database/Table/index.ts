@@ -11,6 +11,7 @@ import * as Issue from './Issue';
 import * as IssueComment from './IssueComment';
 import * as AccountGroup from './AccountGroup';
 import * as RepositoryGroup from './RepositoryGroup';
+import * as CodeComment from './CodeComment';
 
 export {
     Account, Profile,
@@ -18,4 +19,5 @@ export {
     PullRequest, PullRequestComment,
     Issue, IssueComment,
     AccountGroup, RepositoryGroup,
+    CodeComment,
 };

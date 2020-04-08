@@ -17,3 +17,4 @@ export * from './Issue';
 export * from './IssueComment';
 export * from './AccountGroup';
 export * from './RepositoryGroup';
+export * from './CodeComment';
