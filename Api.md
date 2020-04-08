@@ -2333,12 +2333,12 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 #### `/get`
 
-- 功能：获取某文件的所有代码批注
+- 功能：获取某文件（的某行）的所有代码批注
 - 方法：GET
 - 请求体：
 ```ts
 {
-    codeComment: Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>,
+    codeComment: Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'> & Partial<Pick<CodeComment, 'columnNumber'>>
     commitHash: string, // 当前文件的提交 hash
 }
 ```
@@ -2353,7 +2353,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 404：提交不存在
 - 其他说明：
   - 访问权限规则同 RepositoryInfo 模块
-  - 只提供 `commitHash` 对应提交时间之前的批注
+  - 只提供 `commitHash` 对应提交的批注
 
 #### `/update`
 

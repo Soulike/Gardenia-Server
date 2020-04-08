@@ -5,7 +5,6 @@ import {
     Repository as RepositoryTable,
 } from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
-import {getCommit} from '../Git';
 import {SERVER} from '../CONFIG';
 
 export async function add(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath' | 'columnNumber' | 'content' | 'creationCommitHash'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
@@ -61,9 +60,9 @@ export async function del(codeComment: Readonly<Pick<CodeComment, 'id'>>, userna
         new ResponseBody(true));
 }
 
-export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ codeComments: CodeComment[] } | void>>
+export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'> & Partial<Pick<CodeComment, 'columnNumber'>>>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ codeComments: CodeComment[] } | void>>
 {
-    const {repositoryUsername, repositoryName, filePath} = codeComment;
+    const {repositoryUsername, repositoryName, filePath, columnNumber} = codeComment;
     const repository = await RepositoryTable.selectByUsernameAndName({
         username: repositoryUsername,
         name: repositoryName,
@@ -73,18 +72,15 @@ export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUse
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repositoryUsername}/${repositoryName} 不存在`));
     }
-    const repositoryPath = RepositoryFunction.generateRepositoryPath({
-        username: repositoryUsername,
-        name: repositoryName,
-    });
     try
     {
-        const {timestamp} = await getCommit(repositoryPath, commitHash);
         const codeComments = await CodeCommentTable.selectByRepositoryAndFilePath({
             repositoryUsername,
             repositoryName,
             filePath,
-        }, timestamp);
+            columnNumber,
+            creationCommitHash: commitHash,
+        });
         return new ServiceResponse(200, {},
             new ResponseBody(true, '', {codeComments}));
     }

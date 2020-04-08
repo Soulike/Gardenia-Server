@@ -29,9 +29,12 @@ export const get: IParameterValidator = body =>
     {
         return false;
     }
-    const {repositoryUsername, repositoryName, filePath} = codeComment;
-    return typeof commitHash === 'string'
-        && CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName, filePath, 1, '', '', '', 0, 0));
+    if (typeof commitHash !== 'string')
+    {
+        return false;
+    }
+    const {repositoryUsername, repositoryName, filePath, columnNumber} = codeComment;
+    return CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName, filePath, columnNumber ? columnNumber : 1, '', '', '', 0, 0));
 };
 
 export const update: IParameterValidator = body =>
