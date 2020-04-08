@@ -43,7 +43,7 @@ export async function del(codeComment: Readonly<Pick<CodeComment, 'id'>>): Promi
     }
 }
 
-export async function selectByRepositoryAndFilePath(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>>): Promise<CodeComment[]>
+export async function selectByRepositoryAndFilePath(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>>, startTimestamp: number): Promise<CodeComment[]>
 {
     // 按照 id 从大到小排序
     const {repositoryUsername, repositoryName, filePath} = codeComment;
@@ -53,8 +53,8 @@ export async function selectByRepositoryAndFilePath(codeComment: Readonly<Pick<C
         filePath,
     }, 'AND');
     const {rows} = await pool.query(
-        `SELECT * FROM code_comments WHERE ${parameterizedStatement} ORDER BY "id" DESC`,
-        values);
+        `SELECT * FROM code_comments WHERE ${parameterizedStatement} AND "creationTimestamp" <= $${values.length + 1} ORDER BY "id" DESC`,
+        [...values, startTimestamp]);
     return rows.map(row => CodeComment.from(row));
 }
 

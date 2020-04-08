@@ -2335,7 +2335,13 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取某文件的所有代码批注
 - 方法：GET
-- 请求体：`Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>`
+- 请求体：
+```ts
+{
+    codeComment: Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>,
+    commitHash: string, // 当前文件的提交 hash
+}
+```
 - 响应体：
 ```ts
 {
@@ -2344,8 +2350,10 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
+  - 404：提交不存在
 - 其他说明：
   - 访问权限规则同 RepositoryInfo 模块
+  - 只提供 `commitHash` 对应提交时间之前的批注
 
 #### `/update`
 

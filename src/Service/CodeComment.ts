@@ -5,6 +5,8 @@ import {
     Repository as RepositoryTable,
 } from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
+import {getCommit} from '../Git';
+import {SERVER} from '../CONFIG';
 
 export async function add(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath' | 'columnNumber' | 'content' | 'creationCommitHash'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
@@ -59,7 +61,7 @@ export async function del(codeComment: Readonly<Pick<CodeComment, 'id'>>, userna
         new ResponseBody(true));
 }
 
-export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ codeComments: CodeComment[] } | void>>
+export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'>>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ codeComments: CodeComment[] } | void>>
 {
     const {repositoryUsername, repositoryName, filePath} = codeComment;
     const repository = await RepositoryTable.selectByUsernameAndName({
@@ -71,13 +73,27 @@ export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUse
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repositoryUsername}/${repositoryName} 不存在`));
     }
-    const codeComments = await CodeCommentTable.selectByRepositoryAndFilePath({
-        repositoryUsername,
-        repositoryName,
-        filePath,
+    const repositoryPath = RepositoryFunction.generateRepositoryPath({
+        username: repositoryUsername,
+        name: repositoryName,
     });
-    return new ServiceResponse(200, {},
-        new ResponseBody(true, '', {codeComments}));
+    try
+    {
+        const {timestamp} = await getCommit(repositoryPath, commitHash);
+        const codeComments = await CodeCommentTable.selectByRepositoryAndFilePath({
+            repositoryUsername,
+            repositoryName,
+            filePath,
+        }, timestamp);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {codeComments}));
+    }
+    catch (e)
+    {
+        SERVER.WARN_LOGGER(e);
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `提交不存在`));
+    }
 }
 
 export async function update(codeComment: Readonly<Pick<CodeComment, 'content'>>, primaryKey: Readonly<Pick<CodeComment, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
