@@ -78,7 +78,8 @@ export async function fileExists(repositoryPath: string, filePath: string, commi
         filePath = '.';
     }
     const stdout = await execPromise(`git ls-tree ${commitHashOrBranchName} -- '${filePath}'`, {cwd: repositoryPath});
-    return stdout.length !== 0;
+    const objectType = stdout.split(' ')[1];
+    return stdout.length !== 0 && (objectType === ObjectType.BLOB || objectType === ObjectType.TREE);
 }
 
 /**
