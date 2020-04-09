@@ -44,7 +44,26 @@ export async function getFileObjectType(repositoryPath: string, filePath: string
     }
     else
     {
-        return lsTreeOut.split(/\s+/)[1] === 'tree' ? ObjectType.TREE : ObjectType.BLOB;
+        const type = lsTreeOut.split(/\s+/)[1];
+        switch (type)
+        {
+            case 'blob':
+            {
+                return ObjectType.BLOB;
+            }
+            case 'tree':
+            {
+                return ObjectType.TREE;
+            }
+            case 'commit':
+            {
+                return ObjectType.COMMIT;
+            }
+            default:
+            {
+                return ObjectType.COMMIT;
+            }
+        }
     }
 }
 
