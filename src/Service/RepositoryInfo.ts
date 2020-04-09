@@ -80,7 +80,7 @@ export async function lastBranchCommit(account: Readonly<Pick<Account, 'username
             else
             {
                 return new ServiceResponse<Commit>(404, {},
-                    new ResponseBody<Commit>(false, '文件不存在'));
+                    new ResponseBody<Commit>(false, '分支或文件不存在'));
             }
         }
         else
@@ -243,7 +243,7 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     catch (e)
     {
         return new ServiceResponse(404, {},
-            new ResponseBody(false, '分支或提交不存在'));
+            new ResponseBody(false, '分支、提交或文件不存在'));
     }
 
     const [objectHash, objectType] = await Promise.all<string, ObjectType>([
@@ -296,7 +296,7 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
         else
         {
             return new ServiceResponse<void>(404, {},
-                new ResponseBody(false, '文件不存在'));
+                new ResponseBody(false, '分支、提交或文件不存在'));
         }
     }
     catch (e)

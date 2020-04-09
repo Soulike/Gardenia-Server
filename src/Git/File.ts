@@ -3,6 +3,7 @@ import {Promisify} from '../Function';
 import {ObjectType} from '../CONSTANT';
 import {Readable} from 'stream';
 import {spawn} from 'child_process';
+import {SERVER} from '../CONFIG';
 
 /**
  * @description 获取文件对象的哈希
@@ -68,8 +69,7 @@ export async function getFileObjectType(repositoryPath: string, filePath: string
 }
 
 /**
- * @description 查看某提交中的某个文件是否存在
- * 注意在 commitHashOrBranchName 不存在时将会抛出错误
+ * @description 查看某提交中的某个文件是否存在，提交不存在或文件不存在都会返回 false
  * */
 export async function fileExists(repositoryPath: string, filePath: string, commitHashOrBranchName: string): Promise<boolean>
 {
@@ -77,9 +77,17 @@ export async function fileExists(repositoryPath: string, filePath: string, commi
     {
         filePath = '.';
     }
-    const stdout = await execPromise(`git ls-tree ${commitHashOrBranchName} -- '${filePath}'`, {cwd: repositoryPath});
-    const objectType = stdout.split(' ')[1];
-    return stdout.length !== 0 && (objectType === ObjectType.BLOB || objectType === ObjectType.TREE);
+    try
+    {
+        const stdout = await execPromise(`git ls-tree ${commitHashOrBranchName} -- '${filePath}'`, {cwd: repositoryPath});
+        const objectType = stdout.split(' ')[1];
+        return stdout.length !== 0 && (objectType === ObjectType.BLOB || objectType === ObjectType.TREE);
+    }
+    catch (e)
+    {
+        SERVER.WARN_LOGGER(e);
+        return false;
+    }
 }
 
 /**
