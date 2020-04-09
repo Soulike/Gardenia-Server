@@ -117,7 +117,7 @@ export async function getPathInfo(repositoryPath: string, commitHash: string, pa
     {
         const [restInfo, filePath] = fileInfoString.split('\t');
         const [, type] = restInfo.split(' ');
-        let fileType: ObjectType = ObjectType.BLOB;
+        let fileType: ObjectType = ObjectType.COMMIT;
         switch (type)
         {
             case 'blob':
@@ -128,6 +128,11 @@ export async function getPathInfo(repositoryPath: string, commitHash: string, pa
             case 'tree':
             {
                 fileType = ObjectType.TREE;
+                break;
+            }
+            case 'commit':
+            {
+                fileType = ObjectType.COMMIT;
                 break;
             }
         }
