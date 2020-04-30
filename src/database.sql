@@ -6,12 +6,12 @@ CREATE TABLE IF NOT EXISTS "accounts"
     "hash"     CHAR(64) NOT NULL /*SHA256*/
 );
 
-CREATE TABLE IF NOT EXISTS  "profiles"
+CREATE TABLE IF NOT EXISTS "profiles"
 (
     "username" VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE PRIMARY KEY,
-    "nickname" VARCHAR(255),
+    "nickname" VARCHAR(255) NOT NULL,
     "email"    VARCHAR(255) NOT NULL UNIQUE,
-    "avatar"   VARCHAR(255)
+    "avatar"   VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "repositories"
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS "repositories"
     PRIMARY KEY ("username", "name")
 );
 
-CREATE TABLE IF NOT EXISTS  "groups"
+CREATE TABLE IF NOT EXISTS "groups"
 (
     "id"   SERIAL PRIMARY KEY,
     "name" VARCHAR(255) NOT NULL
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS "repository_group"
 
 CREATE TABLE IF NOT EXISTS "stars"
 (
-    "username"            VARCHAR(255),
+    "username"           VARCHAR(255),
     "repositoryUsername" VARCHAR(255),
     "repositoryName"     VARCHAR(255),
     PRIMARY KEY ("username", "repositoryUsername", "repositoryName"),
