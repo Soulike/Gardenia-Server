@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS "groups"
 CREATE TABLE IF NOT EXISTS "account_group"
 (
     "username" VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
-    "groupId"  INTEGER REFERENCES "groups" ("id") ON UPDATE CASCADE ON DELETE CASCADE              NOT NULL,
+    "groupId"  BIGINT REFERENCES "groups" ("id") ON UPDATE CASCADE ON DELETE CASCADE               NOT NULL,
     "isAdmin"  BOOLEAN                                                                             NOT NULL,
     UNIQUE ("username", "groupId")
 );
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS "repository_group"
 (
     "repositoryUsername" VARCHAR(255) NOT NULL,
     "repositoryName"     VARCHAR(255) NOT NULL,
-    "groupId"            INTEGER      NOT NULL REFERENCES "groups" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
+    "groupId"            BIGINT       NOT NULL REFERENCES "groups" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ("repositoryUsername", "repositoryName") REFERENCES "repositories" ("username", "name") ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY ("repositoryUsername", "groupId") REFERENCES "account_group" ("username", "groupId") ON UPDATE CASCADE ON DELETE CASCADE,
     UNIQUE ("repositoryUsername", "repositoryName", "groupId")
