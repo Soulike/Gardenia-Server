@@ -277,6 +277,8 @@ enum ISSUE_STATUS
 ### Repository
 
 - 名字：字母、数字及下划线，1 到 20 位
+- Issue 标题：不能为空
+- Pull Request 标题：不能为空
 
 ---
 
