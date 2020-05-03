@@ -1,16 +1,19 @@
 import {IParameterValidator} from '../../Interface';
 import {Repository} from '../../../Class';
+import Validator from '../../Validator';
 
 export const create: IParameterValidator = body =>
 {
     const {name, description, isPublic} = body;
-    return Repository.validate({username: '', name, description, isPublic});
+    return Validator.Repository.name(name)
+        && Repository.validate({username: '', name, description, isPublic});
 };
 
 export const del: IParameterValidator = body =>
 {
     const {name} = body;
-    return Repository.validate({username: '', name, description: '', isPublic: true});
+    return Validator.Repository.name(name)
+        && Repository.validate({username: '', name, description: '', isPublic: true});
 };
 
 export const getRepositories: IParameterValidator = body =>
@@ -19,13 +22,16 @@ export const getRepositories: IParameterValidator = body =>
     return typeof start === 'number'
         && typeof end === 'number'
         && (typeof username === 'undefined'
-            || Repository.validate({username, name: '', description: '', isPublic: true}));
+            || (Validator.Account.username(username)
+                && Repository.validate({username, name: '', description: '', isPublic: true})));
 };
 
 export const fork: IParameterValidator = body =>
 {
     const {username, name} = body;
-    return Repository.validate({username, name, isPublic: false, description: ''});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, isPublic: false, description: ''});
 };
 
 export const isMergeable: IParameterValidator = body =>
@@ -45,6 +51,10 @@ export const isMergeable: IParameterValidator = body =>
     }
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
-    return Repository.validate(new Repository(sourceRepositoryUsername, sourceRepositoryName, '', true))
+    return Validator.Account.username(sourceRepositoryUsername)
+        && Validator.Repository.name(sourceRepositoryName)
+        && Validator.Account.username(targetRepositoryUsername)
+        && Validator.Repository.name(targetRepositoryName)
+        && Repository.validate(new Repository(sourceRepositoryUsername, sourceRepositoryName, '', true))
         && Repository.validate(new Repository(targetRepositoryUsername, targetRepositoryName, '', true));
 };
