@@ -1,5 +1,6 @@
 import {IParameterValidator} from '../../Interface';
 import {CodeComment} from '../../../Class';
+import Validator from '../../Validator';
 
 export const add: IParameterValidator = body =>
 {
@@ -11,9 +12,11 @@ export const add: IParameterValidator = body =>
     {
         return false;
     }
-    return CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName,
-        filePath, columnNumber, content, '', creationCommitHash,
-        0, 0));
+    return Validator.Account.username(repositoryUsername)
+        && Validator.Repository.name(repositoryName)
+        && CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName,
+            filePath, columnNumber, content, '', creationCommitHash,
+            0, 0));
 };
 
 export const del: IParameterValidator = body =>

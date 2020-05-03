@@ -1,5 +1,6 @@
 import {IParameterValidator} from '../../Interface';
 import {Account, Repository} from '../../../Class';
+import Validator from '../../Validator';
 
 export const generateCode: IParameterValidator = body =>
 {
@@ -9,13 +10,15 @@ export const generateCode: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const add: IParameterValidator = body =>
 {
     const {code} = body;
-    return typeof code === 'string';
+    return Validator.Collaborator.code(code);
 };
 
 export const remove: IParameterValidator = body =>
@@ -28,7 +31,10 @@ export const remove: IParameterValidator = body =>
     }
     const {username: usernameOfRepository, name} = repository;
     const {username} = account;
-    return Repository.validate({username: usernameOfRepository, name, isPublic: false, description: ''})
+    return Validator.Account.username(usernameOfRepository)
+        && Validator.Repository.name(name)
+        && Validator.Account.username(username)
+        && Repository.validate({username: usernameOfRepository, name, isPublic: false, description: ''})
         && Account.validate({username, hash: ''});
 };
 
@@ -47,7 +53,8 @@ export const getCollaboratingRepositories: IParameterValidator = body =>
         return false;
     }
     const {username} = account;
-    return Account.validate({username, hash: ''});
+    return Validator.Account.username(username)
+        && Account.validate({username, hash: ''});
 };
 
 export const getCollaboratingRepositoriesAmount: IParameterValidator = getCollaboratingRepositories;
