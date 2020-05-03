@@ -278,7 +278,9 @@ enum ISSUE_STATUS
 
 - 名字：字母、数字及下划线，1 到 20 位
 - Issue 标题：不能为空
+- Issue 评论：不能为空
 - Pull Request 标题：不能为空
+- Pull Request 评论：不能为空
 - 代码批注内容：不能为空
 
 ---
