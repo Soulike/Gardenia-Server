@@ -1,6 +1,7 @@
 import {IParameterValidator} from '../../Interface';
 import {Conflict, PullRequest, PullRequestComment, Repository} from '../../../Class';
 import {PULL_REQUEST_STATUS} from '../../../CONSTANT';
+import Validator from '../../Validator';
 
 export const add: IParameterValidator = body =>
 {
@@ -9,12 +10,17 @@ export const add: IParameterValidator = body =>
         targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
         content, title,
     } = body;
-    return PullRequest.validate(new PullRequest(
-        undefined, 1,
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName, '',
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, '',
-        0, 0, title, content, PULL_REQUEST_STATUS.OPEN,
-    ));
+    return Validator.Account.username(sourceRepositoryUsername)
+        && Validator.Repository.name(sourceRepositoryName)
+        && Validator.Account.username(targetRepositoryUsername)
+        && Validator.Repository.name(targetRepositoryName)
+        && Validator.Repository.pullRequestTitle(title)
+        && PullRequest.validate(new PullRequest(
+            undefined, 1,
+            sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName, '',
+            targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, '',
+            0, 0, title, content, PULL_REQUEST_STATUS.OPEN,
+        ));
 };
 
 export const update: IParameterValidator = body =>
@@ -31,10 +37,11 @@ export const update: IParameterValidator = body =>
         return false;
     }
     const {title, content} = pullRequest;
-    return PullRequest.validate(new PullRequest(id, 0,
-        '', '', '', '',
-        '', '', '', '',
-        0, 0, title, content, PULL_REQUEST_STATUS.OPEN));
+    return Validator.Repository.pullRequestTitle(title)
+        && PullRequest.validate(new PullRequest(id, 0,
+            '', '', '', '',
+            '', '', '', '',
+            0, 0, title, content, PULL_REQUEST_STATUS.OPEN));
 };
 
 export const close: IParameterValidator = body =>
@@ -63,7 +70,9 @@ export const get: IParameterValidator = body =>
     }
     const {username, name} = repository;
     const {no} = pullRequest;
-    return Repository.validate(new Repository(username, name, '', false))
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(new Repository(username, name, '', false))
         && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 
@@ -77,7 +86,9 @@ export const getByRepository: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate(new Repository(username, name, '', true));
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(new Repository(username, name, '', true));
 };
 
 export const getPullRequestAmount: IParameterValidator = body =>
@@ -89,15 +100,18 @@ export const getPullRequestAmount: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate(new Repository(username, name, '', true));
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(new Repository(username, name, '', true));
 };
 
 export const addComment: IParameterValidator = body =>
 {
     const {belongsTo, content} = body;
-    return PullRequestComment.validate(new PullRequestComment(
-        undefined, '', belongsTo, content, 0, 0,
-    ));
+    return Validator.Repository.pullRequestComment(content)
+        && PullRequestComment.validate(new PullRequestComment(
+            undefined, '', belongsTo, content, 0, 0,
+        ));
 };
 
 export const updateComment: IParameterValidator = body =>
@@ -114,9 +128,10 @@ export const updateComment: IParameterValidator = body =>
     {
         return false;
     }
-    return PullRequestComment.validate(new PullRequestComment(
-        id, '', 0, content, 0, 0,
-    ));
+    return Validator.Repository.pullRequestComment(content)
+        && PullRequestComment.validate(new PullRequestComment(
+            id, '', 0, content, 0, 0,
+        ));
 };
 
 export const getComments: IParameterValidator = body =>
@@ -135,7 +150,9 @@ export const getComments: IParameterValidator = body =>
     }
     const {username, name} = repository;
     const {no} = pullRequest;
-    return Repository.validate(new Repository(username, name, '', false))
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(new Repository(username, name, '', false))
         && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 
