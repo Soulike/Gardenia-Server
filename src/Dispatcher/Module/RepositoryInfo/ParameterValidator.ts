@@ -1,5 +1,6 @@
 import {IParameterValidator} from '../../Interface';
 import {Account, Repository} from '../../../Class';
+import Validator from '../../Validator';
 
 export const repository: IParameterValidator = body =>
 {
@@ -13,7 +14,9 @@ export const repository: IParameterValidator = body =>
     {
         const {username} = account;
         const {name} = repository;
-        return Account.validate({username, hash: 'a'.repeat(64)})
+        return Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Account.validate({username, hash: 'a'.repeat(64)})
             && Repository.validate({name, isPublic: true, description: '', username: ''});
     }
 };
@@ -26,7 +29,9 @@ export const branches: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, isPublic: true, description: ''});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, isPublic: true, description: ''});
 };
 
 export const branchNames: IParameterValidator = branches;
@@ -41,7 +46,9 @@ export const lastBranchCommit: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return Account.validate({username, hash: 'a'.repeat(64)})
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Account.validate({username, hash: 'a'.repeat(64)})
         && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof branch === 'string'
         && (typeof filePath === 'undefined' || typeof filePath === 'string');
@@ -55,7 +62,9 @@ export const lastCommit: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate(new Repository(username, name, '', false));
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(new Repository(username, name, '', false));
 };
 
 export const directory: IParameterValidator = body =>
@@ -68,7 +77,9 @@ export const directory: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return Account.validate({username, hash: 'a'.repeat(64)})
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Account.validate({username, hash: 'a'.repeat(64)})
         && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof commitHash === 'string'
         && typeof directoryPath === 'string';
@@ -84,7 +95,9 @@ export const commitCount: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return Account.validate({username, hash: 'a'.repeat(64)})
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Account.validate({username, hash: 'a'.repeat(64)})
         && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof commitHash === 'string';
 };
@@ -98,7 +111,9 @@ export const commitCountBetweenCommits: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({name, isPublic: true, description: '', username});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({name, isPublic: true, description: '', username});
 };
 
 export const fileInfo: IParameterValidator = body =>
@@ -111,7 +126,9 @@ export const fileInfo: IParameterValidator = body =>
     }
     const {username} = account;
     const {name} = repository;
-    return Account.validate({username, hash: 'a'.repeat(64)})
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Account.validate({username, hash: 'a'.repeat(64)})
         && Repository.validate({name, isPublic: true, description: '', username: ''})
         && typeof filePath === 'string'
         && typeof commitHash === 'string';
@@ -129,7 +146,9 @@ export const setName: IParameterValidator = body =>
     }
     const {name} = repository;
     const {name: newName} = newRepository;
-    return Repository.validate({name, isPublic: true, description: '', username: ''})
+    return Validator.Repository.name(name)
+        && Validator.Repository.name(newName)
+        && Repository.validate({name, isPublic: true, description: '', username: ''})
         && Repository.validate({name: newName, isPublic: true, description: '', username: ''});
 };
 
@@ -141,7 +160,8 @@ export const setDescription: IParameterValidator = body =>
         return false;
     }
     const {name, description} = repository;
-    return Repository.validate({name, description, username: '', isPublic: true});
+    return Validator.Repository.name(name)
+        && Repository.validate({name, description, username: '', isPublic: true});
 };
 
 export const setIsPublic: IParameterValidator = body =>
@@ -152,7 +172,8 @@ export const setIsPublic: IParameterValidator = body =>
         return false;
     }
     const {name, isPublic} = repository;
-    return Repository.validate({name, isPublic, username: '', description: ''});
+    return Validator.Repository.name(name)
+        && Repository.validate({name, isPublic, username: '', description: ''});
 };
 
 export const commitHistoryBetweenCommits: IParameterValidator = body =>
@@ -167,7 +188,9 @@ export const commitHistoryBetweenCommits: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const commitHistory: IParameterValidator = body =>
@@ -181,7 +204,9 @@ export const commitHistory: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
@@ -197,7 +222,9 @@ export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const fileCommitHistory: IParameterValidator = body =>
@@ -212,7 +239,9 @@ export const fileCommitHistory: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const diffBetweenCommits: IParameterValidator = body =>
@@ -227,7 +256,9 @@ export const diffBetweenCommits: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const diffAmountBetweenCommits: IParameterValidator = diffBetweenCommits;
@@ -243,7 +274,9 @@ export const fileDiffBetweenCommits: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const commit: IParameterValidator = body =>
@@ -254,7 +287,9 @@ export const commit: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, isPublic: true, description: ''});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, isPublic: true, description: ''});
 };
 
 export const commitDiff: IParameterValidator = body =>
@@ -268,7 +303,9 @@ export const commitDiff: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, isPublic: true, description: ''});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, isPublic: true, description: ''});
 };
 
 export const commitDiffAmount: IParameterValidator = commit;
@@ -283,13 +320,17 @@ export const fileCommit: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, isPublic: true, description: ''});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, isPublic: true, description: ''});
 };
 
 export const forkAmount: IParameterValidator = body =>
 {
     const {username, name} = body;
-    return Repository.validate({username, name, description: '', isPublic: false});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: false});
 };
 
 export const forkRepositories: IParameterValidator = forkAmount;
@@ -321,9 +362,13 @@ export const forkCommitHistory: IParameterValidator = body =>
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     } = targetRepository;
-    return Repository.validate(new Repository(
-        sourceRepositoryUsername,
-        sourceRepositoryName, '', false))
+    return Validator.Account.username(sourceRepositoryUsername)
+        && Validator.Repository.name(sourceRepositoryName)
+        && Validator.Account.username(targetRepositoryUsername)
+        && Validator.Repository.name(targetRepositoryName)
+        && Repository.validate(new Repository(
+            sourceRepositoryUsername,
+            sourceRepositoryName, '', false))
         && Repository.validate(new Repository(
             targetRepositoryUsername,
             targetRepositoryName, '', false));
@@ -352,9 +397,13 @@ export const forkCommitAmount: IParameterValidator = body =>
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     } = targetRepository;
-    return Repository.validate(new Repository(
-        sourceRepositoryUsername,
-        sourceRepositoryName, '', false))
+    return Validator.Account.username(sourceRepositoryUsername)
+        && Validator.Repository.name(sourceRepositoryName)
+        && Validator.Account.username(targetRepositoryUsername)
+        && Validator.Repository.name(targetRepositoryName)
+        && Repository.validate(new Repository(
+            sourceRepositoryUsername,
+            sourceRepositoryName, '', false))
         && Repository.validate(new Repository(
             targetRepositoryUsername,
             targetRepositoryName, '', false));
@@ -385,9 +434,13 @@ export const hasCommonAncestor: IParameterValidator = body =>
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     } = targetRepository;
-    return Repository.validate(new Repository(
-        sourceRepositoryUsername,
-        sourceRepositoryName, '', false))
+    return Validator.Account.username(sourceRepositoryUsername)
+        && Validator.Repository.name(sourceRepositoryName)
+        && Validator.Account.username(targetRepositoryUsername)
+        && Validator.Repository.name(targetRepositoryName)
+        && Repository.validate(new Repository(
+            sourceRepositoryUsername,
+            sourceRepositoryName, '', false))
         && Repository.validate(new Repository(
             targetRepositoryUsername,
             targetRepositoryName, '', false));
