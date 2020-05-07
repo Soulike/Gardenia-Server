@@ -14,7 +14,9 @@ app.on('error', (e: Error) =>
 app.use(koa_static(SERVER.STATIC_FILE_PATH, {maxAge: 60 * 60 * 1000})); // 用于本地调试
 app.use(session({...SESSION}, app));
 app.use(dispatcher());
-app.listen(SERVER.PORT, () =>
+
+// 对外暴露 Server 方便测试
+export default app.listen(SERVER.PORT, () =>
 {
     signale.info(`服务器运行在端口 ${SERVER.PORT} (PID: ${process.pid})`);
 });
