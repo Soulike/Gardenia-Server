@@ -59,10 +59,12 @@
     "validator": "^13.0.0"
   },
   "devDependencies": {
+    "@types/autocannon": "^4.1.0",
     "@types/jest": "^25.1.2",
     "@types/nodemon": "^1.19.0",
     "@types/superagent": "^4.1.4",
     "@types/supertest": "^2.0.9",
+    "autocannon": "^4.6.0",
     "husky": "^4.0.7",
     "jest": "^25.1.0",
     "nodemon": "^2.0.0",
