@@ -1,6 +1,7 @@
 import {IParameterValidator} from '../../Interface';
 import {Issue, IssueComment, Repository} from '../../../Class';
 import {ISSUE_STATUS} from '../../../CONSTANT';
+import Validator from '../../Validator';
 
 export const add: IParameterValidator = body =>
 {
@@ -12,14 +13,20 @@ export const add: IParameterValidator = body =>
     }
     const {repositoryUsername, repositoryName, title} = issue;
     const {content} = issueComment;
-    return Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, 0, title, ISSUE_STATUS.OPEN, 0, 0))
+    return Validator.Account.username(repositoryUsername)
+        && Validator.Repository.name(repositoryName)
+        && Validator.Repository.issueTitle(title)
+        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, 0, title, ISSUE_STATUS.OPEN, 0, 0))
         && IssueComment.validate(new IssueComment(undefined, '', 0, content, 0, 0));
 };
 
 export const close: IParameterValidator = body =>
 {
     const {repositoryUsername, repositoryName, no} = body;
-    return Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
+
+    return Validator.Account.username(repositoryUsername)
+        && Validator.Repository.name(repositoryName)
+        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
 };
 
 export const reopen: IParameterValidator = close;
@@ -35,7 +42,9 @@ export const getByRepository: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate(new Repository(username, name, '', true));
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(new Repository(username, name, '', true));
 };
 
 export const getAmountByRepository: IParameterValidator = body =>
@@ -47,7 +56,9 @@ export const getAmountByRepository: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate(new Repository(username, name, '', true));
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(new Repository(username, name, '', true));
 };
 
 export const get: IParameterValidator = close;
@@ -62,7 +73,9 @@ export const getComments: IParameterValidator = body =>
         return false;
     }
     const {repositoryUsername, repositoryName, no} = issue;
-    return Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
+    return Validator.Account.username(repositoryUsername)
+        && Validator.Repository.name(repositoryName)
+        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
 };
 
 export const addComment: IParameterValidator = body =>
@@ -75,6 +88,9 @@ export const addComment: IParameterValidator = body =>
     }
     const {repositoryUsername, repositoryName, no} = issue;
     const {content} = issueComment;
-    return Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0))
+    return Validator.Account.username(repositoryUsername)
+        && Validator.Repository.name(repositoryName)
+        && Validator.Repository.issueComment(content)
+        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0))
         && IssueComment.validate(new IssueComment(undefined, '', 0, content, 0, 0));
 };

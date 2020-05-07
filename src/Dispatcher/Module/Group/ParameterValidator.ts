@@ -1,5 +1,6 @@
 import {IParameterValidator} from '../../Interface';
 import {Account, Group, Repository} from '../../../Class';
+import Validator from '../../Validator';
 
 export const add: IParameterValidator = body =>
 {
@@ -9,7 +10,7 @@ export const add: IParameterValidator = body =>
         return false;
     }
     const {name} = group;
-    return typeof name === 'string';
+    return Validator.Group.name(name);
 };
 
 export const dismiss: IParameterValidator = body =>
@@ -20,7 +21,7 @@ export const dismiss: IParameterValidator = body =>
         return false;
     }
     const {id} = group;
-    return typeof id === 'number';
+    return Group.validate(new Group(id, ''));
 };
 
 export const info = dismiss;
@@ -28,7 +29,8 @@ export const info = dismiss;
 export const changeName: IParameterValidator = body =>
 {
     const {id, name} = body;
-    return Group.validate(new Group(id, name));
+    return Validator.Group.name(name)
+        && Group.validate(new Group(id, name));
 };
 
 export const accounts = dismiss;
@@ -36,20 +38,20 @@ export const accounts = dismiss;
 export const addAccounts: IParameterValidator = body =>
 {
     const {group, usernames} = body;
-    if (typeof group === 'undefined' || group === null)
+    if (group === undefined || group === null)
     {
         return false;
     }
     const {id} = group;
-    if (typeof id !== 'number' || !Array.isArray(usernames))
+    if (!Group.validate(new Group(id, '')) || !Array.isArray(usernames))
     {
         return false;
     }
-    else    // typeof id === 'number' && Array.isArray(usernames)
+    else    // Group.validate(new Group(id, '')) && Array.isArray(usernames)
     {
         for (const username of usernames)
         {
-            if (typeof username !== 'string')
+            if (!Validator.Account.username(username))
             {
                 return false;
             }
@@ -63,7 +65,8 @@ export const removeAccounts = addAccounts;
 export const getByAccount: IParameterValidator = body =>
 {
     const {username} = body;
-    return Account.validate({username, hash: ''});
+    return Validator.Account.username(username)
+        && Account.validate({username, hash: ''});
 };
 
 export const getAdministratingByAccount = getByAccount;
@@ -82,7 +85,9 @@ export const getByRepository: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate({username, name, description: '', isPublic: true});
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate({username, name, description: '', isPublic: true});
 };
 
 export const repositories = dismiss;
@@ -97,7 +102,9 @@ export const addRepository: IParameterValidator = body =>
     }
     const {id} = group;
     const {username, name} = repository;
-    return Group.validate(new Group(id, ''))
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Group.validate(new Group(id, ''))
         && Repository.validate(new Repository(username, name, '', false));
 };
 
@@ -109,16 +116,16 @@ export const removeRepositories: IParameterValidator = body =>
         return false;
     }
     const {id} = group;
-    if (typeof id !== 'number' || !Array.isArray(repositories))
+    if (!Group.validate(new Group(id, '')) || !Array.isArray(repositories))
     {
         return false;
     }
-    else    // typeof id === 'number' && Array.isArray(repositories)
+    else    // Group.validate(new Group(id, '')) && Array.isArray(repositories)
     {
         for (const repository of repositories)
         {
             const {username, name} = repository;
-            if (typeof username !== 'string' || typeof name !== 'string')
+            if (!Validator.Account.username(username) || !Validator.Repository.name(name))
             {
                 return false;
             }

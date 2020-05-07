@@ -1,5 +1,6 @@
 import {IParameterValidator} from '../../Interface';
-import {Account, Profile} from '../../../Class';
+import {Account} from '../../../Class';
+import Validator from '../../Validator';
 
 export const get: IParameterValidator = body =>
 {
@@ -9,7 +10,8 @@ export const get: IParameterValidator = body =>
         return true;
     }
     const {username} = account;
-    return Account.validate({username, hash: 'a'.repeat(64)});
+    return Validator.Account.username(username)
+        && Account.validate({username, hash: 'a'.repeat(64)});
 };
 
 export const getByEmail: IParameterValidator = body =>
@@ -22,12 +24,12 @@ export const set: IParameterValidator = body =>
 {
     const {email, nickname} = body;
     if (email !== undefined
-        && !Profile.validate({email, nickname: '', username: '', avatar: ''}))
+        && !Validator.Profile.email(email))
     {
         return false;
     }
     else if (nickname !== undefined
-        && !Profile.validate({nickname, email: 'a@b.com', username: '', avatar: ''}))
+        && !Validator.Profile.nickname(email))
     {
         return false;
     }

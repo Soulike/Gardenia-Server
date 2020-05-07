@@ -12,8 +12,8 @@
     "build": "tsc",
     "prestart": "yarn build",
     "check-type": "tsc --noEmit",
+    "pretest": "yarn check-type",
     "test": "jest",
-    "test-ci": "jest --forceExit -c jest.ci.config.js",
     "test-coverage": "jest --collectCoverage",
     "ci": "yarn check-type"
   },

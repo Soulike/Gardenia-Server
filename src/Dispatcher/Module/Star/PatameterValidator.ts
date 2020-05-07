@@ -1,5 +1,6 @@
 import {IParameterValidator} from '../../Interface';
 import {Account, Repository} from '../../../Class';
+import Validator from '../../Validator';
 
 export const add: IParameterValidator = body =>
 {
@@ -9,8 +10,10 @@ export const add: IParameterValidator = body =>
         return false;
     }
     const {username, name} = repository;
-    return Repository.validate(
-        new Repository(username, name, '', false));
+    return Validator.Account.username(username)
+        && Validator.Repository.name(name)
+        && Repository.validate(
+            new Repository(username, name, '', false));
 };
 
 export const remove: IParameterValidator = add;
@@ -31,7 +34,8 @@ export const getStaredRepositories: IParameterValidator = body =>
         return false;
     }
     const {username} = account;
-    return Account.validate(new Account(username, ''));
+    return Validator.Account.username(username)
+        && Account.validate(new Account(username, ''));
 };
 
 export const getStaredRepositoriesAmount: IParameterValidator = body =>
@@ -46,7 +50,8 @@ export const getStaredRepositoriesAmount: IParameterValidator = body =>
         return false;
     }
     const {username} = account;
-    return Account.validate(new Account(username, ''));
+    return Validator.Account.username(username)
+        && Account.validate(new Account(username, ''));
 };
 
 export const isStaredRepository: IParameterValidator = add;
