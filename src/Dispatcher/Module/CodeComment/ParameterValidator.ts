@@ -45,9 +45,18 @@ export const get: IParameterValidator = body =>
         return false;
     }
     const {repositoryUsername, repositoryName, filePath, columnNumber} = codeComment;
-    return columnNumber >= CODE_COMMENT_LINE_NUMBER.MIN
-        && columnNumber <= CODE_COMMENT_LINE_NUMBER.MAX
-        && CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName, filePath, columnNumber ? columnNumber : 1, '', '', '', 0, 0));
+    if (Number.isInteger(columnNumber) &&
+        (columnNumber < CODE_COMMENT_LINE_NUMBER.MIN
+            || columnNumber > CODE_COMMENT_LINE_NUMBER.MAX))
+    {
+        return false;
+    }
+    return CodeComment.validate(new CodeComment(
+        0,
+        repositoryUsername, repositoryName, filePath,
+        columnNumber ? columnNumber : 1,
+        '', '', '',
+        0, 0));
 };
 
 export const update: IParameterValidator = body =>
