@@ -1569,6 +1569,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 404：仓库 `${username}/${name}` 不存在
   - 200：仓库 `${username}/${name}` 的创建者不是小组 #`${id}` 的成员
   - 200：您不是小组 #`${id}` 的管理员或仓库 `${username}/${name}` 的创建者
+  - 200：仓库 `${username}/${name}` 已存在于小组 #`${id}` 中
 - 其他说明：
   - 只有小组的管理员或仓库的创建者可以执行本操作
 

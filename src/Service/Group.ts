@@ -280,6 +280,12 @@ export async function addRepository(group: Readonly<Pick<Group, 'id'>>, reposito
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
+    // 查看仓库是不是已经在小组中
+    if (await RepositoryGroupTable.count({repositoryUsername: username, repositoryName: name, groupId}) !== 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, `仓库 ${username}/${name} 已存在于小组 #${groupId} 中`));
+    }
     // 查看仓库创建者是不是小组成员
     if (await AccountGroupTable.count({username, groupId}) === 0)
     {
