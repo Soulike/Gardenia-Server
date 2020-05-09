@@ -180,7 +180,7 @@ export async function getFileCommits(repositoryPath: string, filePath: string, t
         filePath = '.';
     }
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${targetCommitHashOrBranchName} -- ${filePath}`,
+        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${targetCommitHashOrBranchName} -- '${filePath}'`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
