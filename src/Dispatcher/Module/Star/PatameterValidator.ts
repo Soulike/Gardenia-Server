@@ -1,6 +1,7 @@
 import {IParameterValidator} from '../../Interface';
 import {Account, Repository} from '../../../Class';
 import Validator from '../../Validator';
+import {LIMITS} from '../../../CONFIG';
 
 export const add: IParameterValidator = body =>
 {
@@ -21,7 +22,11 @@ export const remove: IParameterValidator = add;
 export const getStaredRepositories: IParameterValidator = body =>
 {
     const {account, offset, limit} = body;
-    if (typeof offset !== 'number' || typeof limit !== 'number')
+    if (!Number.isInteger(offset) || !Number.isInteger(limit))
+    {
+        return false;
+    }
+    if (offset < 0 || limit < 0 || limit > LIMITS.REPOSITORIES)
     {
         return false;
     }

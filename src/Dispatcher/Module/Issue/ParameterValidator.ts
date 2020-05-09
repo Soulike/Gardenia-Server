@@ -40,9 +40,12 @@ export const getByRepository: IParameterValidator = body =>
 {
     const {repository, status, offset, limit} = body;
     if (repository === undefined || repository === null
-        || (status !== undefined && !Object.values(ISSUE_STATUS).includes(status))
-        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
-        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+        || (status !== undefined && !Object.values(ISSUE_STATUS).includes(status)))
+    {
+        return false;
+    }
+    if (!Number.isInteger(offset) || !Number.isInteger(limit)
+        || offset < 0 || limit < 0 || limit > LIMITS.ISSUES)
     {
         return false;
     }
@@ -71,9 +74,12 @@ export const get: IParameterValidator = close;
 export const getComments: IParameterValidator = body =>
 {
     const {issue, offset, limit} = body;
-    if (issue === undefined || issue === null
-        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
-        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    if (issue === undefined || issue === null)
+    {
+        return false;
+    }
+    if (!Number.isInteger(offset) || !Number.isInteger(limit)
+        || offset < 0 || limit < 0 || limit > LIMITS.ISSUE_COMMENTS)
     {
         return false;
     }
