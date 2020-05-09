@@ -1,6 +1,9 @@
 import {IParameterValidator} from '../../Interface';
 import {Account, Group, Repository} from '../../../Class';
 import Validator from '../../Validator';
+import {LIMITS} from '../../../CONFIG';
+
+const {GROUP_ID} = LIMITS;
 
 export const add: IParameterValidator = body =>
 {
@@ -21,7 +24,9 @@ export const dismiss: IParameterValidator = body =>
         return false;
     }
     const {id} = group;
-    return Group.validate(new Group(id, ''));
+    return id >= GROUP_ID.MIN
+        && id <= GROUP_ID.MAX
+        && Group.validate(new Group(id, ''));
 };
 
 export const info = dismiss;
@@ -29,7 +34,9 @@ export const info = dismiss;
 export const changeName: IParameterValidator = body =>
 {
     const {id, name} = body;
-    return Validator.Group.name(name)
+    return id >= GROUP_ID.MIN
+        && id <= GROUP_ID.MAX
+        && Validator.Group.name(name)
         && Group.validate(new Group(id, name));
 };
 
@@ -44,6 +51,10 @@ export const addAccounts: IParameterValidator = body =>
     }
     const {id} = group;
     if (!Group.validate(new Group(id, '')) || !Array.isArray(usernames))
+    {
+        return false;
+    }
+    else if (id > GROUP_ID.MAX || id < GROUP_ID.MIN)
     {
         return false;
     }
@@ -102,7 +113,9 @@ export const addRepository: IParameterValidator = body =>
     }
     const {id} = group;
     const {username, name} = repository;
-    return Validator.Account.username(username)
+    return id >= GROUP_ID.MIN
+        && id <= GROUP_ID.MAX
+        && Validator.Account.username(username)
         && Validator.Repository.name(name)
         && Group.validate(new Group(id, ''))
         && Repository.validate(new Repository(username, name, '', false));
@@ -117,6 +130,10 @@ export const removeRepositories: IParameterValidator = body =>
     }
     const {id} = group;
     if (!Group.validate(new Group(id, '')) || !Array.isArray(repositories))
+    {
+        return false;
+    }
+    else if (id > GROUP_ID.MAX || id < GROUP_ID.MIN)
     {
         return false;
     }

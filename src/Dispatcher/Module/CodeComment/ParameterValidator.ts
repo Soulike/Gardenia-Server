@@ -1,6 +1,9 @@
 import {IParameterValidator} from '../../Interface';
 import {CodeComment} from '../../../Class';
 import Validator from '../../Validator';
+import {LIMITS} from '../../../CONFIG';
+
+const {CODE_COMMENT_ID, CODE_COMMENT_LINE_NUMBER} = LIMITS;
 
 export const add: IParameterValidator = body =>
 {
@@ -15,6 +18,8 @@ export const add: IParameterValidator = body =>
     return Validator.Account.username(repositoryUsername)
         && Validator.Repository.name(repositoryName)
         && Validator.Repository.codeCommentContent(content)
+        && columnNumber >= CODE_COMMENT_LINE_NUMBER.MIN
+        && columnNumber <= CODE_COMMENT_LINE_NUMBER.MAX
         && CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName,
             filePath, columnNumber, content, '', creationCommitHash,
             0, 0));
@@ -23,7 +28,9 @@ export const add: IParameterValidator = body =>
 export const del: IParameterValidator = body =>
 {
     const {id} = body;
-    return CodeComment.validate(new CodeComment(id, '', '', '', 1, '', '', '', 0, 0));
+    return id >= CODE_COMMENT_ID.MIN
+        && id <= CODE_COMMENT_ID.MAX
+        && CodeComment.validate(new CodeComment(id, '', '', '', 1, '', '', '', 0, 0));
 };
 
 export const get: IParameterValidator = body =>
@@ -38,7 +45,9 @@ export const get: IParameterValidator = body =>
         return false;
     }
     const {repositoryUsername, repositoryName, filePath, columnNumber} = codeComment;
-    return CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName, filePath, columnNumber ? columnNumber : 1, '', '', '', 0, 0));
+    return columnNumber >= CODE_COMMENT_LINE_NUMBER.MIN
+        && columnNumber <= CODE_COMMENT_LINE_NUMBER.MAX
+        && CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName, filePath, columnNumber ? columnNumber : 1, '', '', '', 0, 0));
 };
 
 export const update: IParameterValidator = body =>
@@ -51,6 +60,8 @@ export const update: IParameterValidator = body =>
     }
     const {content} = codeComment;
     const {id} = primaryKey;
-    return Validator.Repository.codeCommentContent(content)
+    return id >= CODE_COMMENT_ID.MIN
+        && id <= CODE_COMMENT_ID.MAX
+        && Validator.Repository.codeCommentContent(content)
         && CodeComment.validate(new CodeComment(id, '', '', '', 1, content, '', '', 0, 0));
 };

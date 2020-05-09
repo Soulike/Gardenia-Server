@@ -7,7 +7,7 @@ export class Commit
     public readonly commitHash: string;  // %H
     public readonly committerName: string;   // %cn
     public readonly committerEmail: string;  // %ce
-    public timestamp: number;   // 毫秒 %ct
+    public readonly timestamp: number;   // 毫秒 %ct
     public readonly message: string; // %s
     public readonly body: string;    // %b
 
@@ -27,7 +27,7 @@ export class Commit
         return typeof commitHash === 'string'
             && typeof committerName === 'string'
             && typeof committerEmail === 'string'
-            && typeof timestamp === 'number'
+            && Number.isInteger(timestamp)
             && typeof message === 'string'
             && typeof body === 'string';
     }
