@@ -60,6 +60,11 @@ export async function changeName(group: Readonly<Pick<Group, 'id' | 'name'>>, us
         return new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, `您不是小组 #${groupId} 的管理员`));
     }
+    if (await GroupFunction.groupNameExists({username: usernameInSession}, {name}))
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, `已存在同名小组`));
+    }
     await GroupTable.update({name: newName}, {id: groupId});
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
