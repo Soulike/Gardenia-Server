@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS "repositories"
 
 CREATE TABLE IF NOT EXISTS "groups"
 (
-    "id"   SERIAL PRIMARY KEY,
+    "id"   BIGSERIAL PRIMARY KEY,
     "name" VARCHAR(255) NOT NULL
 );
 
