@@ -2,6 +2,9 @@ import {IParameterValidator} from '../../Interface';
 import {Conflict, PullRequest, PullRequestComment, Repository} from '../../../Class';
 import {PULL_REQUEST_STATUS} from '../../../CONSTANT';
 import Validator from '../../Validator';
+import {LIMITS} from '../../../CONFIG';
+
+const {PULL_REQUEST_ID, PULL_REQUEST_NO, PULL_REQUEST_COMMENT_ID} = LIMITS;
 
 export const add: IParameterValidator = body =>
 {
@@ -32,12 +35,11 @@ export const update: IParameterValidator = body =>
         return false;
     }
     const {id} = primaryKey;
-    if (id === undefined)
-    {
-        return false;
-    }
     const {title, content} = pullRequest;
-    return Validator.Repository.pullRequestTitle(title)
+    return id !== undefined
+        && id >= PULL_REQUEST_ID.MIN
+        && id <= PULL_REQUEST_ID.MAX
+        && Validator.Repository.pullRequestTitle(title)
         && PullRequest.validate(new PullRequest(id, 0,
             '', '', '', '',
             '', '', '', '',
@@ -47,14 +49,13 @@ export const update: IParameterValidator = body =>
 export const close: IParameterValidator = body =>
 {
     const {id} = body;
-    if (id === undefined || id === null)
-    {
-        return false;
-    }
-    return PullRequest.validate(new PullRequest(id, 0,
-        '', '', '', '',
-        '', '', '', '',
-        0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+    return id !== undefined
+        && id >= PULL_REQUEST_ID.MIN
+        && id <= PULL_REQUEST_ID.MAX
+        && PullRequest.validate(new PullRequest(id, 0,
+            '', '', '', '',
+            '', '', '', '',
+            0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 
 export const reopen: IParameterValidator = close;
@@ -70,7 +71,9 @@ export const get: IParameterValidator = body =>
     }
     const {username, name} = repository;
     const {no} = pullRequest;
-    return Validator.Account.username(username)
+    return no >= PULL_REQUEST_NO.MIN
+        && no <= PULL_REQUEST_NO.MAX
+        && Validator.Account.username(username)
         && Validator.Repository.name(name)
         && Repository.validate(new Repository(username, name, '', false))
         && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
@@ -108,7 +111,9 @@ export const getPullRequestAmount: IParameterValidator = body =>
 export const addComment: IParameterValidator = body =>
 {
     const {belongsTo, content} = body;
-    return Validator.Repository.pullRequestComment(content)
+    return belongsTo >= PULL_REQUEST_ID.MIN
+        && belongsTo <= PULL_REQUEST_ID.MAX
+        && Validator.Repository.pullRequestComment(content)
         && PullRequestComment.validate(new PullRequestComment(
             undefined, '', belongsTo, content, 0, 0,
         ));
@@ -124,11 +129,10 @@ export const updateComment: IParameterValidator = body =>
     }
     const {id} = primaryKey;
     const {content} = pullRequestComment;
-    if (id === undefined)
-    {
-        return false;
-    }
-    return Validator.Repository.pullRequestComment(content)
+    return id !== undefined
+        && id >= PULL_REQUEST_COMMENT_ID.MIN
+        && id <= PULL_REQUEST_COMMENT_ID.MAX
+        && Validator.Repository.pullRequestComment(content)
         && PullRequestComment.validate(new PullRequestComment(
             id, '', 0, content, 0, 0,
         ));
@@ -150,7 +154,9 @@ export const getComments: IParameterValidator = body =>
     }
     const {username, name} = repository;
     const {no} = pullRequest;
-    return Validator.Account.username(username)
+    return no >= PULL_REQUEST_NO.MIN
+        && no <= PULL_REQUEST_NO.MAX
+        && Validator.Account.username(username)
         && Validator.Repository.name(name)
         && Repository.validate(new Repository(username, name, '', false))
         && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
@@ -170,6 +176,10 @@ export const resolveConflicts: IParameterValidator = body =>
         '', '', '', '',
         '', '', '', '',
         0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+    {
+        return false;
+    }
+    if (id > PULL_REQUEST_ID.MAX || id < PULL_REQUEST_ID.MIN)
     {
         return false;
     }
@@ -193,10 +203,13 @@ export const getCommits: IParameterValidator = body =>
         return false;
     }
     const {id} = pullRequest;
-    return PullRequest.validate(new PullRequest(id, 0,
-        '', '', '', '',
-        '', '', '', '',
-        0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+    return id !== undefined
+        && id >= PULL_REQUEST_ID.MIN
+        && id <= PULL_REQUEST_ID.MAX
+        && PullRequest.validate(new PullRequest(id, 0,
+            '', '', '', '',
+            '', '', '', '',
+            0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
 export const getCommitAmount: IParameterValidator = close;
 export const getFileDiffs: IParameterValidator = getCommits;

@@ -2,6 +2,9 @@ import {IParameterValidator} from '../../Interface';
 import {Issue, IssueComment, Repository} from '../../../Class';
 import {ISSUE_STATUS} from '../../../CONSTANT';
 import Validator from '../../Validator';
+import {LIMITS} from '../../../CONFIG';
+
+const {ISSUE_NO} = LIMITS;
 
 export const add: IParameterValidator = body =>
 {
@@ -24,7 +27,9 @@ export const close: IParameterValidator = body =>
 {
     const {repositoryUsername, repositoryName, no} = body;
 
-    return Validator.Account.username(repositoryUsername)
+    return no >= ISSUE_NO.MIN
+        && no <= ISSUE_NO.MAX
+        && Validator.Account.username(repositoryUsername)
         && Validator.Repository.name(repositoryName)
         && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
 };
@@ -73,7 +78,9 @@ export const getComments: IParameterValidator = body =>
         return false;
     }
     const {repositoryUsername, repositoryName, no} = issue;
-    return Validator.Account.username(repositoryUsername)
+    return no >= ISSUE_NO.MIN
+        && no <= ISSUE_NO.MAX
+        && Validator.Account.username(repositoryUsername)
         && Validator.Repository.name(repositoryName)
         && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
 };
@@ -88,7 +95,9 @@ export const addComment: IParameterValidator = body =>
     }
     const {repositoryUsername, repositoryName, no} = issue;
     const {content} = issueComment;
-    return Validator.Account.username(repositoryUsername)
+    return no >= ISSUE_NO.MIN
+        && no <= ISSUE_NO.MAX
+        && Validator.Account.username(repositoryUsername)
         && Validator.Repository.name(repositoryName)
         && Validator.Repository.issueComment(content)
         && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0))
