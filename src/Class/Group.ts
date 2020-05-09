@@ -13,7 +13,7 @@ export class Group
     {
         if (!Group.validate(obj))
         {
-            throw new TypeError(`Source object is not a ${Group.name} instance`);
+            throw new TypeError('Source object is not a Group instance');
         }
         const {id, name} = obj;
         return new Group(id, name);
@@ -22,6 +22,6 @@ export class Group
     public static validate(obj: Readonly<Record<keyof Group, any>>): boolean
     {
         const {id, name} = obj;
-        return typeof id === 'number' && typeof name === 'string';
+        return Number.isInteger(id) && typeof name === 'string';
     }
 }
