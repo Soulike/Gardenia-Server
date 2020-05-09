@@ -1175,9 +1175,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     sourceRepository: Pick<Repository, 'username' | 'name'>,
-    sourceRepositoryBranchName: string,
+    sourceRepositoryBranch: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
-    targetRepositoryBranchName: string,
+    targetRepositoryBranch: string,
     offset: number,
     limit: number,
     
@@ -1203,9 +1203,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     json: {
         sourceRepository: Pick<Repository, 'username' | 'name'>,
-        sourceRepositoryBranchName: string,
+        sourceRepositoryBranch: string,
         targetRepository: Pick<Repository, 'username' | 'name'>,
-        targetRepositoryBranchName: string,
+        targetRepositoryBranch: string,
     }
 }
 ```
@@ -1228,9 +1228,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     sourceRepository: Pick<Repository, 'username' | 'name'>,
-    sourceRepositoryBranchName: string,
+    sourceRepositoryBranch: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
-    targetRepositoryBranchName: string,
+    targetRepositoryBranch: string,
     offset: number,
     limit: number,
 }
@@ -1254,9 +1254,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     sourceRepository: Pick<Repository, 'username' | 'name'>,
-    sourceRepositoryBranchName: string,
+    sourceRepositoryBranch: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
-    targetRepositoryBranchName: string,
+    targetRepositoryBranch: string,
 }
 ```
 - 响应体：
