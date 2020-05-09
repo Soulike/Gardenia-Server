@@ -867,8 +867,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     baseCommitHash: string,
     targetCommitHash: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -891,8 +891,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     targetCommitHash: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -917,8 +917,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     filePath: string,
     baseCommitHash: string,
     targetCommitHash: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -942,8 +942,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     filePath: string,
     targetCommitHash: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -967,8 +967,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     repository: Pick<Repository, 'username' | 'name'>,
     baseCommitHash: string,
     targetCommitHash: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -1060,8 +1060,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     commitHash: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -1178,8 +1178,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     sourceRepositoryBranchName: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
     targetRepositoryBranchName: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
     
 }
 ```
@@ -1231,8 +1231,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     sourceRepositoryBranchName: string,
     targetRepository: Pick<Repository, 'username' | 'name'>,
     targetRepositoryBranchName: string,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -2057,8 +2057,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     pullRequest: Pick<PullRequest, 'no'>,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -2114,8 +2114,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     pullRequest: Pick<PullRequest, 'id'>,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -2151,8 +2151,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     pullRequest: Pick<PullRequest, 'id'>,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -2229,8 +2229,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 {
     repository: Pick<Repository, 'username' | 'name'>,
     status: ISSUE_STATUS | undefined,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：
@@ -2282,8 +2282,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```ts
 {
     issue: Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>,
-    offset?: number,
-    limit?: number,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：

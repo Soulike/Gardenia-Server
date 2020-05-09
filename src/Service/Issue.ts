@@ -94,7 +94,7 @@ export async function reopen(issue: Readonly<Pick<Issue, 'repositoryUsername' | 
         new ResponseBody(true));
 }
 
-export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, status: ISSUE_STATUS | undefined, offset?: number, limit?: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ issues: Issue[] } | void>>
+export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, status: ISSUE_STATUS | undefined, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ issues: Issue[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({
@@ -150,7 +150,7 @@ export async function get(issue: Readonly<Pick<Issue, 'repositoryUsername' | 're
         new ResponseBody(true, '', issuesInDatabase[0]));
 }
 
-export async function getComments(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, offset?: number, limit?: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ comments: IssueComment[] } | void>>
+export async function getComments(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'no'>>, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ comments: IssueComment[] } | void>>
 {
     const {repositoryUsername, repositoryName, no} = issue;
     const [issuesInDatabase, repository] = await Promise.all([

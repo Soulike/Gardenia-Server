@@ -17,3 +17,12 @@ export const ISSUE_COMMENT_ID = GROUP_ID;
 
 export const CODE_COMMENT_ID = GROUP_ID;
 export const CODE_COMMENT_LINE_NUMBER = GROUP_ID;
+
+// 一次请求能获取信息的最多条数
+export const COMMIT = 50;
+export const DIFF = 50;
+export const REPOSITORIES = 100;
+export const PULL_REQUESTS = 100;
+export const PULL_REQUEST_COMMENTS = 100;
+export const ISSUES = 100;
+export const ISSUE_COMMENTS = 100;

@@ -529,7 +529,7 @@ export async function updateComment(primaryKey: Readonly<Pick<PullRequestComment
         new ResponseBody(true));
 }
 
-export async function getComments(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
+export async function getComments(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, offset: number, limit: number, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
 {
     // 获取 PR 数据库信息
     const {username, name} = repository;
@@ -667,7 +667,7 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
         new ResponseBody(true));
 }
 
-export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -756,7 +756,7 @@ export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'i
         new ResponseBody(true, '', {commitAmount}));
 }
 
-export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
+export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;

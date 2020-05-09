@@ -83,8 +83,12 @@ export const getByRepository: IParameterValidator = body =>
 {
     const {repository, status, offset, limit} = body;
     if (repository === undefined || repository === null
-        || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status))
-        || typeof offset !== 'number' || typeof limit !== 'number')
+        || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status)))
+    {
+        return false;
+    }
+    if (!Number.isInteger(offset) || !Number.isInteger(limit)
+        || offset < 0 || limit < 0 || limit > LIMITS.PULL_REQUESTS)
     {
         return false;
     }
@@ -142,13 +146,12 @@ export const getComments: IParameterValidator = body =>
 {
     const {pullRequest, repository, offset, limit} = body;
     if (pullRequest === undefined || pullRequest === null
-        || repository === undefined || repository === null
-        || (offset !== undefined && typeof offset !== 'number')
-        || (limit !== undefined && typeof limit !== 'number'))
+        || repository === undefined || repository === null)
     {
         return false;
     }
-    if (offset < 0 || limit < 0)
+    if (!Number.isInteger(offset) || !Number.isInteger(limit)
+        || offset < 0 || limit < 0 || limit > LIMITS.PULL_REQUEST_COMMENTS)
     {
         return false;
     }
@@ -196,9 +199,12 @@ export const resolveConflicts: IParameterValidator = body =>
 export const getCommits: IParameterValidator = body =>
 {
     const {pullRequest, offset, limit} = body;
-    if (pullRequest === undefined || pullRequest === null
-        || ((typeof offset !== 'number' || offset < 0) && offset !== undefined)
-        || ((typeof limit !== 'number' || limit < 0) && limit !== undefined))
+    if (pullRequest === undefined || pullRequest === null)
+    {
+        return false;
+    }
+    if (!Number.isInteger(offset) || !Number.isInteger(limit)
+        || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
     {
         return false;
     }
@@ -211,6 +217,29 @@ export const getCommits: IParameterValidator = body =>
             '', '', '', '',
             0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
 };
+
 export const getCommitAmount: IParameterValidator = close;
-export const getFileDiffs: IParameterValidator = getCommits;
+
+export const getFileDiffs: IParameterValidator = body =>
+{
+    const {pullRequest, offset, limit} = body;
+    if (pullRequest === undefined || pullRequest === null)
+    {
+        return false;
+    }
+    if (!Number.isInteger(offset) || !Number.isInteger(limit)
+        || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
+    {
+        return false;
+    }
+    const {id} = pullRequest;
+    return id !== undefined
+        && id >= PULL_REQUEST_ID.MIN
+        && id <= PULL_REQUEST_ID.MAX
+        && PullRequest.validate(new PullRequest(id, 0,
+            '', '', '', '',
+            '', '', '', '',
+            0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+};
+
 export const getFileDiffAmount: IParameterValidator = close;

@@ -1,6 +1,7 @@
 import {IParameterValidator} from '../../Interface';
 import {Repository} from '../../../Class';
 import Validator from '../../Validator';
+import {LIMITS} from '../../../CONFIG';
 
 export const create: IParameterValidator = body =>
 {
@@ -19,8 +20,8 @@ export const del: IParameterValidator = body =>
 export const getRepositories: IParameterValidator = body =>
 {
     const {start, end, username} = body;
-    return typeof start === 'number'
-        && typeof end === 'number'
+    return Number.isInteger(start) && start >= 0
+        && Number.isInteger(end) && end >= 0 && end - start <= LIMITS.REPOSITORIES
         && (typeof username === 'undefined'
             || (Validator.Account.username(username)
                 && Repository.validate({username, name: '', description: '', isPublic: true})));
