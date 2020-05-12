@@ -2,13 +2,10 @@ import {Account, Profile, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable} from '../Database';
 import {Session} from 'koa-session';
 import {File} from 'formidable';
-import imagemin from 'imagemin';
 import path from 'path';
 import fse from 'fs-extra';
-import os from 'os';
 import {SERVER} from '../CONFIG';
-
-const imageminJpegRecompress = require('imagemin-jpeg-recompress');
+import os from 'os';
 
 export async function get(session: Readonly<Session>, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | null>>
 {
@@ -49,32 +46,29 @@ export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'us
 
 export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
 {
-    /*
-    * 1. 将头像转换到 webp 临时文件
-    * 2. 更新数据库为新路径
-    * 3. 将 webp 临时文件移动到新路径
-    * */
-    const {path: avatarUploadPath, hash: fileHash} = avatar;
-    const avatarFileName = `${usernameInSession}_${fileHash}.jpg`;
-    const avatarPath = path.join(SERVER.STATIC_FILE_PATH, 'avatar', avatarFileName);
-    const tempAvatarPath = path.join(os.tmpdir(), `${path.basename(avatarUploadPath)}`);
+    const {path: sourceAvatarUploadPath, hash: sourceFileHash} = avatar;
+    const {avatar: currentAvatar} = (await ProfileTable.selectByUsername(usernameInSession))!;// 从 session 取，不可能是 null
+    const currentAvatarFilePath = path.join(SERVER.STATIC_FILE_PATH, currentAvatar);    // 现在头像的文件路径
+    const currentAvatarBackupFilePath = path.join(os.tmpdir(), path.basename(currentAvatar));   // 现在头像的备份路径
     try
     {
-        await imagemin([avatarUploadPath], {
-            destination: os.tmpdir(),
-            plugins: [
-                imageminJpegRecompress(),
-            ],
-        });
-        await fse.move(tempAvatarPath, avatarPath, {overwrite: true});
-        await ProfileTable.update({avatar: `/avatar/${avatarFileName}`}, {username: usernameInSession});
+        await fse.move(currentAvatarFilePath, currentAvatarBackupFilePath, {overwrite: true});  // 先备份现在头像
+        const targetAvatarFileName = `${usernameInSession}_${sourceFileHash}${path.extname(sourceAvatarUploadPath)}`;
+        const targetAvatarFilePath = path.join(
+            SERVER.STATIC_FILE_PATH,
+            'avatar',
+            targetAvatarFileName);
+        await fse.move(sourceAvatarUploadPath, targetAvatarFilePath, {overwrite: true});
+        await ProfileTable.update({avatar: `/avatar/${targetAvatarFileName}`}, {username: usernameInSession});
+        await fse.remove(currentAvatarBackupFilePath);  // 所有操作都成功了，删除备份
     }
-    finally // 转换或数据库修改失败，数据库会自己回滚，最后必须删除所有临时文件
+    catch (e) // 转换或数据库修改失败，数据库会自己回滚，最后必须删除所有临时文件，恢复原本头像
     {
         await Promise.all([
-            fse.remove(avatarUploadPath),
-            fse.remove(tempAvatarPath),
+            fse.remove(sourceAvatarUploadPath),
+            fse.move(currentAvatarBackupFilePath, currentAvatarFilePath),
         ]);
+        throw e;    // 抛出错误到外层
     }
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));

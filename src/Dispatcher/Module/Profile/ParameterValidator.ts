@@ -1,6 +1,7 @@
 import {IParameterValidator} from '../../Interface';
 import {Account} from '../../../Class';
 import Validator from '../../Validator';
+import {LIMITS} from '../../../CONFIG';
 
 export const get: IParameterValidator = body =>
 {
@@ -38,6 +39,14 @@ export const set: IParameterValidator = body =>
 
 export const uploadAvatar: IParameterValidator = body =>
 {
-    const {avatar} = body;
-    return typeof avatar !== 'undefined' && avatar !== null;    // 这里的 avatar 是二进制文件
+    const {avatar} = body; // 这里的 avatar 是 File 类型
+    if (typeof avatar === 'undefined' || avatar === null)
+    {
+        return false;
+    }
+    // 限制文件的类型和尺寸
+    const {size, type} = avatar;
+    return typeof type === 'string'
+        && type.slice(0, 6) === 'image/'
+        && size <= LIMITS.AVATAR_SIZE;
 };

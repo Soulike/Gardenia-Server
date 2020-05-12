@@ -4,7 +4,7 @@ import {WrongParameterError} from '../Class';
 
 const bodyParser: IRouteHandler = () => koaBody({
     multipart: true,
-    formidable: {hash: 'md5'},
+    formidable: {hash: 'md5', keepExtensions: true},
     onError: () =>
     {
         throw new WrongParameterError();
