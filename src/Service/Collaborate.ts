@@ -140,7 +140,7 @@ export async function getCollaboratorsAmount(repository: Pick<Repository, 'usern
         new ResponseBody(true, '', {amount}));
 }
 
-export async function getCollaboratingRepositories(account: Pick<Account, 'username'>): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
+export async function getCollaboratingRepositories(account: Pick<Account, 'username'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
 {
     const {username} = account;
     if (await AccountTable.count({username}) === 0)
@@ -154,13 +154,27 @@ export async function getCollaboratingRepositories(account: Pick<Account, 'usern
             await RepositoryTable.selectByUsernameAndName({username, name})),
     );
     const repositories: Repository[] = [];
-    repositoriesWithNull.forEach(repository =>
+    if (username !== usernameInSession)  // 不是本人请求，只返回公有仓库
     {
-        if (repository !== null)
+        repositoriesWithNull.forEach(repository =>
         {
-            repositories.push(repository);
-        }
-    });
+            if (repository !== null && repository.isPublic)
+            {
+                repositories.push(repository);
+            }
+        });
+    }
+    else    // 本人请求，返回所有仓库
+    {
+        repositoriesWithNull.forEach(repository =>
+        {
+            if (repository !== null)
+            {
+                repositories.push(repository);
+            }
+        });
+    }
+
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {repositories}));
 }

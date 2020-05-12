@@ -15,7 +15,7 @@ export async function get(session: Readonly<Session>, account?: Readonly<Pick<Ac
     if (typeof account === 'undefined' && typeof session.username !== 'string')
     {
         return new ServiceResponse<null>(200, {},
-            new ResponseBody(false, '', null));
+            new ResponseBody(true, '', null));
     }
     const {username} = account || session;
     const profile = await ProfileTable.selectByUsername(username);

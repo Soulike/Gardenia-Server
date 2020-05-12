@@ -1,6 +1,6 @@
 import {Session} from 'koa-session';
 import {Account, Branch, Commit, FileDiff, Repository, ResponseBody, ServiceResponse} from '../Class';
-import {Fork as ForkTable, Repository as RepositoryTable} from '../Database';
+import {Fork as ForkTable, Repository as RepositoryTable, Star as StarTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ObjectType} from '../CONSTANT';
@@ -372,6 +372,10 @@ export async function setIsPublic(repository: Readonly<Pick<Repository, 'name' |
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
     }
     await RepositoryTable.update({isPublic}, {username, name});
+    if (!isPublic)   // 当改为私有时，清空所有相关 Star
+    {
+        await StarTable.del({repositoryUsername: username, repositoryName: name});
+    }
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 

@@ -421,6 +421,8 @@ enum ISSUE_STATUS
 - 响应消息：无
 - 其他说明：
   - 如果未提供 `username`，就根据 session 获取
+  - 获取不到 `username` 或数据库里没有对应记录，返回 `null`
+  - 本请求不会有失败情况
 
 #### `/getByEmail`
 
@@ -855,7 +857,8 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：无
 - 响应消息：
   - 404：仓库 `${username}/${name}` 不存在
-- 其他说明：无
+- 其他说明：
+  - 仓库从公开改为私有清空所有 star
 
 #### `/commitHistoryBetweenCommits`
 

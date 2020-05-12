@@ -107,20 +107,20 @@ export const getCollaboratingRepositories: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account} = ctx.request.body;
+        const {username} = ctx.session;
         if (account === undefined)
         {
-            const {username} = ctx.session;
             if (typeof username !== 'string')
             {
                 throw new InvalidSessionError();
             }
             ctx.state.serviceResponse =
-                await CollaborateService.getCollaboratingRepositories({username});
+                await CollaborateService.getCollaboratingRepositories({username}, username);
         }
         else
         {
             ctx.state.serviceResponse =
-                await CollaborateService.getCollaboratingRepositories(account);
+                await CollaborateService.getCollaboratingRepositories(account, username);
         }
     };
 };
