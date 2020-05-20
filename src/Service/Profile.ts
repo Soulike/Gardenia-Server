@@ -66,7 +66,7 @@ export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: Ac
     {
         await Promise.all([
             fse.remove(sourceAvatarUploadPath),
-            fse.move(currentAvatarBackupFilePath, currentAvatarFilePath),
+            fse.move(currentAvatarBackupFilePath, currentAvatarFilePath, {overwrite: true}),
         ]);
         throw e;    // 抛出错误到外层
     }
