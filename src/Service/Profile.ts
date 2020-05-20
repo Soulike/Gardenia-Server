@@ -48,11 +48,15 @@ export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: Ac
 {
     const {path: sourceAvatarUploadPath, hash: sourceFileHash} = avatar;
     const {avatar: currentAvatar} = (await ProfileTable.selectByUsername(usernameInSession))!;// 从 session 取，不可能是 null
+    const currentHasAvatar = currentAvatar.length !== 0;    // 是否当前有头像
     const currentAvatarFilePath = path.join(SERVER.STATIC_FILE_PATH, currentAvatar);    // 现在头像的文件路径
     const currentAvatarBackupFilePath = path.join(os.tmpdir(), path.basename(currentAvatar));   // 现在头像的备份路径
     try
     {
-        await fse.move(currentAvatarFilePath, currentAvatarBackupFilePath, {overwrite: true});  // 先备份现在头像
+        if (currentHasAvatar)
+        {
+            await fse.move(currentAvatarFilePath, currentAvatarBackupFilePath, {overwrite: true});  // 先备份现在头像
+        }
         const targetAvatarFileName = `${usernameInSession}_${sourceFileHash}${path.extname(sourceAvatarUploadPath)}`;
         const targetAvatarFilePath = path.join(
             SERVER.STATIC_FILE_PATH,
@@ -60,14 +64,18 @@ export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: Ac
             targetAvatarFileName);
         await fse.move(sourceAvatarUploadPath, targetAvatarFilePath, {overwrite: true});
         await ProfileTable.update({avatar: `/avatar/${targetAvatarFileName}`}, {username: usernameInSession});
-        await fse.remove(currentAvatarBackupFilePath);  // 所有操作都成功了，删除备份
+        if (currentHasAvatar)
+        {
+            await fse.remove(currentAvatarBackupFilePath);  // 所有操作都成功了，删除备份
+        }
     }
     catch (e) // 转换或数据库修改失败，数据库会自己回滚，最后必须删除所有临时文件，恢复原本头像
     {
-        await Promise.all([
-            fse.remove(sourceAvatarUploadPath),
-            fse.move(currentAvatarBackupFilePath, currentAvatarFilePath, {overwrite: true}),
-        ]);
+        await fse.remove(sourceAvatarUploadPath);
+        if (currentHasAvatar)
+        {
+            await fse.move(currentAvatarBackupFilePath, currentAvatarFilePath, {overwrite: true});
+        }
         throw e;    // 抛出错误到外层
     }
     return new ServiceResponse<void>(200, {},
