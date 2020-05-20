@@ -48,8 +48,8 @@ export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: Ac
 {
     const {path: sourceAvatarUploadPath, hash: sourceFileHash} = avatar;
     const {avatar: currentAvatar} = (await ProfileTable.selectByUsername(usernameInSession))!;// 从 session 取，不可能是 null
-    const currentHasAvatar = currentAvatar.length !== 0;    // 是否当前有头像
     const currentAvatarFilePath = path.join(SERVER.STATIC_FILE_PATH, currentAvatar);    // 现在头像的文件路径
+    const currentHasAvatar = currentAvatar.length !== 0 && await fse.pathExists(currentAvatarFilePath);    // 是否当前有头像
     const currentAvatarBackupFilePath = path.join(os.tmpdir(), path.basename(currentAvatar));   // 现在头像的备份路径
     try
     {
