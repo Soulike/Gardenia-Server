@@ -47,6 +47,6 @@ export const uploadAvatar: IParameterValidator = body =>
     // 限制文件的类型和尺寸
     const {size, type} = avatar;
     return typeof type === 'string'
-        && type.slice(0, 6) === 'image/'
+        && LIMITS.AVATAR_MIME_TYPES.includes(type)
         && size <= LIMITS.AVATAR_SIZE;
 };

@@ -29,3 +29,8 @@ export const ISSUE_COMMENTS = 100;
 
 // 头像的最大尺寸，单位字节
 export const AVATAR_SIZE = 2 * 1024 * 1024;
+// 头像的 MIME 类型限制
+export const AVATAR_MIME_TYPES: Readonly<string[]> = [
+    'image/jpeg',
+    'image/png',
+];
