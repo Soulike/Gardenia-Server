@@ -52,6 +52,12 @@ export async function add(code: string, username: Account['username']): Promise<
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false, '不能添加自己为合作者'));
     }
+    if (await CollaborateTable.count({username, repositoryUsername, repositoryName}) !== 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false,
+                `用户 ${username} 已是仓库 ${repositoryUsername}/${repositoryName} 的合作者`));
+    }
     await CollaborateTable.insert(
         new AccountRepository(username, repositoryUsername, repositoryName));
     await RepositoryFunction.deleteCollaborateCode(code);
