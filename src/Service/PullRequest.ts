@@ -1,5 +1,4 @@
 import {
-    Account,
     Commit,
     Conflict,
     FileDiff,
@@ -23,8 +22,9 @@ import {PULL_REQUEST_STATUS} from '../CONSTANT';
 import {generateRepositoryPath} from '../Function/Repository';
 import * as Git from '../Git';
 import {getChangedFilesBetweenRepositoriesCommits, updateRelatedPullRequest} from '../Git';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {
         sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
@@ -114,7 +114,7 @@ export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 
         new ResponseBody(true));
 }
 
-export async function update(primaryKey: Readonly<Pick<PullRequest, 'id'>>, pullRequest: Readonly<Partial<Pick<PullRequest, 'title' | 'content'>>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function update(primaryKey: Readonly<Pick<PullRequest, 'id'>>, pullRequest: Readonly<Partial<Pick<PullRequest, 'title' | 'content'>>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 检查 PR 是否存在
     const {id} = primaryKey;
@@ -139,7 +139,7 @@ export async function update(primaryKey: Readonly<Pick<PullRequest, 'id'>>, pull
         new ResponseBody(true));
 }
 
-export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 检查 PR 是否存在
     const {id} = pullRequest;
@@ -173,7 +173,7 @@ export async function close(pullRequest: Pick<PullRequest, 'id'>, usernameInSess
         new ResponseBody(true));
 }
 
-export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function reopen(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 检查 PR 是否存在
     const {id} = pullRequest;
@@ -295,7 +295,7 @@ export async function isMergeable(pullRequest: Readonly<Pick<PullRequest, 'id'>>
         new ResponseBody(true, '', {isMergeable}));
 }
 
-export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 检查 PR 是否存在
     const {id} = pullRequest;
@@ -385,7 +385,7 @@ export async function merge(pullRequest: Readonly<Pick<PullRequest, 'id'>>, user
         new ResponseBody(true));
 }
 
-export async function get(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<PullRequest | null>>
+export async function get(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, usernameInSession: ILoggedInSession['username'] | undefined): Promise<ServiceResponse<PullRequest | null>>
 {
     // 获取 PR 数据库信息
     const {username, name} = repository;
@@ -414,7 +414,7 @@ export async function get(repository: Readonly<Pick<Repository, 'username' | 'na
         new ResponseBody(true, '', pullRequests[0]));
 }
 
-export async function getByRepository(repository: Pick<Repository, 'username' | 'name'>, status: PULL_REQUEST_STATUS | undefined, offset: number, limit: number, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ pullRequests: PullRequest[] } | void>>
+export async function getByRepository(repository: Pick<Repository, 'username' | 'name'>, status: PULL_REQUEST_STATUS | undefined, offset: number, limit: number, usernameInSession: ILoggedInSession['username'] | undefined): Promise<ServiceResponse<{ pullRequests: PullRequest[] } | void>>
 {
     // 获取仓库数据库信息
     const {username, name} = repository;
@@ -440,7 +440,7 @@ export async function getByRepository(repository: Pick<Repository, 'username' | 
         new ResponseBody(true, '', {pullRequests}));
 }
 
-export async function getPullRequestAmount(repository: Readonly<Pick<Repository, 'username' | 'name'>>, status: PULL_REQUEST_STATUS | undefined, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ amount: number } | void>>
+export async function getPullRequestAmount(repository: Readonly<Pick<Repository, 'username' | 'name'>>, status: PULL_REQUEST_STATUS | undefined, usernameInSession: ILoggedInSession['username'] | undefined): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username, name} = repository;
     const repositories = await RepositoryTable.select({username, name});
@@ -463,7 +463,7 @@ export async function getPullRequestAmount(repository: Readonly<Pick<Repository,
         new ResponseBody(true, '', {amount}));
 }
 
-export async function addComment(pullRequestComment: Readonly<Omit<PullRequestComment, 'id' | 'username' | 'creationTime' | 'modificationTime'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function addComment(pullRequestComment: Readonly<Omit<PullRequestComment, 'id' | 'username' | 'creationTime' | 'modificationTime'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 查看 PR 是否存在
     const {belongsTo, content} = pullRequestComment;
@@ -502,7 +502,7 @@ export async function addComment(pullRequestComment: Readonly<Omit<PullRequestCo
         new ResponseBody(true));
 }
 
-export async function updateComment(primaryKey: Readonly<Pick<PullRequestComment, 'id'>>, pullRequestComment: Readonly<Pick<PullRequestComment, 'content'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function updateComment(primaryKey: Readonly<Pick<PullRequestComment, 'id'>>, pullRequestComment: Readonly<Pick<PullRequestComment, 'content'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 查看评论是否存在
     const {id} = primaryKey;
@@ -529,7 +529,7 @@ export async function updateComment(primaryKey: Readonly<Pick<PullRequestComment
         new ResponseBody(true));
 }
 
-export async function getComments(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, offset: number, limit: number, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
+export async function getComments(repository: Readonly<Pick<Repository, 'username' | 'name'>>, pullRequest: Readonly<Pick<PullRequest, 'no'>>, offset: number, limit: number, usernameInSession: ILoggedInSession['username'] | undefined): Promise<ServiceResponse<{ comments: PullRequestComment[] } | void>>
 {
     // 获取 PR 数据库信息
     const {username, name} = repository;
@@ -566,7 +566,7 @@ export async function getComments(repository: Readonly<Pick<Repository, 'usernam
         new ResponseBody(true, '', {comments: pullRequestComments}));
 }
 
-export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ conflicts: Conflict[] } | void>>
+export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ conflicts: Conflict[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -608,7 +608,7 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
         new ResponseBody(true, '', {conflicts}));
 }
 
-export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>>, conflicts: Readonly<Conflict[]>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>>, conflicts: Readonly<Conflict[]>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -667,7 +667,7 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
         new ResponseBody(true));
 }
 
-export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -712,7 +712,7 @@ export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>,
         new ResponseBody(true, '', {commits}));
 }
 
-export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commitAmount: number } | void>>
+export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commitAmount: number } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -756,7 +756,7 @@ export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'i
         new ResponseBody(true, '', {commitAmount}));
 }
 
-export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
+export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>>, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;
@@ -801,7 +801,7 @@ export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>
         new ResponseBody(true, '', {fileDiffs}));
 }
 
-export async function getFileDiffAmount(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function getFileDiffAmount(pullRequest: Readonly<Pick<PullRequest, 'id'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     // 获取 PR 数据库信息
     const {id} = pullRequest;

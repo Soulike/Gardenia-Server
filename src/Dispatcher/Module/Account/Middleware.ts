@@ -105,6 +105,7 @@ export const checkPassword: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {hash} = ctx.request.body;
-        ctx.state.serviceResponse = await AccountService.checkPassword({hash}, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await AccountService.checkPassword({hash}, username!);
     };
 };

@@ -1,4 +1,3 @@
-import {Session} from 'koa-session';
 import {Account, Branch, Commit, FileDiff, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Fork as ForkTable, Repository as RepositoryTable, Star as StarTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
@@ -9,13 +8,13 @@ import fse from 'fs-extra';
 import {Readable} from 'stream';
 import * as Git from '../Git';
 import path from 'path';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<Repository | null>>
+export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<Repository | null>>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<null>(404, {},
@@ -25,7 +24,7 @@ export async function repository(account: Readonly<Pick<Account, 'username'>>, r
         new ResponseBody<Repository>(true, '', repositoryInDatabase!));
 }
 
-export async function branches(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ branches: Branch[] } | void>>
+export async function branches(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ branches: Branch[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -40,7 +39,7 @@ export async function branches(repository: Readonly<Pick<Repository, 'username' 
         new ResponseBody(true, '', {branches}));
 }
 
-export async function branchNames(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ branchNames: string[] } | void>>
+export async function branchNames(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ branchNames: string[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -55,12 +54,11 @@ export async function branchNames(repository: Readonly<Pick<Repository, 'usernam
         new ResponseBody(true, '', {branchNames}));
 }
 
-export async function lastBranchCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, branch: string, session: Readonly<Session>, filePath?: string): Promise<ServiceResponse<Commit | void>>
+export async function lastBranchCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, branch: string, filePath: string | undefined, usernameInSession: ISession['username']): Promise<ServiceResponse<Commit | void>>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
@@ -99,7 +97,7 @@ export async function lastBranchCommit(account: Readonly<Pick<Account, 'username
     }
 }
 
-export async function lastCommit(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<Commit | null | void>>
+export async function lastCommit(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<Commit | null | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -122,12 +120,11 @@ export async function lastCommit(repository: Readonly<Pick<Repository, 'username
     }
 }
 
-export async function directory(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, commitHash: string, directoryPath: string, session: Readonly<Session>): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
+export async function directory(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, commitHash: string, directoryPath: string, usernameInSession: ISession['username']): Promise<ServiceResponse<Array<{ type: ObjectType, path: string, commit: Commit }> | void>>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
@@ -172,12 +169,11 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
     }
 }
 
-export async function commitCount(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, commitHash: string, session: Readonly<Session>): Promise<ServiceResponse<{ commitCount: number } | void>>
+export async function commitCount(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commitCount: number } | void>>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
@@ -197,7 +193,7 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
     }
 }
 
-export async function commitCountBetweenCommits(repository: Readonly<Pick<Repository, 'username' | 'name'>>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commitCount: number } | void>>
+export async function commitCountBetweenCommits(repository: Readonly<Pick<Repository, 'username' | 'name'>>, baseCommitHash: string, targetCommitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commitCount: number } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -220,12 +216,11 @@ export async function commitCountBetweenCommits(repository: Readonly<Pick<Reposi
     }
 }
 
-export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
+export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, filePath: string, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
@@ -271,12 +266,11 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     }
 }
 
-export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, filePath: string, commitHash: string, session: Readonly<Session>): Promise<ServiceResponse<Readable | void>>
+export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, filePath: string, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<Readable | void>>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
@@ -306,26 +300,36 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
     }
 }
 
-export async function setName(repository: Readonly<Pick<Repository, 'name'>>, newRepository: Readonly<Pick<Repository, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function setName(repository: Readonly<Pick<Repository, 'name'>>, newRepository: Readonly<Pick<Repository, 'name'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {name: repositoryName} = repository;
     const {name: newRepositoryName} = newRepository;
-    const {username} = session;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
-    const {username: usernameInSession} = session;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({
+        username: usernameInSession,
+        name: repositoryName,
+    });
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, `仓库 ${username}/${repositoryName} 不存在`));
+            new ResponseBody<void>(false, `仓库 ${usernameInSession}/${repositoryName} 不存在`));
     }
-    if ((await RepositoryTable.selectByUsernameAndName({username, name: newRepositoryName})) !== null)
+    if ((await RepositoryTable.selectByUsernameAndName({
+        username: usernameInSession,
+        name: newRepositoryName,
+    })) !== null)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody<void>(false, `仓库 ${username}/${newRepositoryName} 已存在`));
+            new ResponseBody<void>(false, `仓库 ${usernameInSession}/${newRepositoryName} 已存在`));
     }
 
-    const repositoryPath = RepositoryFunction.generateRepositoryPath({username, name: repositoryName});
-    const newRepoPath = RepositoryFunction.generateRepositoryPath({username, name: newRepositoryName});
+    const repositoryPath = RepositoryFunction.generateRepositoryPath({
+        username: usernameInSession,
+        name: repositoryName,
+    });
+    const newRepoPath = RepositoryFunction.generateRepositoryPath({
+        username: usernameInSession,
+        name: newRepositoryName,
+    });
     try
     {
         await fse.copy(repositoryPath, newRepoPath, {
@@ -345,41 +349,40 @@ export async function setName(repository: Readonly<Pick<Repository, 'name'>>, ne
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function setDescription(repository: Readonly<Pick<Repository, 'name' | 'description'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function setDescription(repository: Readonly<Pick<Repository, 'name' | 'description'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
-    const {username} = session;
     const {name: repositoryName, description} = repository;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name: repositoryName});
-    const {username: usernameInSession} = session;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({
+        username: usernameInSession,
+        name: repositoryName,
+    });
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, `仓库 ${username}/${repositoryName} 不存在`));
+            new ResponseBody<void>(false, `仓库 ${usernameInSession}/${repositoryName} 不存在`));
     }
-    await RepositoryTable.update({description}, {username, name: repositoryName});
+    await RepositoryTable.update({description}, {username: usernameInSession, name: repositoryName});
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function setIsPublic(repository: Readonly<Pick<Repository, 'name' | 'isPublic'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function setIsPublic(repository: Readonly<Pick<Repository, 'name' | 'isPublic'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {name, isPublic} = repository;
-    const {username} = session;
-    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    const {username: usernameInSession} = session;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username: usernameInSession, name});
     if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
+            new ResponseBody<void>(false, `仓库 ${usernameInSession}/${name} 不存在`));
     }
-    await RepositoryTable.update({isPublic}, {username, name});
+    await RepositoryTable.update({isPublic}, {username: usernameInSession, name});
     if (!isPublic)   // 当改为私有时，清空所有相关 Star
     {
-        await StarTable.del({repositoryUsername: username, repositoryName: name});
+        await StarTable.del({repositoryUsername: usernameInSession, repositoryName: name});
     }
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function commitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function commitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -403,7 +406,7 @@ export async function commitHistoryBetweenCommits(repository: Pick<Repository, '
     }
 }
 
-export async function commitHistory(repository: Pick<Repository, 'username' | 'name'>, targetCommitHash: string, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function commitHistory(repository: Pick<Repository, 'username' | 'name'>, targetCommitHash: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -427,7 +430,7 @@ export async function commitHistory(repository: Pick<Repository, 'username' | 'n
     }
 }
 
-export async function fileCommitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function fileCommitHistoryBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -451,7 +454,7 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
     }
 }
 
-export async function fileCommitHistory(repository: Pick<Repository, 'username' | 'name'>, filePath: string, targetCommitHash: string, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
+export async function fileCommitHistory(repository: Pick<Repository, 'username' | 'name'>, filePath: string, targetCommitHash: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commits: Commit[], } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -477,7 +480,7 @@ export async function fileCommitHistory(repository: Pick<Repository, 'username' 
 
 }
 
-export async function diffBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
+export async function diffBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -505,7 +508,7 @@ export async function diffBetweenCommits(repository: Pick<Repository, 'username'
     }
 }
 
-export async function diffAmountBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function diffAmountBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, baseCommitHash: string, targetCommitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -529,7 +532,7 @@ export async function diffAmountBetweenCommits(repository: Pick<Repository, 'use
     }
 }
 
-export async function fileDiffBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff } | void>>
+export async function fileDiffBetweenCommits(repository: Pick<Repository, 'username' | 'name'>, filePath: string, baseCommitHash: string, targetCommitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ diff: FileDiff } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -553,7 +556,7 @@ export async function fileDiffBetweenCommits(repository: Pick<Repository, 'usern
     }
 }
 
-export async function commit(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit } | void>>
+export async function commit(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commit: Commit } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -577,7 +580,7 @@ export async function commit(repository: Pick<Repository, 'username' | 'name'>, 
     }
 }
 
-export async function commitDiff(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, offset: number, limit: number, usernameInSession?: Account['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
+export async function commitDiff(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ diff: FileDiff[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -601,7 +604,7 @@ export async function commitDiff(repository: Pick<Repository, 'username' | 'name
     }
 }
 
-export async function commitDiffAmount(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function commitDiffAmount(repository: Pick<Repository, 'username' | 'name'>, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -626,7 +629,7 @@ export async function commitDiffAmount(repository: Pick<Repository, 'username' |
     }
 }
 
-export async function fileCommit(repository: Pick<Repository, 'username' | 'name'>, filePath: string, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ commit: Commit, diff: FileDiff } | void>>
+export async function fileCommit(repository: Pick<Repository, 'username' | 'name'>, filePath: string, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commit: Commit, diff: FileDiff } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -653,7 +656,7 @@ export async function fileCommit(repository: Pick<Repository, 'username' | 'name
     }
 }
 
-export async function forkAmount(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function forkAmount(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -670,7 +673,7 @@ export async function forkAmount(repository: Pick<Repository, 'username' | 'name
         new ResponseBody(true, '', {amount}));
 }
 
-export async function forkRepositories(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
+export async function forkRepositories(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -698,7 +701,7 @@ export async function forkRepositories(repository: Pick<Repository, 'username' |
         new ResponseBody(true, '', {repositories}));
 }
 
-export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repository: Pick<Repository, 'username' | 'name'> | null } | void>>
+export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ repository: Pick<Repository, 'username' | 'name'> | null } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -729,7 +732,7 @@ export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>
     }
 }
 
-export async function forkCommitHistory(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, offset: number, limit: number, usernameInSession?: string): Promise<ServiceResponse<{ commits: Commit[] } | void>>
+export async function forkCommitHistory(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commits: Commit[] } | void>>
 {
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
@@ -777,7 +780,7 @@ export async function forkCommitHistory(sourceRepository: Readonly<Pick<Reposito
         new ResponseBody(true, '', {commits}));
 }
 
-export async function forkCommitAmount(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ commitAmount: number } | void>>
+export async function forkCommitAmount(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ commitAmount: number } | void>>
 {
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
@@ -825,7 +828,7 @@ export async function forkCommitAmount(sourceRepository: Readonly<Pick<Repositor
         new ResponseBody(true, '', {commitAmount}));
 }
 
-export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, offset: number, limit: number, usernameInSession?: string): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
+export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ fileDiffs: FileDiff[] } | void>>
 {
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
@@ -873,7 +876,7 @@ export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, '
         new ResponseBody(true, '', {fileDiffs}));
 }
 
-export async function forkFileDiffAmount(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession?: string): Promise<ServiceResponse<{ amount: number } | void>>
+export async function forkFileDiffAmount(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;
@@ -926,7 +929,7 @@ export async function hasCommonAncestor(sourceRepository: Readonly<Pick<Reposito
                                         sourceRepositoryBranchName: string,
                                         targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>,
                                         targetRepositoryBranchName: string,
-                                        usernameInSession?: Account['username']): Promise<ServiceResponse<{ hasCommonAncestor: boolean } | void>>
+                                        usernameInSession: ISession['username']): Promise<ServiceResponse<{ hasCommonAncestor: boolean } | void>>
 {
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;
     const {username: targetRepositoryUsername, name: targetRepositoryName} = targetRepository;

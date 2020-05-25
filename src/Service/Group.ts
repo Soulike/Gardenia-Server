@@ -7,8 +7,9 @@ import {
     RepositoryGroup as RepositoryGroupTable,
 } from '../Database';
 import {Group as GroupFunction, Repository as RepositoryFunction} from '../Function';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function add(group: Readonly<Omit<Group, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
+export async function add(group: Readonly<Omit<Group, 'id'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
 {
     const {name} = group;
     if (await GroupFunction.groupNameExists({username: usernameInSession}, {name}))
@@ -21,7 +22,7 @@ export async function add(group: Readonly<Omit<Group, 'id'>>, usernameInSession:
         new ResponseBody<Pick<Group, 'id'>>(true, '', {id: groupId}));
 }
 
-export async function dismiss(group: Readonly<Pick<Group, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function dismiss(group: Readonly<Pick<Group, 'id'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id} = group;
     if (!(await GroupFunction.isGroupAdmin({id}, usernameInSession)))
@@ -47,7 +48,7 @@ export async function info(group: Readonly<Pick<Group, 'id'>>): Promise<ServiceR
         new ResponseBody<Group>(true, '', groupInDatabase));
 }
 
-export async function changeName(group: Readonly<Pick<Group, 'id' | 'name'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function changeName(group: Readonly<Pick<Group, 'id' | 'name'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id: groupId, name: newName} = group;
     if (await GroupTable.count({id: groupId}) === 0)
@@ -84,7 +85,7 @@ export async function accounts(group: Readonly<Pick<Group, 'id'>>): Promise<Serv
         new ResponseBody<Account[]>(true, '', accounts));
 }
 
-export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
@@ -116,7 +117,7 @@ export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames:
         new ResponseBody<void>(true));
 }
 
-export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
@@ -181,7 +182,7 @@ export async function admins(group: Readonly<Pick<Group, 'id'>>): Promise<Servic
         new ResponseBody<Account[]>(true, '', accounts));
 }
 
-export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
@@ -214,7 +215,7 @@ export async function addAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: R
         new ResponseBody<void>(true));
 }
 
-export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id: groupId} = group;
     if (!(await GroupFunction.groupExists(group)))
@@ -239,7 +240,7 @@ export async function removeAdmins(group: Readonly<Pick<Group, 'id'>>, usernames
         new ResponseBody<void>(true));
 }
 
-export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<Group[]>>
+export async function getByRepository(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<Group[]>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -269,7 +270,7 @@ export async function repositories(group: Readonly<Pick<Group, 'id'>>): Promise<
         new ResponseBody<Repository[]>(true, '', repositories));
 }
 
-export async function addRepository(group: Readonly<Pick<Group, 'id'>>, repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function addRepository(group: Readonly<Pick<Group, 'id'>>, repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     // 查看 group 是否存在
     const {id: groupId} = group;
@@ -309,7 +310,7 @@ export async function addRepository(group: Readonly<Pick<Group, 'id'>>, reposito
         new ResponseBody(true));
 }
 
-export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, repositories: Pick<Repository, 'username' | 'name'>[], usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, repositories: Pick<Repository, 'username' | 'name'>[], usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id} = group;
     if (!(await GroupFunction.groupExists(group)))
@@ -341,7 +342,7 @@ export async function removeRepositories(group: Readonly<Pick<Group, 'id'>>, rep
         new ResponseBody<void>(true));
 }
 
-export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ isAdmin: boolean } | void>>
+export async function isAdmin(group: Readonly<Pick<Group, 'id'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ isAdmin: boolean } | void>>
 {
     const {id} = group;
     if (!(await GroupFunction.groupExists(group)))

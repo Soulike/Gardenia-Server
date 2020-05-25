@@ -1,8 +1,9 @@
 import {Account, AccountRepository, Profile, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable, Repository as RepositoryTable, Star as StarTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function add(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function add(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
@@ -21,7 +22,7 @@ export async function add(repository: Pick<Repository, 'username' | 'name'>, use
         new ResponseBody(true));
 }
 
-export async function remove(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function remove(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
@@ -63,7 +64,7 @@ export async function getStaredRepositoriesAmount(username: Account['username'])
         new ResponseBody(true, '', {amount}));
 }
 
-export async function isStaredRepository(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ isStared: boolean }>>
+export async function isStaredRepository(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ isStared: boolean }>>
 {
     if (typeof usernameInSession !== 'string')
     {
@@ -75,7 +76,7 @@ export async function isStaredRepository(repository: Pick<Repository, 'username'
         new ResponseBody(true, '', {isStared: amount !== 0}));
 }
 
-export async function getRepositoryStarAmount(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function getRepositoryStarAmount(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
@@ -93,7 +94,7 @@ export async function getRepositoryStarAmount(repository: Pick<Repository, 'user
         new ResponseBody(true, '', {amount}));
 }
 
-export async function getRepositoryStarUsers(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ users: Profile[] } | void>>
+export async function getRepositoryStarUsers(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ users: Profile[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
