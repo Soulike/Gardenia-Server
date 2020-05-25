@@ -6,6 +6,8 @@ import fse from 'fs-extra';
 import {SERVER} from '../CONFIG';
 import os from 'os';
 import {ILoggedInSession, ISession} from '../Interface';
+import {VERIFICATION_CODE_TYPE} from '../CONSTANT';
+import {Authentication, Mail} from '../Function';
 
 export async function get(usernameInSession: ISession['username'], account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | null>>
 {
@@ -36,20 +38,57 @@ export async function getByEmail(email: string): Promise<ServiceResponse<Profile
         {}, new ResponseBody(true, '', profile));
 }
 
-export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'username'>>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
+export async function setNickname(nickname: Profile['nickname'], usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
-    const {email} = profile;
-    if (typeof email === 'string')
-    {
-        if (await ProfileTable.count({email}) !== 0)
-        {
-            return new ServiceResponse<void>(200, {},
-                new ResponseBody(false, `邮箱 ${email} 已被使用`));
-        }
-    }
-    await ProfileTable.update(profile, {username: usernameInSession});
+    await ProfileTable.update({nickname}, {username: usernameInSession});
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
+}
+
+export async function setEmail(email: Profile['email'], verificationCode: string, usernameInSession: ILoggedInSession['username'], verificationInSession: ISession['verification']): Promise<ServiceResponse<void>>
+{
+    if (verificationInSession === undefined)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, '验证码错误'));
+    }
+    const {type: verificationType, email: verificationEmail, verificationCode: verificationCodeInSession} = verificationInSession;
+    if (verificationType !== VERIFICATION_CODE_TYPE.SET_EMAIL
+        || email !== verificationEmail
+        || verificationCode !== verificationCodeInSession)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, '验证码错误'));
+    }
+    if ((await ProfileTable.count({email})) !== 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, `邮箱 ${email} 已被使用`));
+    }
+    await ProfileTable.update({email}, {username: usernameInSession});
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true), {
+            verification: undefined,
+        });
+}
+
+export async function sendSetEmailVerificationCodeToEmail(email: Profile['email']): Promise<ServiceResponse<void>>
+{
+    if ((await ProfileTable.count({email})) !== 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, `邮箱 ${email} 已被使用`));
+    }
+    const verificationCode = Authentication.generateVerificationCode();
+    await Mail.sendMail({
+        to: email,
+        subject: 'Gardenia 修改邮箱验证码',
+        text: `您好。您的 Gardenia 修改邮箱验证码为 ${verificationCode}`,
+    });
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true), {
+            verification: {type: VERIFICATION_CODE_TYPE.SET_EMAIL, email, verificationCode},
+        });
 }
 
 export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>

@@ -440,16 +440,42 @@ enum ISSUE_STATUS
 - 响应消息：无
 - 其他说明：无
 
-#### `/set`
+#### `/setNickname`
 
-- 功能：修改用户资料
+- 功能：修改用户昵称
 - 方法：POST
-- 请求体：`Partial<Omit<Profile, 'avatar' | 'username'>>`
+- 请求体：`Pick<Profile, 'nickname'>`
 - 响应体：无
-- 响应消息：
-  - 200：邮箱已被使用
+- 响应消息：无
 - 其他说明：
   - 修改 Session 对应的账号资料
+
+#### `/setEmail`
+
+- 功能：修改用户邮箱
+- 方法：POST
+- 请求体：
+```ts
+{
+    email: Profile['email'],
+    verificationCode: string,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 200：邮箱 `${email}` 已被使用
+- 其他说明：
+  - 修改 Session 对应的账号邮箱
+
+#### `/sendSetEmailVerificationCodeToEmail`
+
+- 功能：发送验证码
+- 方法：POST
+- 请求体：`Pick<Profile, 'email'>`
+- 响应体：无
+- 响应消息：
+  - 200：邮箱 `${email}` 已被使用
+- 其他说明：无
 
 #### `/uploadAvatar`
 

@@ -31,7 +31,7 @@ export const getByEmail: IRouteHandler = () =>
     };
 };
 
-export const set: IRouteHandler = () =>
+export const setNickname: IRouteHandler = () =>
 {
     return async ctx =>
     {
@@ -39,15 +39,47 @@ export const set: IRouteHandler = () =>
         {
             throw new InvalidSessionError();
         }
-        if (!ParameterValidator.set(ctx.request.body))
+        if (!ParameterValidator.setNickname(ctx.request.body))
         {
             throw new WrongParameterError();
         }
-        const {avatar, username, ...rest} = ctx.request.body;
+        const {nickname} = ctx.request.body;
         const {username: usernameInSession} = ctx.session;
-        ctx.state.serviceResponse = await Profile.set(rest, usernameInSession!);
+        ctx.state.serviceResponse = await Profile.setNickname(nickname, usernameInSession!);
     };
 };
+
+export const setEmail: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.setEmail(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {email, verificationCode} = ctx.request.body;
+        const {username, verification} = ctx.session;
+        ctx.state.serviceResponse = await Profile.setEmail(email, verificationCode, username!, verification);
+    };
+};
+
+export const sendSetEmailVerificationCodeToEmail: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.sendSetEmailVerificationCodeToEmail(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {email} = ctx.request.body;
+        ctx.state.serviceResponse = await Profile.sendSetEmailVerificationCodeToEmail(email);
+    };
+};
+
 
 export const uploadAvatar: IRouteHandler = () =>
 {
