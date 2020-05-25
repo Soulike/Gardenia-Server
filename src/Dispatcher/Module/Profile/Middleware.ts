@@ -31,7 +31,7 @@ export const getByEmail: IRouteHandler = () =>
     };
 };
 
-export const set: IRouteHandler = () =>
+export const setNickname: IRouteHandler = () =>
 {
     return async ctx =>
     {
@@ -39,13 +39,13 @@ export const set: IRouteHandler = () =>
         {
             throw new InvalidSessionError();
         }
-        if (!ParameterValidator.set(ctx.request.body))
+        if (!ParameterValidator.setNickname(ctx.request.body))
         {
             throw new WrongParameterError();
         }
-        const {avatar, username, ...rest} = ctx.request.body;
+        const {nickname} = ctx.request.body;
         const {username: usernameInSession} = ctx.session;
-        ctx.state.serviceResponse = await Profile.set(rest, usernameInSession!);
+        ctx.state.serviceResponse = await Profile.setNickname(nickname, usernameInSession!);
     };
 };
 

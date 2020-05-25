@@ -38,18 +38,9 @@ export async function getByEmail(email: string): Promise<ServiceResponse<Profile
         {}, new ResponseBody(true, '', profile));
 }
 
-export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'username'>>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
+export async function setNickname(nickname: Profile['nickname'], usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
-    const {email} = profile;
-    if (typeof email === 'string')
-    {
-        if (await ProfileTable.count({email}) !== 0)
-        {
-            return new ServiceResponse<void>(200, {},
-                new ResponseBody(false, `邮箱 ${email} 已被使用`));
-        }
-    }
-    await ProfileTable.update(profile, {username: usernameInSession});
+    await ProfileTable.update({nickname}, {username: usernameInSession});
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
 }

@@ -21,20 +21,10 @@ export const getByEmail: IParameterValidator = body =>
     return typeof email === 'string'; // 这里不用 validate 方法是因为允许 email 是不是邮箱的字符串
 };
 
-export const set: IParameterValidator = body =>
+export const setNickname: IParameterValidator = body =>
 {
-    const {email, nickname} = body;
-    if (email !== undefined
-        && !Validator.Profile.email(email))
-    {
-        return false;
-    }
-    else if (nickname !== undefined
-        && !Validator.Profile.nickname(email))
-    {
-        return false;
-    }
-    return true;
+    const {nickname} = body;
+    return Validator.Profile.nickname(nickname);
 };
 
 export const setEmail: IParameterValidator = body =>
