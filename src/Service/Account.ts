@@ -1,9 +1,8 @@
 import {Account, Profile, ResponseBody, ServiceResponse} from '../Class';
 import {Account as AccountTable, Profile as ProfileTable} from '../Database';
-import {Session} from 'koa-session';
 import {Authentication, Mail, Session as SessionFunction} from '../Function';
 import {VERIFICATION_CODE_TYPE} from '../CONSTANT';
-import {Interface as DispatcherInterface} from '../Dispatcher';
+import {ILoggedInSession, ISession} from '../Interface';
 
 export async function login(account: Readonly<Account>): Promise<ServiceResponse<void>>
 {
@@ -27,7 +26,7 @@ export async function login(account: Readonly<Account>): Promise<ServiceResponse
     }
 }
 
-export async function register(account: Readonly<Account>, profile: Readonly<Omit<Profile, 'username'>>, verificationCode: string, verificationInSession: DispatcherInterface.ISession['verification']): Promise<ServiceResponse<void>>
+export async function register(account: Readonly<Account>, profile: Readonly<Omit<Profile, 'username'>>, verificationCode: string, verificationInSession: ISession['verification']): Promise<ServiceResponse<void>>
 {
     if (verificationInSession === undefined)
     {
@@ -97,7 +96,7 @@ export async function sendVerificationCodeToEmail(profile: Readonly<Pick<Profile
         });
 }
 
-export async function changePassword(account: Readonly<Account>, verificationCode: string, verificationInSession: Readonly<DispatcherInterface.ISession['verification']>): Promise<ServiceResponse<void>>
+export async function changePassword(account: Readonly<Account>, verificationCode: string, verificationInSession: Readonly<ISession['verification']>): Promise<ServiceResponse<void>>
 {
     // 验证验证码是否存在
     if (verificationInSession === undefined)
@@ -133,7 +132,7 @@ export async function changePassword(account: Readonly<Account>, verificationCod
         new ResponseBody(true), {username: undefined, verification: undefined});
 }
 
-export async function checkSession(session: Readonly<Session>): Promise<ServiceResponse<{ isValid: boolean }>>
+export async function checkSession(session: Readonly<ISession>): Promise<ServiceResponse<{ isValid: boolean }>>
 {
     return new ServiceResponse<{ isValid: boolean }>(200, {},
         new ResponseBody(true, '', {isValid: SessionFunction.isSessionValid(session)}));
@@ -144,11 +143,10 @@ export async function logout(): Promise<ServiceResponse<void>>
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true), {username: undefined});
 }
 
-export async function checkPassword(account: Readonly<Pick<Account, 'hash'>>, session: Readonly<Session>): Promise<ServiceResponse<{ isCorrect: boolean }>>
+export async function checkPassword(account: Readonly<Pick<Account, 'hash'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<{ isCorrect: boolean }>>
 {
-    const {username} = session;
     const {hash} = account;
-    const accountInDatabase = await AccountTable.selectByUsername(username);
+    const accountInDatabase = await AccountTable.selectByUsername(usernameInSession);
     if (accountInDatabase === null)
     {
         return new ServiceResponse<{ isCorrect: boolean }>(200, {},

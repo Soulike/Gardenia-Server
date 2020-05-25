@@ -13,7 +13,8 @@ export const repository: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account, repository} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.repository(account, repository, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.repository(account, repository, username);
     };
 };
 
@@ -54,7 +55,8 @@ export const lastBranchCommit: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account, repository, branch, filePath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.lastBranchCommit(account, repository, branch, ctx.session, filePath);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.lastBranchCommit(account, repository, branch, filePath, username);
     };
 };
 
@@ -81,7 +83,8 @@ export const directory: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account, repository, commitHash, directoryPath} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.directory(account, repository, commitHash, directoryPath, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.directory(account, repository, commitHash, directoryPath, username);
     };
 };
 
@@ -94,7 +97,8 @@ export const commitCount: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account, repository, commitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.commitCount(account, repository, commitHash, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.commitCount(account, repository, commitHash, username);
     };
 };
 
@@ -121,7 +125,8 @@ export const fileInfo: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account, repository, filePath, commitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.fileInfo(account, repository, filePath, commitHash, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.fileInfo(account, repository, filePath, commitHash, username);
     };
 };
 
@@ -134,7 +139,8 @@ export const rawFile: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account, repository, filePath, commitHash} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.rawFile(account, repository, filePath, commitHash, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.rawFile(account, repository, filePath, commitHash, username);
     };
 };
 
@@ -151,7 +157,8 @@ export const setName: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {repository, newRepository} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.setName(repository, newRepository, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.setName(repository, newRepository, username!);
     };
 };
 
@@ -168,7 +175,8 @@ export const setDescription: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {repository} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.setDescription(repository, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.setDescription(repository, username!);
     };
 };
 
@@ -185,7 +193,8 @@ export const setIsPublic: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {repository} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryInfo.setIsPublic(repository, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.setIsPublic(repository, username!);
     };
 };
 

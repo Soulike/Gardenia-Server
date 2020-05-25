@@ -13,7 +13,8 @@ export const get: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {account} = ctx.request.body;
-        ctx.state.serviceResponse = await Profile.get(ctx.session, account);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await Profile.get(username, account);
     };
 };
 
@@ -43,7 +44,8 @@ export const set: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {avatar, username, ...rest} = ctx.request.body;
-        ctx.state.serviceResponse = await Profile.set(rest, ctx.session);
+        const {username: usernameInSession} = ctx.session;
+        ctx.state.serviceResponse = await Profile.set(rest, usernameInSession!);
     };
 };
 

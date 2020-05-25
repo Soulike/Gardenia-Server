@@ -17,7 +17,8 @@ export const create: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {name, description, isPublic} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryService.create({name, description, isPublic}, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryService.create({name, description, isPublic}, username!);
     };
 };
 
@@ -34,7 +35,8 @@ export const del: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {name} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryService.del({name}, ctx.session);
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryService.del({name}, username!);
     };
 };
 
@@ -47,7 +49,8 @@ export const getRepositories: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {start, end, username} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryService.getRepositories(start, end, ctx.session, username);
+        const {username: usernameInSession} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryService.getRepositories(start, end, username, usernameInSession);
     };
 };
 

@@ -1,20 +1,29 @@
 import {Account, Profile, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable} from '../Database';
-import {Session} from 'koa-session';
 import {File} from 'formidable';
 import path from 'path';
 import fse from 'fs-extra';
 import {SERVER} from '../CONFIG';
 import os from 'os';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function get(session: Readonly<Session>, account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | null>>
+export async function get(usernameInSession: ISession['username'], account?: Readonly<Pick<Account, 'username'>>): Promise<ServiceResponse<Profile | null>>
 {
-    if (typeof account === 'undefined' && typeof session.username !== 'string')
+    let username: string | null = null;
+    if (account !== undefined)
+    {
+        username = account.username;
+    }
+    else if (usernameInSession === undefined)
     {
         return new ServiceResponse<null>(200, {},
             new ResponseBody(true, '', null));
     }
-    const {username} = account || session;
+    else
+    {
+        username = usernameInSession;
+    }
+
     const profile = await ProfileTable.selectByUsername(username);
     return new ServiceResponse<Profile | null>(200, {},
         new ResponseBody(true, '', profile));
@@ -27,9 +36,8 @@ export async function getByEmail(email: string): Promise<ServiceResponse<Profile
         {}, new ResponseBody(true, '', profile));
 }
 
-export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'username'>>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'username'>>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
-    const {username} = session;
     const {email} = profile;
     if (typeof email === 'string')
     {
@@ -39,12 +47,12 @@ export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'us
                 new ResponseBody(false, `邮箱 ${email} 已被使用`));
         }
     }
-    await ProfileTable.update(profile, {username});
+    await ProfileTable.update(profile, {username: usernameInSession});
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
 }
 
-export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {path: sourceAvatarUploadPath, hash: sourceFileHash} = avatar;
     const {avatar: currentAvatar} = (await ProfileTable.selectByUsername(usernameInSession))!;// 从 session 取，不可能是 null

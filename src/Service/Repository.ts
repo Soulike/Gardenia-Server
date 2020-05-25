@@ -1,25 +1,24 @@
-import {Account, Repository, ResponseBody, ServiceResponse} from '../Class';
+import {Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Repository as RepositoryTable} from '../Database';
 import {SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
-import {Repository as RepositoryFunction, Session as SessionFunction} from '../Function';
-import {Session} from 'koa-session';
+import {Repository as RepositoryFunction} from '../Function';
 import fse from 'fs-extra';
 import {generateRepositoryPath} from '../Function/Repository';
 import {cloneBareRepository, hasBranch, isMergeable as isMergeable1} from '../Git';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function create(repository: Readonly<Omit<Repository, 'username'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function create(repository: Readonly<Omit<Repository, 'username'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {name} = repository;
-    const {username} = session;
     // 检查是否有同名仓库
-    if ((await RepositoryTable.count({username, name})) !== 0)
+    if ((await RepositoryTable.count({username: usernameInSession, name})) !== 0)
     {
         return new ServiceResponse<void>(200, {},
-            new ResponseBody<void>(false, `仓库 ${username}/${name} 已存在`));
+            new ResponseBody<void>(false, `仓库 ${usernameInSession}/${name} 已存在`));
     }
-    const repositoryPath = generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username: usernameInSession, name});
 
     // 尝试创建文件夹及 git 裸仓库，并创建数据库记录
     try
@@ -46,7 +45,7 @@ export async function create(repository: Readonly<Omit<Repository, 'username'>>,
             });
         })();
         // 如果文件创建步骤出错，数据库操作不会执行。如果数据库操作出错，数据库会自己回滚并抛出错误，文件也会被删除。因此总是安全的
-        await RepositoryTable.insert({...repository, username});
+        await RepositoryTable.insert({...repository, username: usernameInSession});
     }
     catch (e)   // 如果发生错误，删除文件夹及以下一切内容
     {
@@ -69,33 +68,32 @@ export async function create(repository: Readonly<Omit<Repository, 'username'>>,
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function del(repository: Readonly<Pick<Repository, 'name'>>, session: Readonly<Session>): Promise<ServiceResponse<void>>
+export async function del(repository: Readonly<Pick<Repository, 'name'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
-    const {username} = session;
     const {name} = repository;
     // 检查仓库是否存在
-    if ((await RepositoryTable.count({username, name})) === 0)
+    if ((await RepositoryTable.count({username: usernameInSession, name})) === 0)
     {
         return new ServiceResponse<void>(404, {},
-            new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
+            new ResponseBody<void>(false, `仓库 ${usernameInSession}/${name} 不存在`));
     }
     const deletedName = `[deleted]${name}_${Date.now()}`;
-    const repositoryPath = generateRepositoryPath({username, name});
+    const repositoryPath = generateRepositoryPath({username: usernameInSession, name});
     // 复制仓库到新地址
-    const newRepositoryPath = generateRepositoryPath({username, name: deletedName});
+    const newRepositoryPath = generateRepositoryPath({username: usernameInSession, name: deletedName});
     await fse.copy(repositoryPath, newRepositoryPath);
     try
     {
         // 改名
-        await RepositoryTable.update({name: deletedName}, {username, name});
+        await RepositoryTable.update({name: deletedName}, {username: usernameInSession, name});
         try
         {
             // 在数据库中标记删除
-            await RepositoryTable.deleteByUsernameAndName({username, name: deletedName});
+            await RepositoryTable.deleteByUsernameAndName({username: usernameInSession, name: deletedName});
         }
         catch (e)   // 标记删除失败了，把名字改回去
         {
-            await RepositoryTable.update({name}, {username, name: deletedName});
+            await RepositoryTable.update({name}, {username: usernameInSession, name: deletedName});
             throw e;    // 需要抛到外层
         }
     }
@@ -109,12 +107,12 @@ export async function del(repository: Readonly<Pick<Repository, 'name'>>, sessio
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 
-export async function getRepositories(start: number, end: number, session: Readonly<Session>, username?: Repository['username']): Promise<ServiceResponse<Repository[]>>
+export async function getRepositories(start: number, end: number, username: Repository['username'] | undefined, usernameInSession: ISession['username']): Promise<ServiceResponse<Repository[]>>
 {
     let repositories: Array<Repository>;
     if (username)
     {
-        if (!SessionFunction.isSessionValid(session) || !SessionFunction.isRequestedBySessionOwner(session, username))
+        if (usernameInSession === undefined || usernameInSession !== username)
         {
             repositories = await RepositoryTable.select({isPublic: true, username}, start, end - start);
         }
@@ -131,7 +129,7 @@ export async function getRepositories(start: number, end: number, session: Reado
         new ResponseBody<Array<Repository>>(true, '', repositories));
 }
 
-export async function fork(sourceRepository: Pick<Repository, 'username' | 'name'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function fork(sourceRepository: Pick<Repository, 'username' | 'name'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {username, name} = sourceRepository;
     if (username === usernameInSession)
@@ -175,7 +173,7 @@ export async function fork(sourceRepository: Pick<Repository, 'username' | 'name
         new ResponseBody(true));
 }
 
-export async function isMergeable(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession: Account['username'] | undefined): Promise<ServiceResponse<{ isMergeable: boolean } | void>>
+export async function isMergeable(sourceRepository: Readonly<Pick<Repository, 'username' | 'name'>>, sourceRepositoryBranch: string, targetRepository: Readonly<Pick<Repository, 'username' | 'name'>>, targetRepositoryBranch: string, usernameInSession: ILoggedInSession['username'] | undefined): Promise<ServiceResponse<{ isMergeable: boolean } | void>>
 {
     // 检查两个仓库是否存在
     const {username: sourceRepositoryUsername, name: sourceRepositoryName} = sourceRepository;

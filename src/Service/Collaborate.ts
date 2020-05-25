@@ -6,8 +6,9 @@ import {
     Profile as ProfileTable,
     Repository as RepositoryTable,
 } from '../Database';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function generateCode(repository: Pick<Repository, 'username' | 'name'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ code: string } | void>>
+export async function generateCode(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ code: string } | void>>
 {
     const {username, name} = repository;
     if (username !== usernameInSession)
@@ -26,7 +27,7 @@ export async function generateCode(repository: Pick<Repository, 'username' | 'na
         new ResponseBody(true, '', {code}));
 }
 
-export async function add(code: string, username: Account['username']): Promise<ServiceResponse<void>>
+export async function add(code: string, username: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const repositoryPk = await RepositoryFunction.getCollaborateCodeRepository(code);
     if (repositoryPk === null)
@@ -65,7 +66,7 @@ export async function add(code: string, username: Account['username']): Promise<
         new ResponseBody(true));
 }
 
-export async function remove(repository: Pick<Repository, 'username' | 'name'>, account: Pick<Account, 'username'>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function remove(repository: Pick<Repository, 'username' | 'name'>, account: Pick<Account, 'username'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null)
@@ -91,7 +92,7 @@ export async function remove(repository: Pick<Repository, 'username' | 'name'>, 
         new ResponseBody(true));
 }
 
-export async function getCollaborators(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ collaborators: Profile[] } | void>>
+export async function getCollaborators(repository: Pick<Repository, 'username' | 'name'>, username: ISession['username']): Promise<ServiceResponse<{ collaborators: Profile[] } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null)
@@ -124,7 +125,7 @@ export async function getCollaborators(repository: Pick<Repository, 'username' |
         new ResponseBody(true, '', {collaborators: collaboratorProfiles}));
 }
 
-export async function getCollaboratorsAmount(repository: Pick<Repository, 'username' | 'name'>, username?: Account['username']): Promise<ServiceResponse<{ amount: number } | void>>
+export async function getCollaboratorsAmount(repository: Pick<Repository, 'username' | 'name'>, username: ISession['username']): Promise<ServiceResponse<{ amount: number } | void>>
 {
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null)
@@ -146,7 +147,7 @@ export async function getCollaboratorsAmount(repository: Pick<Repository, 'usern
         new ResponseBody(true, '', {amount}));
 }
 
-export async function getCollaboratingRepositories(account: Pick<Account, 'username'>, usernameInSession?: Account['username']): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
+export async function getCollaboratingRepositories(account: Pick<Account, 'username'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ repositories: Repository[] } | void>>
 {
     const {username} = account;
     if (await AccountTable.count({username}) === 0)

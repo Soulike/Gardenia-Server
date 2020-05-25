@@ -1,4 +1,4 @@
-import {Account, CodeComment, ResponseBody, ServiceResponse} from '../Class';
+import {CodeComment, ResponseBody, ServiceResponse} from '../Class';
 import {
     CodeComment as CodeCommentTable,
     Collaborate as CollaborateTable,
@@ -6,8 +6,9 @@ import {
 } from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 import {SERVER} from '../CONFIG';
+import {ILoggedInSession, ISession} from '../Interface';
 
-export async function add(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath' | 'columnNumber' | 'content' | 'creationCommitHash'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function add(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath' | 'columnNumber' | 'content' | 'creationCommitHash'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {repositoryUsername, repositoryName, filePath, creationCommitHash, content, columnNumber} = codeComment;
     const repository = await RepositoryTable.selectByUsernameAndName({
@@ -35,7 +36,7 @@ export async function add(codeComment: Readonly<Pick<CodeComment, 'repositoryUse
         new ResponseBody(true));
 }
 
-export async function del(codeComment: Readonly<Pick<CodeComment, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function del(codeComment: Readonly<Pick<CodeComment, 'id'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id} = codeComment;
     const codeCommentInDatabase = await CodeCommentTable.selectById({id});
@@ -60,7 +61,7 @@ export async function del(codeComment: Readonly<Pick<CodeComment, 'id'>>, userna
         new ResponseBody(true));
 }
 
-export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'> & Partial<Pick<CodeComment, 'columnNumber'>>>, commitHash: string, usernameInSession?: Account['username']): Promise<ServiceResponse<{ codeComments: CodeComment[] } | void>>
+export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath'> & Partial<Pick<CodeComment, 'columnNumber'>>>, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ codeComments: CodeComment[] } | void>>
 {
     const {repositoryUsername, repositoryName, filePath, columnNumber} = codeComment;
     const repository = await RepositoryTable.selectByUsernameAndName({
@@ -92,7 +93,7 @@ export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUse
     }
 }
 
-export async function update(codeComment: Readonly<Pick<CodeComment, 'content'>>, primaryKey: Readonly<Pick<CodeComment, 'id'>>, usernameInSession: Account['username']): Promise<ServiceResponse<void>>
+export async function update(codeComment: Readonly<Pick<CodeComment, 'content'>>, primaryKey: Readonly<Pick<CodeComment, 'id'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {content} = codeComment;
     const {id} = primaryKey;
