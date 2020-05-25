@@ -451,6 +451,26 @@ enum ISSUE_STATUS
 - 其他说明：
   - 修改 Session 对应的账号资料
 
+#### `/setEmail`
+
+- 功能：修改用户邮箱
+- 方法：POST
+- 请求体：`Pick<Profile, 'email'>`
+- 响应体：无
+- 响应消息：
+  - 200：邮箱 `${email}` 已被使用
+- 其他说明：
+  - 修改 Session 对应的账号邮箱
+
+#### `/sendVerificationCodeToEmail`
+
+- 功能：发送验证码
+- 方法：POST
+- 请求体：`Pick<Profile, 'email'>`
+- 响应体：无
+- 响应消息：无
+- 其他说明：无
+
 #### `/uploadAvatar`
 
 - 功能：上传头像
