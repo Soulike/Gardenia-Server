@@ -84,6 +84,11 @@ export async function sendVerificationCodeByUsername(profile: Readonly<Pick<Prof
 export async function sendVerificationCodeToEmail(profile: Readonly<Pick<Profile, | 'email'>>): Promise<ServiceResponse<void>>
 {
     const {email} = profile;
+    if ((await ProfileTable.count({email})) !== 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, `邮箱 ${email} 已被使用`));
+    }
     const verificationCode = Authentication.generateVerificationCode();
     await Mail.sendMail({
         to: email,

@@ -334,7 +334,8 @@ enum ISSUE_STATUS
 - 方法：POST
 - 请求体：`Pick<Profile, 'email'>`
 - 响应体：无
-- 响应消息：无
+- 响应消息：
+  - 200：邮箱 `${email}` 已被使用
 - 其他说明：无
 
 #### `/sendVerificationCodeByUsername`
