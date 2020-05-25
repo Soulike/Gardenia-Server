@@ -37,6 +37,18 @@ export const set: IParameterValidator = body =>
     return true;
 };
 
+export const setEmail: IParameterValidator = body =>
+{
+    const {email, verificationCode} = body;
+    return Validator.Profile.email(email) && typeof verificationCode === 'string';
+};
+
+export const sendSetEmailVerificationCodeToEmail: IParameterValidator = body =>
+{
+    const {email} = body;
+    return Validator.Profile.email(email);
+};
+
 export const uploadAvatar: IParameterValidator = body =>
 {
     const {avatar} = body; // 这里的 avatar 是 File 类型

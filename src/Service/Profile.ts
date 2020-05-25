@@ -54,7 +54,7 @@ export async function set(profile: Readonly<Partial<Omit<Profile, 'avatar' | 'us
         new ResponseBody<void>(true));
 }
 
-export async function setEmail(profile: Readonly<Pick<Profile, 'email'>>, verificationCode: string, usernameInSession: ILoggedInSession['username'], verificationInSession: ISession['verification']): Promise<ServiceResponse<void>>
+export async function setEmail(email: Profile['email'], verificationCode: string, usernameInSession: ILoggedInSession['username'], verificationInSession: ISession['verification']): Promise<ServiceResponse<void>>
 {
     if (verificationInSession === undefined)
     {
@@ -62,7 +62,6 @@ export async function setEmail(profile: Readonly<Pick<Profile, 'email'>>, verifi
             new ResponseBody<void>(false, '验证码错误'));
     }
     const {type: verificationType, email: verificationEmail, verificationCode: verificationCodeInSession} = verificationInSession;
-    const {email} = profile;
     if (verificationType !== VERIFICATION_CODE_TYPE.SET_EMAIL
         || email !== verificationEmail
         || verificationCode !== verificationCodeInSession)
@@ -82,9 +81,13 @@ export async function setEmail(profile: Readonly<Pick<Profile, 'email'>>, verifi
         });
 }
 
-export async function sendVerificationCodeToEmail(profile: Readonly<Pick<Profile, | 'email'>>): Promise<ServiceResponse<void>>
+export async function sendSetEmailVerificationCodeToEmail(email: Profile['email']): Promise<ServiceResponse<void>>
 {
-    const {email} = profile;
+    if ((await ProfileTable.count({email})) !== 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody<void>(false, `邮箱 ${email} 已被使用`));
+    }
     const verificationCode = Authentication.generateVerificationCode();
     await Mail.sendMail({
         to: email,
