@@ -1,5 +1,6 @@
 import Router from '@koa/router';
 import {ISession} from '../Interface';
+import {Session} from 'koa-session';
 
 export interface IParameterValidator
 {
@@ -13,7 +14,7 @@ export interface IState
 
 export interface IContext
 {
-    session: ISession;
+    session: Session & ISession;
 }
 
 export interface IRouteHandler
