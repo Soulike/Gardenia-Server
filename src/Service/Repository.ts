@@ -1,5 +1,5 @@
 import {Repository, ResponseBody, ServiceResponse} from '../Class';
-import {Repository as RepositoryTable} from '../Database';
+import {PullRequest as PullRequestTable, Repository as RepositoryTable} from '../Database';
 import {SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
@@ -77,33 +77,71 @@ export async function del(repository: Readonly<Pick<Repository, 'name'>>, userna
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${usernameInSession}/${name} 不存在`));
     }
-    const deletedName = `[deleted]${name}_${Date.now()}`;
-    const repositoryPath = generateRepositoryPath({username: usernameInSession, name});
-    // 复制仓库到新地址
-    const newRepositoryPath = generateRepositoryPath({username: usernameInSession, name: deletedName});
-    await fse.copy(repositoryPath, newRepositoryPath);
-    try
+    // [发起的拉取请求数量，自己发起到自己的拉取请求数量]
+    const [pullRequestCount, selfPullRequestCount] = await Promise.all([
+        PullRequestTable.count({
+            sourceRepositoryUsername: usernameInSession,
+            sourceRepositoryName: name,
+        }),
+        PullRequestTable.count({
+            sourceRepositoryUsername: usernameInSession,
+            sourceRepositoryName: name,
+            targetRepositoryUsername: usernameInSession,
+            targetRepositoryName: name,
+        }),
+    ]);
+    if (pullRequestCount - selfPullRequestCount === 0)  // 没有发起到其他仓库的拉取请求，直接删除数据库删除文件
     {
-        // 改名
-        await RepositoryTable.update({name: deletedName}, {username: usernameInSession, name});
+        const backupName = `[backup]${name}_${Date.now()}`;
+        const repositoryPath = generateRepositoryPath({username: usernameInSession, name});
+        const backupRepositoryPath = generateRepositoryPath({username: usernameInSession, name: backupName});
         try
         {
-            // 在数据库中标记删除
-            await RepositoryTable.deleteByUsernameAndName({username: usernameInSession, name: deletedName});
+            // 备份原仓库
+            await fse.move(repositoryPath, backupRepositoryPath, {overwrite: true});
+            await RepositoryTable.deleteByUsernameAndName({username: usernameInSession, name});
         }
-        catch (e)   // 标记删除失败了，把名字改回去
+        catch (e)   // 出现任何错误，恢复原仓库文件位置，数据库可以自己回滚
         {
-            await RepositoryTable.update({name}, {username: usernameInSession, name: deletedName});
-            throw e;    // 需要抛到外层
+            if (await fse.pathExists(backupRepositoryPath) && !(await fse.pathExists(repositoryPath)))  // 如果备份完全成功了再尝试移动回去
+            {
+                await fse.move(backupRepositoryPath, repositoryPath, {overwrite: true});
+            }
+            throw e;
         }
+        // 没有发生错误，删除备份仓库
+        await fse.remove(backupRepositoryPath);
     }
-    catch (e)   // 数据库操作失败，删除复制的仓库
+    else    // 有发起到其他仓库的拉取请求，标记删除
     {
-        await fse.remove(newRepositoryPath);
-        throw e;
+        const deletedName = `[deleted]${name}_${Date.now()}`;
+        const repositoryPath = generateRepositoryPath({username: usernameInSession, name});
+        // 复制仓库到新地址
+        const newRepositoryPath = generateRepositoryPath({username: usernameInSession, name: deletedName});
+        await fse.copy(repositoryPath, newRepositoryPath);
+        try
+        {
+            // 改名
+            await RepositoryTable.update({name: deletedName}, {username: usernameInSession, name});
+            try
+            {
+                // 在数据库中标记删除
+                await RepositoryTable.markDeleteByUsernameAndName({username: usernameInSession, name: deletedName});
+            }
+            catch (e)   // 标记删除失败了，把名字改回去
+            {
+                await RepositoryTable.update({name}, {username: usernameInSession, name: deletedName});
+                throw e;    // 需要抛到外层
+            }
+        }
+        catch (e)   // 数据库操作失败，删除复制的仓库
+        {
+            await fse.remove(newRepositoryPath);
+            throw e;
+        }
+        // 数据库操作成功，删除原仓库
+        await fse.remove(repositoryPath);
     }
-    // 数据库操作成功，删除原仓库
-    await fse.remove(repositoryPath);
     return new ServiceResponse<void>(200, {}, new ResponseBody<void>(true));
 }
 

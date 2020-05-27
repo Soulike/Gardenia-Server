@@ -27,7 +27,7 @@ export async function insert(repository: Readonly<Repository>): Promise<void>
 /**
  * @description 做逻辑上的删除，连带和其他表相关的操作
  * */
-export async function deleteByUsernameAndName(repository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<void>
+export async function markDeleteByUsernameAndName(repository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<void>
 {
     const client = await pool.connect();
     try
@@ -74,6 +74,27 @@ export async function deleteByUsernameAndName(repository: Readonly<Pick<Reposito
                     [PULL_REQUEST_STATUS.CLOSED, username, name]),
             ]);
         });
+    }
+    finally
+    {
+        client.release();
+    }
+}
+
+/**
+ * @description 做实际的删除
+ * */
+export async function deleteByUsernameAndName(repository: Readonly<Pick<Repository, 'username' | 'name'>>): Promise<void>
+{
+    const client = await pool.connect();
+    try
+    {
+        const {username, name} = repository;
+        await client.query(`DELETE
+                            FROM repositories
+                            WHERE username = $1
+                              AND name = $2`,
+            [username, name]);
     }
     finally
     {

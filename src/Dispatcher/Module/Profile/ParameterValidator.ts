@@ -1,5 +1,4 @@
 import {IParameterValidator} from '../../Interface';
-import {Account} from '../../../Class';
 import Validator from '../../Validator';
 import {LIMITS} from '../../../CONFIG';
 
@@ -11,8 +10,7 @@ export const get: IParameterValidator = body =>
         return true;
     }
     const {username} = account;
-    return Validator.Account.username(username)
-        && Account.validate({username, hash: 'a'.repeat(64)});
+    return typeof username === 'string';    // 这里不用 validate 方法是因为允许 username 是任何字符串
 };
 
 export const getByEmail: IParameterValidator = body =>

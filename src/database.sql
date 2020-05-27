@@ -114,8 +114,8 @@ CREATE TABLE IF NOT EXISTS "pull-request-comments"
     "creationTime"     BIGINT       NOT NULL,
     "modificationTime" BIGINT       NOT NULL,
     PRIMARY KEY ("id"),
-    FOREIGN KEY ("belongsTo") REFERENCES "pull-requests" ("id"),
-    FOREIGN KEY ("username") REFERENCES "accounts" ("username")
+    FOREIGN KEY ("belongsTo") REFERENCES "pull-requests" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY ("username") REFERENCES "accounts" ("username") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "issues"
