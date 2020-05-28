@@ -9,7 +9,7 @@ const app = new Koa();
 
 app.on('error', (e: Error) =>
 {
-    SERVER.ERROR_LOGGER(`未捕获的全局错误：\n${e}`);
+    SERVER.ERROR_LOGGER(`未捕获的全局错误：\n${e.stack}`);
 });
 app.use(koa_static(SERVER.STATIC_FILE_PATH, {maxAge: 60 * 60 * 1000})); // 用于本地调试
 app.use(session({...SESSION}, app));
