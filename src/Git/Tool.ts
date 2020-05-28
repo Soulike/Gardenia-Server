@@ -7,9 +7,9 @@ import os from 'os';
 import path from 'path';
 
 /**
- * @description 获取两个提交/分支的公共祖先
+ * @description 获取两个提交/分支的公共祖先，在没有公共祖先时返回 EMPTY_TREE_HASH
  * */
-export async function getCommonAncestor(repositoryPath: string, branchNameOrCommitHash1: string, branchNameOrCommitHash2: string): Promise<string | null>
+export async function getCommonAncestor(repositoryPath: string, branchNameOrCommitHash1: string, branchNameOrCommitHash2: string): Promise<string>
 {
     let commonAncestorHash: string | null;
     // 特殊情况，这个命令不接受 empty tree
@@ -27,7 +27,7 @@ export async function getCommonAncestor(repositoryPath: string, branchNameOrComm
         }
         catch (e)
         {
-            commonAncestorHash = null;
+            commonAncestorHash = EMPTY_TREE_HASH;
         }
     }
     return commonAncestorHash;
@@ -40,7 +40,7 @@ export async function hasCommonAncestor(repositoryPath1: string, branchNameOfRep
 {
     if (repositoryPath1 === repositoryPath2)
     {
-        return await getCommonAncestor(repositoryPath1, branchNameOfRepository1, branchNameOfRepository2) !== null;
+        return await getCommonAncestor(repositoryPath1, branchNameOfRepository1, branchNameOfRepository2) !== EMPTY_TREE_HASH;
     }
     else    // repositoryPath1 !== repositoryPath2
     {
@@ -50,7 +50,7 @@ export async function hasCommonAncestor(repositoryPath1: string, branchNameOfRep
             tempRepositoryPath = await makeTemporaryRepository(repositoryPath1, branchNameOfRepository1);
             const tempRemoteName = 'remote';
             await addRemote(tempRepositoryPath, repositoryPath2, tempRemoteName);
-            return await getCommonAncestor(tempRepositoryPath, branchNameOfRepository1, `${tempRemoteName}/${branchNameOfRepository2}`) !== null;
+            return await getCommonAncestor(tempRepositoryPath, branchNameOfRepository1, `${tempRemoteName}/${branchNameOfRepository2}`) !== EMPTY_TREE_HASH;
         }
         finally
         {
