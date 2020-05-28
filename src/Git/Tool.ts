@@ -49,7 +49,7 @@ export async function hasCommonAncestor(repositoryPath1: string, branchNameOfRep
         {
             tempRepositoryPath = await makeTemporaryRepository(repositoryPath1, branchNameOfRepository1);
             const tempRemoteName = 'remote';
-            await addRemote(repositoryPath1, repositoryPath2, tempRemoteName);
+            await addRemote(tempRepositoryPath, repositoryPath2, tempRemoteName);
             return await getCommonAncestor(tempRepositoryPath, branchNameOfRepository1, `${tempRemoteName}/${branchNameOfRepository2}`) !== null;
         }
         finally
