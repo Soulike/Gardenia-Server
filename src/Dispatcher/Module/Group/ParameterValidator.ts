@@ -98,6 +98,8 @@ export const getAdministratingByAccount = getByAccount;
 
 export const admins = accounts;
 
+export const addAdmin = addAccount;
+
 export const addAdmins = addAccounts;
 
 export const removeAdmins = removeAccounts;

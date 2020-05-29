@@ -177,6 +177,24 @@ export const admins: IRouteHandler = () =>
     };
 };
 
+export const addAdmin: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.addAdmin(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group, account} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await GroupService.addAdmin(group, account, username!);
+    };
+};
+
 export const addAdmins: IRouteHandler = () =>
 {
     return async ctx =>

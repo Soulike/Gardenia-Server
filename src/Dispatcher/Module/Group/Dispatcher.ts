@@ -5,6 +5,7 @@ import {
     ADD,
     ADD_ACCOUNT,
     ADD_ACCOUNTS,
+    ADD_ADMIN,
     ADD_ADMINS,
     ADD_REPOSITORY,
     ADMINS,
@@ -26,6 +27,7 @@ import {
     add,
     addAccount,
     addAccounts,
+    addAdmin,
     addAdmins,
     addRepository,
     admins,
@@ -57,6 +59,7 @@ export default (router: Router<IState, IContext>) =>
         .get(GET_BY_ACCOUNT, JSONQuerystringParser(), getByAccount())
         .get(GET_ADMINISTRATING_BY_ACCOUNT, JSONQuerystringParser(), getAdministratingByAccount())
         .get(ADMINS, JSONQuerystringParser(), admins())
+        .post(ADD_ADMIN, bodyParser(), addAdmin())
         .post(ADD_ADMINS, bodyParser(), addAdmins())
         .post(REMOVE_ADMINS, bodyParser(), removeAdmins())
         .get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository())

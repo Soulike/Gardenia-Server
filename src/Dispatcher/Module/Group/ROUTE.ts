@@ -16,6 +16,7 @@ export const REMOVE_ACCOUNTS = groupPrefix('/removeAccounts');
 export const GET_BY_ACCOUNT = groupPrefix('/getByAccount');
 export const GET_ADMINISTRATING_BY_ACCOUNT = groupPrefix('/getAdministratingByAccount');
 export const ADMINS = groupPrefix('/admins');
+export const ADD_ADMIN = groupPrefix('/addAdmin');
 export const ADD_ADMINS = groupPrefix('/addAdmins');
 export const REMOVE_ADMINS = groupPrefix('/removeAdmins');
 export const GET_BY_REPOSITORY = groupPrefix('/getByRepository');

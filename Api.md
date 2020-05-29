@@ -1525,7 +1525,29 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 404：小组 #`${id}` 不存在
 - 其他说明：无
 
-#### `/addAdmins`
+#### `/addAdmin`
+
+- 功能：添加小组管理员
+- 方法：POST
+- 请求体：
+```ts
+{
+    group: Pick<Group, 'id'>,
+    account: Pick<Account, 'username'>,
+}
+```
+- 响应体：无
+- 响应消息：
+  - 404：小组 #`${id}` 不存在
+  - 404：用户 `${username}` 不存在
+  - 200：用户 `${username}` 不是小组 #`${id}` 的成员
+  - 200：用户 `${username}` 已是小组 #`${id}` 的管理员
+  - 200：您不是小组 #`${id}` 的管理员
+- 其他说明：
+  - 仅小组管理员添加请求有效，其他人均权限不足
+  - 仅小组成员可以成为管理员
+
+#### `/addAdmins`（废弃）
 
 - 功能：添加小组管理员
 - 方法：POST
