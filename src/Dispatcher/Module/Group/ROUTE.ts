@@ -10,6 +10,7 @@ export const DISMISS = groupPrefix('/dismiss');
 export const INFO = groupPrefix('/info');
 export const CHANGE_NAME = groupPrefix('/changeName');
 export const ACCOUNTS = groupPrefix('/accounts');
+export const ADD_ACCOUNT = groupPrefix('/addAccount');
 export const ADD_ACCOUNTS = groupPrefix('/addAccounts');
 export const REMOVE_ACCOUNTS = groupPrefix('/removeAccounts');
 export const GET_BY_ACCOUNT = groupPrefix('/getByAccount');

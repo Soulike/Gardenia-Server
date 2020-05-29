@@ -117,6 +117,41 @@ export async function addAccounts(group: Readonly<Pick<Group, 'id'>>, usernames:
         new ResponseBody<void>(true));
 }
 
+export async function addAccount(group: Readonly<Pick<Group, 'id'>>, account: Readonly<Pick<Account, 'username'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
+{
+    const {id} = group;
+    const {username} = account;
+    const [groupCount, accountCount, accountGroupCount, accountGroupAdminCount] = await Promise.all([
+        GroupTable.count({id}),
+        AccountTable.count({username}),
+        AccountGroupTable.count({groupId: id, username}),   // 是不是已经在小组中
+        AccountGroupTable.count({groupId: id, username: usernameInSession, isAdmin: true}), // 请求人是不是管理员
+    ]);
+    if (groupCount === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `小组 #${id} 不存在`));
+    }
+    if (accountCount === 0)
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `用户 ${username} 不存在`));
+    }
+    if (accountGroupCount !== 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, `用户 ${username} 已在小组中`));
+    }
+    if (accountGroupAdminCount === 0)
+    {
+        return new ServiceResponse<void>(200, {},
+            new ResponseBody(false, `您不是小组 #${id} 的管理员`));
+    }
+    await AccountGroupTable.insert({groupId: id, username, isAdmin: false});
+    return new ServiceResponse<void>(200, {},
+        new ResponseBody(true));
+}
+
 export async function removeAccounts(group: Readonly<Pick<Group, 'id'>>, usernames: Readonly<string[]>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {id: groupId} = group;

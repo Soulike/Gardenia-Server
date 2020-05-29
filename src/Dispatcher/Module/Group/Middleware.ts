@@ -84,6 +84,24 @@ export const accounts: IRouteHandler = () =>
     };
 };
 
+export const addAccount: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!SessionFunction.isSessionValid(ctx.session))
+        {
+            throw new InvalidSessionError();
+        }
+        if (!ParameterValidator.addAccount(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {group, account} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await GroupService.addAccount(group, account, username!);
+    };
+};
+
 export const addAccounts: IRouteHandler = () =>
 {
     return async ctx =>

@@ -3,6 +3,7 @@ import {IContext, IState} from '../../Interface';
 import {
     ACCOUNTS,
     ADD,
+    ADD_ACCOUNT,
     ADD_ACCOUNTS,
     ADD_ADMINS,
     ADD_REPOSITORY,
@@ -23,6 +24,7 @@ import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import {
     accounts,
     add,
+    addAccount,
     addAccounts,
     addAdmins,
     addRepository,
@@ -43,21 +45,23 @@ import bodyParser from '../../Middleware/bodyParser';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.post(ADD, bodyParser(), add());
-    router.post(DISMISS, bodyParser(), dismiss());
-    router.get(INFO, JSONQuerystringParser(), info());
-    router.post(CHANGE_NAME, bodyParser(), changeName());
-    router.get(ACCOUNTS, JSONQuerystringParser(), accounts());
-    router.post(ADD_ACCOUNTS, bodyParser(), addAccounts());
-    router.post(REMOVE_ACCOUNTS, bodyParser(), removeAccounts());
-    router.get(GET_BY_ACCOUNT, JSONQuerystringParser(), getByAccount());
-    router.get(GET_ADMINISTRATING_BY_ACCOUNT, JSONQuerystringParser(), getAdministratingByAccount());
-    router.get(ADMINS, JSONQuerystringParser(), admins());
-    router.post(ADD_ADMINS, bodyParser(), addAdmins());
-    router.post(REMOVE_ADMINS, bodyParser(), removeAdmins());
-    router.get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository());
-    router.get(REPOSITORIES, JSONQuerystringParser(), repositories());
-    router.post(ADD_REPOSITORY, bodyParser(), addRepository());
-    router.post(REMOVE_REPOSITORIES, bodyParser(), removeRepositories());
-    router.get(IS_ADMIN, JSONQuerystringParser(), isAdmin());
+    router
+        .post(ADD, bodyParser(), add())
+        .post(DISMISS, bodyParser(), dismiss())
+        .get(INFO, JSONQuerystringParser(), info())
+        .post(CHANGE_NAME, bodyParser(), changeName())
+        .get(ACCOUNTS, JSONQuerystringParser(), accounts())
+        .post(ADD_ACCOUNT, bodyParser(), addAccount())
+        .post(ADD_ACCOUNTS, bodyParser(), addAccounts())
+        .post(REMOVE_ACCOUNTS, bodyParser(), removeAccounts())
+        .get(GET_BY_ACCOUNT, JSONQuerystringParser(), getByAccount())
+        .get(GET_ADMINISTRATING_BY_ACCOUNT, JSONQuerystringParser(), getAdministratingByAccount())
+        .get(ADMINS, JSONQuerystringParser(), admins())
+        .post(ADD_ADMINS, bodyParser(), addAdmins())
+        .post(REMOVE_ADMINS, bodyParser(), removeAdmins())
+        .get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository())
+        .get(REPOSITORIES, JSONQuerystringParser(), repositories())
+        .post(ADD_REPOSITORY, bodyParser(), addRepository())
+        .post(REMOVE_REPOSITORIES, bodyParser(), removeRepositories())
+        .get(IS_ADMIN, JSONQuerystringParser(), isAdmin());
 };

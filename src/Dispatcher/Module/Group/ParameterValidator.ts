@@ -42,6 +42,20 @@ export const changeName: IParameterValidator = body =>
 
 export const accounts = dismiss;
 
+export const addAccount: IParameterValidator = body =>
+{
+    const {group, account} = body;
+    if (group === undefined || group === null
+        || account === undefined || account === null)
+    {
+        return false;
+    }
+    const {id} = group;
+    const {username} = account;
+    return Group.validate({id, name: 'dad'})
+        && Validator.Account.username(username);
+};
+
 export const addAccounts: IParameterValidator = body =>
 {
     const {group, usernames} = body;
