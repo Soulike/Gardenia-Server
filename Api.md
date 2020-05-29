@@ -328,6 +328,25 @@ enum ISSUE_STATUS
   - 200：验证码错误
 - 其他说明：无
 
+#### `/checkIfUsernameAvailable`
+
+- 功能：检查用户名是否可用
+- 方法：GET
+- 请求体：
+```ts
+{
+    username: Account['username'],
+}
+```
+- 响应体：
+```ts
+{
+    isAvailable: boolean,
+}
+```
+- 响应消息：无
+- 其他说明：无
+
 #### `/sendVerificationCodeToEmail`
 
 - 功能：发送验证码

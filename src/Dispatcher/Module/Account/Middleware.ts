@@ -36,6 +36,19 @@ export const register: IRouteHandler = () =>
     };
 };
 
+export const checkIfUsernameAvailable: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        if (!ParameterValidator.checkIfUsernameAvailable(ctx.request.body))
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = ctx.request.body;
+        ctx.state.serviceResponse = await AccountService.checkIfUsernameAvailable(username);
+    };
+};
+
 export const sendVerificationCodeByUsername: IRouteHandler = () =>
 {
     return async (ctx) =>

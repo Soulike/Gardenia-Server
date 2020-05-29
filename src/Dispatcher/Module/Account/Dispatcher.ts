@@ -1,6 +1,7 @@
 import Router from '@koa/router';
 import {
     CHANGE_PASSWORD,
+    CHECK_IF_USERNAME_AVAILABLE,
     CHECK_PASSWORD,
     CHECK_SESSION,
     LOGIN,
@@ -13,6 +14,7 @@ import bodyParser from '../../Middleware/bodyParser';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import {
     changePassword,
+    checkIfUsernameAvailable,
     checkPassword,
     checkSession,
     login,
@@ -25,12 +27,14 @@ import {IContext, IState} from '../../Interface';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.post(LOGIN, bodyParser(), login());
-    router.post(REGISTER, bodyParser(), register());
-    router.post(SEND_VERIFICATION_CODE_BY_USERNAME, bodyParser(), sendVerificationCodeByUsername());
-    router.post(SEND_VERIFICATION_CODE_TO_EMAIL, bodyParser(), sendVerificationCodeToEmail());
-    router.post(CHANGE_PASSWORD, bodyParser(), changePassword());
-    router.get(CHECK_SESSION, JSONQuerystringParser(), checkSession());
-    router.post(LOGOUT, bodyParser(), logout());
-    router.post(CHECK_PASSWORD, bodyParser(), checkPassword());
+    router
+        .post(LOGIN, bodyParser(), login())
+        .post(REGISTER, bodyParser(), register())
+        .get(CHECK_IF_USERNAME_AVAILABLE, JSONQuerystringParser(), checkIfUsernameAvailable())
+        .post(SEND_VERIFICATION_CODE_BY_USERNAME, bodyParser(), sendVerificationCodeByUsername())
+        .post(SEND_VERIFICATION_CODE_TO_EMAIL, bodyParser(), sendVerificationCodeToEmail())
+        .post(CHANGE_PASSWORD, bodyParser(), changePassword())
+        .get(CHECK_SESSION, JSONQuerystringParser(), checkSession())
+        .post(LOGOUT, bodyParser(), logout())
+        .post(CHECK_PASSWORD, bodyParser(), checkPassword());
 };

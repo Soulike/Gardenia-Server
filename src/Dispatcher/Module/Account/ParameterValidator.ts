@@ -24,6 +24,12 @@ export const register: IParameterValidator = body =>
         && Validator.Account.verificationCode(verificationCode);
 };
 
+export const checkIfUsernameAvailable: IParameterValidator = body =>
+{
+    const {username} = body;
+    return Validator.Account.username(username);
+};
+
 export const sendVerificationCodeByUsername: IParameterValidator = body =>
 {
     const {username} = body;

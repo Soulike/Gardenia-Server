@@ -58,6 +58,13 @@ export async function register(account: Readonly<Account>, profile: Readonly<Omi
         new ResponseBody<void>(true), {verification: undefined});
 }
 
+export async function checkIfUsernameAvailable(username: Account['username']): Promise<ServiceResponse<{ isAvailable: boolean }>>
+{
+    const count = await AccountTable.count({username});
+    return new ServiceResponse<{ isAvailable: boolean }>(200, {},
+        new ResponseBody(true, '', {isAvailable: count === 0}));
+}
+
 export async function sendVerificationCodeByUsername(profile: Readonly<Pick<Profile, 'username'>>): Promise<ServiceResponse<void>>
 {
     // 获取用户名对应的邮箱
