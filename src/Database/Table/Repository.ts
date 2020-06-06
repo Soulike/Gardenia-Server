@@ -67,11 +67,12 @@ export async function markDeleteByUsernameAndName(repository: Readonly<Pick<Repo
                 // 关闭相关 PR
                 client.query(`UPDATE "pull-requests"
                               SET status=$1
-                              WHERE ("sourceRepositoryUsername" = $2
+                              WHERE (("sourceRepositoryUsername" = $2
                                   AND "sourceRepositoryName" = $3)
-                                 OR ("targetRepositoryUsername" = $2
-                                  AND "targetRepositoryName" = $3)`,
-                    [PULL_REQUEST_STATUS.CLOSED, username, name]),
+                                  OR ("targetRepositoryUsername" = $2
+                                      AND "targetRepositoryName" = $3))
+                                AND status = $4`,
+                    [PULL_REQUEST_STATUS.CLOSED, username, name, PULL_REQUEST_STATUS.OPEN]),
             ]);
         });
     }
