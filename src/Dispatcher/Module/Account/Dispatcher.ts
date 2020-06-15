@@ -13,6 +13,7 @@ import {
 import bodyParser from '../../Middleware/bodyParser';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import sessionChecker from '../../Middleware/sessionChecker';
+import * as ParameterValidator from './ParameterValidator';
 import {
     changePassword,
     checkIfUsernameAvailable,
@@ -29,13 +30,13 @@ import {IContext, IState} from '../../Interface';
 export default (router: Router<IState, IContext>) =>
 {
     router
-        .post(LOGIN, bodyParser(), login())
-        .post(REGISTER, bodyParser(), register())
-        .get(CHECK_IF_USERNAME_AVAILABLE, JSONQuerystringParser(), checkIfUsernameAvailable())
-        .post(SEND_VERIFICATION_CODE_BY_USERNAME, bodyParser(), sendVerificationCodeByUsername())
-        .post(SEND_VERIFICATION_CODE_TO_EMAIL, bodyParser(), sendVerificationCodeToEmail())
-        .post(CHANGE_PASSWORD, bodyParser(), changePassword())
+        .post(LOGIN, bodyParser(), ParameterValidator.login(), login())
+        .post(REGISTER, bodyParser(), ParameterValidator.register(), register())
+        .get(CHECK_IF_USERNAME_AVAILABLE, JSONQuerystringParser(), ParameterValidator.checkIfUsernameAvailable(), checkIfUsernameAvailable())
+        .post(SEND_VERIFICATION_CODE_BY_USERNAME, bodyParser(), ParameterValidator.sendVerificationCodeByUsername(), sendVerificationCodeByUsername())
+        .post(SEND_VERIFICATION_CODE_TO_EMAIL, bodyParser(), ParameterValidator.sendVerificationCodeToEmail(), sendVerificationCodeToEmail())
+        .post(CHANGE_PASSWORD, bodyParser(), ParameterValidator.changePassword(), changePassword())
         .get(CHECK_SESSION, JSONQuerystringParser(), checkSession())
         .post(LOGOUT, bodyParser(), logout())
-        .post(CHECK_PASSWORD, sessionChecker(), bodyParser(), checkPassword());
+        .post(CHECK_PASSWORD, sessionChecker(), bodyParser(), ParameterValidator.checkPassword(), checkPassword());
 };
