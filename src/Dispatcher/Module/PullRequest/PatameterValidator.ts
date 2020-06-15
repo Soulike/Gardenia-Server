@@ -1,245 +1,357 @@
-import {IParameterValidator} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {Conflict, PullRequest, PullRequestComment, Repository} from '../../../Class';
 import {PULL_REQUEST_STATUS} from '../../../CONSTANT';
 import Validator from '../../Validator';
 import {LIMITS} from '../../../CONFIG';
+import {WrongParameterError} from '../../Class';
 
 const {PULL_REQUEST_ID, PULL_REQUEST_NO, PULL_REQUEST_COMMENT_ID} = LIMITS;
 
-export const add: IParameterValidator = body =>
+export const add: IRouteHandler = () =>
 {
-    const {
-        sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
-        targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
-        content, title,
-    } = body;
-    return Validator.Account.username(sourceRepositoryUsername)
-        && Validator.Repository.name(sourceRepositoryName)
-        && Validator.Account.username(targetRepositoryUsername)
-        && Validator.Repository.name(targetRepositoryName)
-        && Validator.Repository.pullRequestTitle(title)
-        && PullRequest.validate(new PullRequest(
-            undefined, 1,
-            sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName, '',
-            targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, '',
-            0, 0, title, content, PULL_REQUEST_STATUS.OPEN,
-        ));
-};
-
-export const update: IParameterValidator = body =>
-{
-    const {primaryKey, pullRequest} = body;
-    if (primaryKey === undefined || pullRequest === undefined
-        || primaryKey === null || pullRequest === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {id} = primaryKey;
-    const {title, content} = pullRequest;
-    return id !== undefined
-        && id >= PULL_REQUEST_ID.MIN
-        && id <= PULL_REQUEST_ID.MAX
-        && Validator.Repository.pullRequestTitle(title)
-        && PullRequest.validate(new PullRequest(id, 0,
-            '', '', '', '',
-            '', '', '', '',
-            0, 0, title, content, PULL_REQUEST_STATUS.OPEN));
-};
-
-export const close: IParameterValidator = body =>
-{
-    const {id} = body;
-    return id !== undefined
-        && id >= PULL_REQUEST_ID.MIN
-        && id <= PULL_REQUEST_ID.MAX
-        && PullRequest.validate(new PullRequest(id, 0,
-            '', '', '', '',
-            '', '', '', '',
-            0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
-};
-
-export const reopen: IParameterValidator = close;
-export const isMergeable: IParameterValidator = close;
-export const merge: IParameterValidator = close;
-export const get: IParameterValidator = body =>
-{
-    const {pullRequest, repository} = body;
-    if (pullRequest === undefined || pullRequest === null
-        || repository === undefined || repository === null)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    const {no} = pullRequest;
-    return no >= PULL_REQUEST_NO.MIN
-        && no <= PULL_REQUEST_NO.MAX
-        && Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate(new Repository(username, name, '', false))
-        && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
-};
-
-export const getByRepository: IParameterValidator = body =>
-{
-    const {repository, status, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status)))
-    {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.PULL_REQUESTS)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate(new Repository(username, name, '', true));
-};
-
-export const getPullRequestAmount: IParameterValidator = body =>
-{
-    const {repository, status} = body;
-    if (repository === undefined || repository === null
-        || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status)))
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate(new Repository(username, name, '', true));
-};
-
-export const addComment: IParameterValidator = body =>
-{
-    const {belongsTo, content} = body;
-    return belongsTo >= PULL_REQUEST_ID.MIN
-        && belongsTo <= PULL_REQUEST_ID.MAX
-        && Validator.Repository.pullRequestComment(content)
-        && PullRequestComment.validate(new PullRequestComment(
-            undefined, '', belongsTo, content, 0, 0,
-        ));
-};
-
-export const updateComment: IParameterValidator = body =>
-{
-    const {primaryKey, pullRequestComment} = body;
-    if (primaryKey === undefined || pullRequestComment === undefined
-        || primaryKey === null || pullRequestComment === null)
-    {
-        return false;
-    }
-    const {id} = primaryKey;
-    const {content} = pullRequestComment;
-    return id !== undefined
-        && id >= PULL_REQUEST_COMMENT_ID.MIN
-        && id <= PULL_REQUEST_COMMENT_ID.MAX
-        && Validator.Repository.pullRequestComment(content)
-        && PullRequestComment.validate(new PullRequestComment(
-            id, '', 0, content, 0, 0,
-        ));
-};
-
-export const getComments: IParameterValidator = body =>
-{
-    const {pullRequest, repository, offset, limit} = body;
-    if (pullRequest === undefined || pullRequest === null
-        || repository === undefined || repository === null)
-    {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.PULL_REQUEST_COMMENTS)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    const {no} = pullRequest;
-    return no >= PULL_REQUEST_NO.MIN
-        && no <= PULL_REQUEST_NO.MAX
-        && Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate(new Repository(username, name, '', false))
-        && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
-};
-
-export const getConflicts: IParameterValidator = close;
-
-export const resolveConflicts: IParameterValidator = body =>
-{
-    const {pullRequest, conflicts} = body;
-    if (pullRequest === undefined || pullRequest === null || !Array.isArray(conflicts))
-    {
-        return false;
-    }
-    const {id} = pullRequest;
-    if (id === undefined || !PullRequest.validate(new PullRequest(id, 0,
-        '', '', '', '',
-        '', '', '', '',
-        0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
-    {
-        return false;
-    }
-    if (id > PULL_REQUEST_ID.MAX || id < PULL_REQUEST_ID.MIN)
-    {
-        return false;
-    }
-    for (const conflict of conflicts)
-    {
-        if (!Conflict.validate(conflict))
+        const {
+            sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName,
+            targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName,
+            content, title,
+        } = ctx.request.body;
+        if (Validator.Account.username(sourceRepositoryUsername)
+            && Validator.Repository.name(sourceRepositoryName)
+            && Validator.Account.username(targetRepositoryUsername)
+            && Validator.Repository.name(targetRepositoryName)
+            && Validator.Repository.pullRequestTitle(title)
+            && PullRequest.validate(new PullRequest(
+                undefined, 1,
+                sourceRepositoryUsername, sourceRepositoryName, sourceRepositoryBranchName, '',
+                targetRepositoryUsername, targetRepositoryName, targetRepositoryBranchName, '',
+                0, 0, title, content, PULL_REQUEST_STATUS.OPEN)))
         {
-            return false;
+            await next();
         }
-    }
-    return true;
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const getCommits: IParameterValidator = body =>
+export const update: IRouteHandler = () =>
 {
-    const {pullRequest, offset, limit} = body;
-    if (pullRequest === undefined || pullRequest === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
-    {
-        return false;
-    }
-    const {id} = pullRequest;
-    return id !== undefined
-        && id >= PULL_REQUEST_ID.MIN
-        && id <= PULL_REQUEST_ID.MAX
-        && PullRequest.validate(new PullRequest(id, 0,
-            '', '', '', '',
-            '', '', '', '',
-            0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+        const {primaryKey, pullRequest} = ctx.request.body;
+        if (primaryKey === undefined || pullRequest === undefined
+            || primaryKey === null || pullRequest === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = primaryKey;
+        const {title, content} = pullRequest;
+        if (id !== undefined
+            && id >= PULL_REQUEST_ID.MIN
+            && id <= PULL_REQUEST_ID.MAX
+            && Validator.Repository.pullRequestTitle(title)
+            && PullRequest.validate(new PullRequest(id, 0,
+                '', '', '', '',
+                '', '', '', '',
+                0, 0, title, content, PULL_REQUEST_STATUS.OPEN)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const getCommitAmount: IParameterValidator = close;
-
-export const getFileDiffs: IParameterValidator = body =>
+export const close: IRouteHandler = () =>
 {
-    const {pullRequest, offset, limit} = body;
-    if (pullRequest === undefined || pullRequest === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
-    {
-        return false;
-    }
-    const {id} = pullRequest;
-    return id !== undefined
-        && id >= PULL_REQUEST_ID.MIN
-        && id <= PULL_REQUEST_ID.MAX
-        && PullRequest.validate(new PullRequest(id, 0,
-            '', '', '', '',
-            '', '', '', '',
-            0, 0, '', '', PULL_REQUEST_STATUS.OPEN));
+        const {id} = ctx.request.body;
+        if (id !== undefined
+            && id >= PULL_REQUEST_ID.MIN
+            && id <= PULL_REQUEST_ID.MAX
+            && PullRequest.validate(new PullRequest(id, 0,
+                '', '', '', '',
+                '', '', '', '',
+                0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const getFileDiffAmount: IParameterValidator = close;
+export const reopen: IRouteHandler = close;
+export const isMergeable: IRouteHandler = close;
+export const merge: IRouteHandler = close;
+
+export const get: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {pullRequest, repository} = ctx.request.body;
+        if (pullRequest === undefined || pullRequest === null
+            || repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        const {no} = pullRequest;
+        if (no >= PULL_REQUEST_NO.MIN
+            && no <= PULL_REQUEST_NO.MAX
+            && Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate(new Repository(username, name, '', false))
+            && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const getByRepository: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {repository, status, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status)))
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.PULL_REQUESTS)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate(new Repository(username, name, '', true)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const getPullRequestAmount: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {repository, status} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || (status !== undefined && !Object.values(PULL_REQUEST_STATUS).includes(status)))
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate(new Repository(username, name, '', true)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const addComment: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {belongsTo, content} = ctx.request.body;
+        if (belongsTo >= PULL_REQUEST_ID.MIN
+            && belongsTo <= PULL_REQUEST_ID.MAX
+            && Validator.Repository.pullRequestComment(content)
+            && PullRequestComment.validate(new PullRequestComment(
+                undefined, '', belongsTo, content, 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const updateComment: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {primaryKey, pullRequestComment} = ctx.request.body;
+        if (primaryKey === undefined || pullRequestComment === undefined
+            || primaryKey === null || pullRequestComment === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = primaryKey;
+        const {content} = pullRequestComment;
+        if (id !== undefined
+            && id >= PULL_REQUEST_COMMENT_ID.MIN
+            && id <= PULL_REQUEST_COMMENT_ID.MAX
+            && Validator.Repository.pullRequestComment(content)
+            && PullRequestComment.validate(new PullRequestComment(
+                id, '', 0, content, 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const getComments: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {pullRequest, repository, offset, limit} = ctx.request.body;
+        if (pullRequest === undefined || pullRequest === null
+            || repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.PULL_REQUEST_COMMENTS)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        const {no} = pullRequest;
+        if (no >= PULL_REQUEST_NO.MIN
+            && no <= PULL_REQUEST_NO.MAX
+            && Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate(new Repository(username, name, '', false))
+            && PullRequest.validate(new PullRequest(undefined, no, '', '', '', '', '', '', '', '', 0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const getConflicts: IRouteHandler = close;
+
+export const resolveConflicts: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {pullRequest, conflicts} = ctx.request.body;
+        if (pullRequest === undefined || pullRequest === null || !Array.isArray(conflicts))
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = pullRequest;
+        if (id === undefined || !PullRequest.validate(new PullRequest(id, 0,
+            '', '', '', '',
+            '', '', '', '',
+            0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+        {
+            throw new WrongParameterError();
+        }
+        if (id > PULL_REQUEST_ID.MAX || id < PULL_REQUEST_ID.MIN)
+        {
+            throw new WrongParameterError();
+        }
+        for (const conflict of conflicts)
+        {
+            if (!Conflict.validate(conflict))
+            {
+                throw new WrongParameterError();
+            }
+        }
+        await next();
+    };
+};
+
+export const getCommits: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {pullRequest, offset, limit} = ctx.request.body;
+        if (pullRequest === undefined || pullRequest === null)
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = pullRequest;
+        if (id !== undefined
+            && id >= PULL_REQUEST_ID.MIN
+            && id <= PULL_REQUEST_ID.MAX
+            && PullRequest.validate(new PullRequest(id, 0,
+                '', '', '', '',
+                '', '', '', '',
+                0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const getCommitAmount: IRouteHandler = close;
+
+export const getFileDiffs: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {pullRequest, offset, limit} = ctx.request.body;
+        if (pullRequest === undefined || pullRequest === null)
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = pullRequest;
+        if (id !== undefined
+            && id >= PULL_REQUEST_ID.MIN
+            && id <= PULL_REQUEST_ID.MAX
+            && PullRequest.validate(new PullRequest(id, 0,
+                '', '', '', '',
+                '', '', '', '',
+                0, 0, '', '', PULL_REQUEST_STATUS.OPEN)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const getFileDiffAmount: IRouteHandler = close;
