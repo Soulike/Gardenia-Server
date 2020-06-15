@@ -1,111 +1,171 @@
-import {IParameterValidator} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {Issue, IssueComment, Repository} from '../../../Class';
 import {ISSUE_STATUS} from '../../../CONSTANT';
 import Validator from '../../Validator';
 import {LIMITS} from '../../../CONFIG';
+import {WrongParameterError} from '../../Class';
 
 const {ISSUE_NO} = LIMITS;
 
-export const add: IParameterValidator = body =>
+export const add: IRouteHandler = () =>
 {
-    const {issue, issueComment} = body;
-    if (issue === undefined || issue === null
-        || issueComment === undefined || issueComment === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {repositoryUsername, repositoryName, title} = issue;
-    const {content} = issueComment;
-    return Validator.Account.username(repositoryUsername)
-        && Validator.Repository.name(repositoryName)
-        && Validator.Repository.issueTitle(title)
-        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, 0, title, ISSUE_STATUS.OPEN, 0, 0))
-        && IssueComment.validate(new IssueComment(undefined, '', 0, content, 0, 0));
+        const {issue, issueComment} = ctx.request.body;
+        if (issue === undefined || issue === null
+            || issueComment === undefined || issueComment === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {repositoryUsername, repositoryName, title} = issue;
+        const {content} = issueComment;
+        if (Validator.Account.username(repositoryUsername)
+            && Validator.Repository.name(repositoryName)
+            && Validator.Repository.issueTitle(title)
+            && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, 0, title, ISSUE_STATUS.OPEN, 0, 0))
+            && IssueComment.validate(new IssueComment(undefined, '', 0, content, 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const close: IParameterValidator = body =>
+export const close: IRouteHandler = () =>
 {
-    const {repositoryUsername, repositoryName, no} = body;
-
-    return no >= ISSUE_NO.MIN
-        && no <= ISSUE_NO.MAX
-        && Validator.Account.username(repositoryUsername)
-        && Validator.Repository.name(repositoryName)
-        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
+    return async (ctx, next) =>
+    {
+        const {repositoryUsername, repositoryName, no} = ctx.request.body;
+        if (no >= ISSUE_NO.MIN
+            && no <= ISSUE_NO.MAX
+            && Validator.Account.username(repositoryUsername)
+            && Validator.Repository.name(repositoryName)
+            && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const reopen: IParameterValidator = close;
+export const reopen: IRouteHandler = close;
 
-export const getByRepository: IParameterValidator = body =>
+export const getByRepository: IRouteHandler = () =>
 {
-    const {repository, status, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || (status !== undefined && !Object.values(ISSUE_STATUS).includes(status)))
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.ISSUES)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate(new Repository(username, name, '', true));
+        const {repository, status, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || (status !== undefined && !Object.values(ISSUE_STATUS).includes(status)))
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.ISSUES)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate(new Repository(username, name, '', true)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const getAmountByRepository: IParameterValidator = body =>
+export const getAmountByRepository: IRouteHandler = () =>
 {
-    const {repository, status} = body;
-    if (repository === undefined || repository === null
-        || (status !== undefined && !Object.values(ISSUE_STATUS).includes(status)))
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate(new Repository(username, name, '', true));
+        const {repository, status} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || (status !== undefined && !Object.values(ISSUE_STATUS).includes(status)))
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate(new Repository(username, name, '', true)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const get: IParameterValidator = close;
+export const get: IRouteHandler = close;
 
-export const getComments: IParameterValidator = body =>
+export const getComments: IRouteHandler = () =>
 {
-    const {issue, offset, limit} = body;
-    if (issue === undefined || issue === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.ISSUE_COMMENTS)
-    {
-        return false;
-    }
-    const {repositoryUsername, repositoryName, no} = issue;
-    return no >= ISSUE_NO.MIN
-        && no <= ISSUE_NO.MAX
-        && Validator.Account.username(repositoryUsername)
-        && Validator.Repository.name(repositoryName)
-        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0));
+        const {issue, offset, limit} = ctx.request.body;
+        if (issue === undefined || issue === null)
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.ISSUE_COMMENTS)
+        {
+            throw new WrongParameterError();
+        }
+        const {repositoryUsername, repositoryName, no} = issue;
+        if (no >= ISSUE_NO.MIN
+            && no <= ISSUE_NO.MAX
+            && Validator.Account.username(repositoryUsername)
+            && Validator.Repository.name(repositoryName)
+            && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const addComment: IParameterValidator = body =>
+export const addComment: IRouteHandler = () =>
 {
-    const {issue, issueComment} = body;
-    if (issue === undefined || issue === null
-        || issueComment === undefined || issueComment === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {repositoryUsername, repositoryName, no} = issue;
-    const {content} = issueComment;
-    return no >= ISSUE_NO.MIN
-        && no <= ISSUE_NO.MAX
-        && Validator.Account.username(repositoryUsername)
-        && Validator.Repository.name(repositoryName)
-        && Validator.Repository.issueComment(content)
-        && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0))
-        && IssueComment.validate(new IssueComment(undefined, '', 0, content, 0, 0));
+        const {issue, issueComment} = ctx.request.body;
+        if (issue === undefined || issue === null
+            || issueComment === undefined || issueComment === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {repositoryUsername, repositoryName, no} = issue;
+        const {content} = issueComment;
+        if (no >= ISSUE_NO.MIN
+            && no <= ISSUE_NO.MAX
+            && Validator.Account.username(repositoryUsername)
+            && Validator.Repository.name(repositoryName)
+            && Validator.Repository.issueComment(content)
+            && Issue.validate(new Issue(undefined, '', repositoryUsername, repositoryName, no, '', ISSUE_STATUS.OPEN, 0, 0))
+            && IssueComment.validate(new IssueComment(undefined, '', 0, content, 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
