@@ -45,27 +45,28 @@ import {
 } from './Middleware';
 import bodyParser from '../../Middleware/bodyParser';
 import sessionChecker from '../../Middleware/sessionChecker';
+import * as ParameterValidator from './ParameterValidator';
 
 export default (router: Router<IState, IContext>) =>
 {
     router
-        .post(ADD, sessionChecker(), bodyParser(), add())
-        .post(DISMISS, sessionChecker(), bodyParser(), dismiss())
-        .get(INFO, JSONQuerystringParser(), info())
-        .post(CHANGE_NAME, sessionChecker(), bodyParser(), changeName())
-        .get(ACCOUNTS, JSONQuerystringParser(), accounts())
-        .post(ADD_ACCOUNT, sessionChecker(), bodyParser(), addAccount())
-        .post(ADD_ACCOUNTS, sessionChecker(), bodyParser(), addAccounts())
-        .post(REMOVE_ACCOUNTS, sessionChecker(), bodyParser(), removeAccounts())
-        .get(GET_BY_ACCOUNT, JSONQuerystringParser(), getByAccount())
-        .get(GET_ADMINISTRATING_BY_ACCOUNT, JSONQuerystringParser(), getAdministratingByAccount())
-        .get(ADMINS, JSONQuerystringParser(), admins())
-        .post(ADD_ADMIN, sessionChecker(), bodyParser(), addAdmin())
-        .post(ADD_ADMINS, sessionChecker(), bodyParser(), addAdmins())
-        .post(REMOVE_ADMINS, sessionChecker(), bodyParser(), removeAdmins())
-        .get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository())
-        .get(REPOSITORIES, JSONQuerystringParser(), repositories())
-        .post(ADD_REPOSITORY, sessionChecker(), bodyParser(), addRepository())
-        .post(REMOVE_REPOSITORIES, sessionChecker(), bodyParser(), removeRepositories())
-        .get(IS_ADMIN, JSONQuerystringParser(), isAdmin());
+        .post(ADD, sessionChecker(), bodyParser(), ParameterValidator.add(), add())
+        .post(DISMISS, sessionChecker(), bodyParser(), ParameterValidator.dismiss(), dismiss())
+        .get(INFO, JSONQuerystringParser(), ParameterValidator.info(), info())
+        .post(CHANGE_NAME, sessionChecker(), bodyParser(), ParameterValidator.changeName(), changeName())
+        .get(ACCOUNTS, JSONQuerystringParser(), ParameterValidator.accounts(), accounts())
+        .post(ADD_ACCOUNT, sessionChecker(), bodyParser(), ParameterValidator.addAccount(), addAccount())
+        .post(ADD_ACCOUNTS, sessionChecker(), bodyParser(), ParameterValidator.addAccounts(), addAccounts())
+        .post(REMOVE_ACCOUNTS, sessionChecker(), bodyParser(), ParameterValidator.removeAccounts(), removeAccounts())
+        .get(GET_BY_ACCOUNT, JSONQuerystringParser(), ParameterValidator.getByAccount(), getByAccount())
+        .get(GET_ADMINISTRATING_BY_ACCOUNT, JSONQuerystringParser(), ParameterValidator.getAdministratingByAccount(), getAdministratingByAccount())
+        .get(ADMINS, JSONQuerystringParser(), ParameterValidator.admins(), admins())
+        .post(ADD_ADMIN, sessionChecker(), bodyParser(), ParameterValidator.addAdmin(), addAdmin())
+        .post(ADD_ADMINS, sessionChecker(), bodyParser(), ParameterValidator.addAdmins(), addAdmins())
+        .post(REMOVE_ADMINS, sessionChecker(), bodyParser(), ParameterValidator.removeAdmins(), removeAdmins())
+        .get(GET_BY_REPOSITORY, JSONQuerystringParser(), ParameterValidator.getByRepository(), getByRepository())
+        .get(REPOSITORIES, JSONQuerystringParser(), ParameterValidator.repositories(), repositories())
+        .post(ADD_REPOSITORY, sessionChecker(), bodyParser(), ParameterValidator.addRepository(), addRepository())
+        .post(REMOVE_REPOSITORIES, sessionChecker(), bodyParser(), ParameterValidator.removeRepositories(), removeRepositories())
+        .get(IS_ADMIN, JSONQuerystringParser(), ParameterValidator.isAdmin(), isAdmin());
 };
