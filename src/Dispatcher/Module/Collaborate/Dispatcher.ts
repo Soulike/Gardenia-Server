@@ -1,5 +1,4 @@
-import Router from '@koa/router';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 import {
     ADD,
     GENERATE_CODE,
@@ -23,7 +22,7 @@ import bodyParser from '../../Middleware/bodyParser';
 import sessionChecker from '../../Middleware/sessionChecker';
 import * as ParameterValidator from './ParameterValidator';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router
         .get(GENERATE_CODE, sessionChecker(), JSONQuerystringParser(), ParameterValidator.generateCode(), generateCode())
@@ -33,4 +32,4 @@ export default (router: Router<IState, IContext>) =>
         .get(GET_COLLABORATORS_AMOUNT, sessionChecker(), JSONQuerystringParser(), ParameterValidator.getCollaboratorsAmount(), getCollaboratorsAmount())
         .get(GET_COLLABORATING_REPOSITORIES, JSONQuerystringParser(), ParameterValidator.getCollaboratingRepositories(), getCollaboratingRepositories())
         .get(GET_COLLABORATING_REPOSITORIES_AMOUNT, JSONQuerystringParser(), ParameterValidator.getCollaboratingRepositoriesAmount(), getCollaboratingRepositoriesAmount());
-}
+}) as IDispatcher;

@@ -1,4 +1,3 @@
-import Router from '@koa/router';
 import {
     CHANGE_PASSWORD,
     CHECK_IF_USERNAME_AVAILABLE,
@@ -25,9 +24,9 @@ import {
     sendVerificationCodeByUsername,
     sendVerificationCodeToEmail,
 } from './Middleware';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router
         .post(LOGIN, bodyParser(), ParameterValidator.login(), login())
@@ -39,4 +38,4 @@ export default (router: Router<IState, IContext>) =>
         .get(CHECK_SESSION, JSONQuerystringParser(), checkSession())
         .post(LOGOUT, bodyParser(), logout())
         .post(CHECK_PASSWORD, sessionChecker(), bodyParser(), ParameterValidator.checkPassword(), checkPassword());
-};
+}) as IDispatcher;

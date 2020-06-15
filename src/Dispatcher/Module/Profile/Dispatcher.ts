@@ -1,4 +1,3 @@
-import Router from '@koa/router';
 import {
     GET,
     GET_BY_EMAIL,
@@ -10,11 +9,11 @@ import {
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import bodyParser from '../../Middleware/bodyParser';
 import {get, getByEmail, sendSetEmailVerificationCodeToEmail, setEmail, setNickname, uploadAvatar} from './Middleware';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 import sessionChecker from '../../Middleware/sessionChecker';
 import * as ParameterValidator from './ParameterValidator';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router
         .get(GET, JSONQuerystringParser(), ParameterValidator.get(), get())
@@ -23,4 +22,4 @@ export default (router: Router<IState, IContext>) =>
         .post(SET_EMAIL, sessionChecker(), bodyParser(), ParameterValidator.setEmail(), setEmail())
         .post(SEND_SET_EMAIL_VERIFICATION_CODE_TO_EMAIL, bodyParser(), ParameterValidator.sendSetEmailVerificationCodeToEmail(), sendSetEmailVerificationCodeToEmail())
         .post(UPLOAD_AVATAR, sessionChecker(), bodyParser(), ParameterValidator.uploadAvatar(), uploadAvatar());
-}
+}) as IDispatcher;

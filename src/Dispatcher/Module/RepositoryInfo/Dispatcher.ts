@@ -1,4 +1,3 @@
-import Router from '@koa/router';
 import {
     BRANCH_NAMES,
     BRANCHES,
@@ -69,10 +68,10 @@ import {
     setIsPublic,
     setName,
 } from './Middleware';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 import sessionChecker from '../../Middleware/sessionChecker';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router.get(REPOSITORY, JSONQuerystringParser(), repository())
         .get(BRANCHES, JSONQuerystringParser(), branches())
@@ -106,4 +105,4 @@ export default (router: Router<IState, IContext>) =>
         .get(FORK_FILE_DIFF, JSONQuerystringParser(), forkFileDiff())
         .get(FORK_FILE_DIFF_AMOUNT, JSONQuerystringParser(), forkFileDiffAmount())
         .get(HAS_COMMON_ANCESTOR, JSONQuerystringParser(), hasCommonAncestor());
-};
+}) as IDispatcher;

@@ -1,5 +1,4 @@
-import Router from '@koa/router';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 import {
     ADD,
     ADD_COMMENT,
@@ -45,7 +44,7 @@ import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import sessionChecker from '../../Middleware/sessionChecker';
 import * as ParameterValidator from './PatameterValidator';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router.post(ADD, sessionChecker(), bodyParser(), ParameterValidator.add(), add())
         .post(UPDATE, sessionChecker(), bodyParser(), ParameterValidator.update(), update())
@@ -65,4 +64,4 @@ export default (router: Router<IState, IContext>) =>
         .get(GET_COMMIT_AMOUNT, JSONQuerystringParser(), ParameterValidator.getCommitAmount(), getCommitAmount())
         .get(GET_FILE_DIFFS, JSONQuerystringParser(), ParameterValidator.getFileDiffs(), getFileDiffs())
         .get(GET_FILE_DIFF_AMOUNT, JSONQuerystringParser(), ParameterValidator.getFileDiffAmount(), getFileDiffAmount());
-}
+}) as IDispatcher;

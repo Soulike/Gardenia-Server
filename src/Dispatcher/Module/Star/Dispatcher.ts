@@ -1,5 +1,4 @@
-import Router from '@koa/router';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 import {
     ADD,
     GET_REPOSITORY_STAR_AMOUNT,
@@ -22,7 +21,7 @@ import {
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import sessionChecker from '../../Middleware/sessionChecker';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router
         .post(ADD, sessionChecker(), bodyParser(), add())
@@ -32,4 +31,4 @@ export default (router: Router<IState, IContext>) =>
         .get(IS_STARED_REPOSITORY, JSONQuerystringParser(), isStaredRepository())
         .get(GET_REPOSITORY_STAR_AMOUNT, JSONQuerystringParser(), getRepositoryStarAmount())
         .get(GET_REPOSITORY_STAR_USERS, JSONQuerystringParser(), getRepositoryStarUsers());
-}
+}) as IDispatcher;

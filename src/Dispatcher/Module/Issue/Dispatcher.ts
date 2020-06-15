@@ -1,5 +1,4 @@
-import Router from '@koa/router';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 import {ADD, ADD_COMMENT, CLOSE, GET, GET_AMOUNT_BY_REPOSITORY, GET_BY_REPOSITORY, GET_COMMENTS, REOPEN} from './ROUTE';
 import bodyParser from '../../Middleware/bodyParser';
 import {add, addComment, close, get, getAmountByRepository, getByRepository, getComments, reopen} from './Middleware';
@@ -7,7 +6,7 @@ import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import sessionChecker from '../../Middleware/sessionChecker';
 import * as ParameterValidator from './ParameterValidator';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router
         .post(ADD, sessionChecker(), bodyParser(), ParameterValidator.add(), add())
@@ -18,4 +17,4 @@ export default (router: Router<IState, IContext>) =>
         .get(GET, JSONQuerystringParser(), ParameterValidator.get(), get())
         .get(GET_COMMENTS, JSONQuerystringParser(), ParameterValidator.getComments(), getComments())
         .post(ADD_COMMENT, sessionChecker(), bodyParser(), ParameterValidator.addComment(), addComment());
-}
+}) as IDispatcher;

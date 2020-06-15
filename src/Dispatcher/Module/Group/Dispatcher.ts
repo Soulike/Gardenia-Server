@@ -1,5 +1,4 @@
-import Router from '@koa/router';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
 import {
     ACCOUNTS,
     ADD,
@@ -47,7 +46,7 @@ import bodyParser from '../../Middleware/bodyParser';
 import sessionChecker from '../../Middleware/sessionChecker';
 import * as ParameterValidator from './ParameterValidator';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
     router
         .post(ADD, sessionChecker(), bodyParser(), ParameterValidator.add(), add())
@@ -69,4 +68,4 @@ export default (router: Router<IState, IContext>) =>
         .post(ADD_REPOSITORY, sessionChecker(), bodyParser(), ParameterValidator.addRepository(), addRepository())
         .post(REMOVE_REPOSITORIES, sessionChecker(), bodyParser(), ParameterValidator.removeRepositories(), removeRepositories())
         .get(IS_ADMIN, JSONQuerystringParser(), ParameterValidator.isAdmin(), isAdmin());
-};
+}) as IDispatcher;
