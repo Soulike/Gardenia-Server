@@ -1,17 +1,12 @@
 import {IRouteHandler} from '../../Interface';
-import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {WrongParameterError} from '../../Class';
 import * as ParameterValidator from './ParameterValidator';
 import {CodeComment as CodeCommentService} from '../../../Service';
-import {Session} from '../../../Function';
 
 export const add: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!Session.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.add(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -31,10 +26,6 @@ export const del: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!Session.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.del(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -63,10 +54,6 @@ export const update: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!Session.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.update(ctx.request.body))
         {
             throw new WrongParameterError();

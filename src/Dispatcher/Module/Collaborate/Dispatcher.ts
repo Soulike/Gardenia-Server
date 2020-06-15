@@ -20,15 +20,16 @@ import {
     remove,
 } from './Middleware';
 import bodyParser from '../../Middleware/bodyParser';
+import sessionChecker from '../../Middleware/sessionChecker';
 
 export default (router: Router<IState, IContext>) =>
 {
     router
-        .get(GENERATE_CODE, JSONQuerystringParser(), generateCode())
-        .post(ADD, bodyParser(), add())
-        .post(REMOVE, bodyParser(), remove())
-        .get(GET_COLLABORATORS, JSONQuerystringParser(), getCollaborators())
-        .get(GET_COLLABORATORS_AMOUNT, JSONQuerystringParser(), getCollaboratorsAmount())
+        .get(GENERATE_CODE, sessionChecker(), JSONQuerystringParser(), generateCode())
+        .post(ADD, sessionChecker(), bodyParser(), add())
+        .post(REMOVE, sessionChecker(), bodyParser(), remove())
+        .get(GET_COLLABORATORS, sessionChecker(), JSONQuerystringParser(), getCollaborators())
+        .get(GET_COLLABORATORS_AMOUNT, sessionChecker(), JSONQuerystringParser(), getCollaboratorsAmount())
         .get(GET_COLLABORATING_REPOSITORIES, JSONQuerystringParser(), getCollaboratingRepositories())
         .get(GET_COLLABORATING_REPOSITORIES_AMOUNT, JSONQuerystringParser(), getCollaboratingRepositoriesAmount());
 }

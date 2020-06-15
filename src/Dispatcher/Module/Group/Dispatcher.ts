@@ -44,27 +44,28 @@ import {
     repositories,
 } from './Middleware';
 import bodyParser from '../../Middleware/bodyParser';
+import sessionChecker from '../../Middleware/sessionChecker';
 
 export default (router: Router<IState, IContext>) =>
 {
     router
-        .post(ADD, bodyParser(), add())
-        .post(DISMISS, bodyParser(), dismiss())
+        .post(ADD, sessionChecker(), bodyParser(), add())
+        .post(DISMISS, sessionChecker(), bodyParser(), dismiss())
         .get(INFO, JSONQuerystringParser(), info())
-        .post(CHANGE_NAME, bodyParser(), changeName())
+        .post(CHANGE_NAME, sessionChecker(), bodyParser(), changeName())
         .get(ACCOUNTS, JSONQuerystringParser(), accounts())
-        .post(ADD_ACCOUNT, bodyParser(), addAccount())
-        .post(ADD_ACCOUNTS, bodyParser(), addAccounts())
-        .post(REMOVE_ACCOUNTS, bodyParser(), removeAccounts())
+        .post(ADD_ACCOUNT, sessionChecker(), bodyParser(), addAccount())
+        .post(ADD_ACCOUNTS, sessionChecker(), bodyParser(), addAccounts())
+        .post(REMOVE_ACCOUNTS, sessionChecker(), bodyParser(), removeAccounts())
         .get(GET_BY_ACCOUNT, JSONQuerystringParser(), getByAccount())
         .get(GET_ADMINISTRATING_BY_ACCOUNT, JSONQuerystringParser(), getAdministratingByAccount())
         .get(ADMINS, JSONQuerystringParser(), admins())
-        .post(ADD_ADMIN, bodyParser(), addAdmin())
-        .post(ADD_ADMINS, bodyParser(), addAdmins())
-        .post(REMOVE_ADMINS, bodyParser(), removeAdmins())
+        .post(ADD_ADMIN, sessionChecker(), bodyParser(), addAdmin())
+        .post(ADD_ADMINS, sessionChecker(), bodyParser(), addAdmins())
+        .post(REMOVE_ADMINS, sessionChecker(), bodyParser(), removeAdmins())
         .get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository())
         .get(REPOSITORIES, JSONQuerystringParser(), repositories())
-        .post(ADD_REPOSITORY, bodyParser(), addRepository())
-        .post(REMOVE_REPOSITORIES, bodyParser(), removeRepositories())
+        .post(ADD_REPOSITORY, sessionChecker(), bodyParser(), addRepository())
+        .post(REMOVE_REPOSITORIES, sessionChecker(), bodyParser(), removeRepositories())
         .get(IS_ADMIN, JSONQuerystringParser(), isAdmin());
 };

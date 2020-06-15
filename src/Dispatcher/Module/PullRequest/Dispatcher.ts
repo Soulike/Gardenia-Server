@@ -42,23 +42,24 @@ import {
     updateComment,
 } from './Middleware';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
+import sessionChecker from '../../Middleware/sessionChecker';
 
 export default (router: Router<IState, IContext>) =>
 {
-    router.post(ADD, bodyParser(), add())
-        .post(UPDATE, bodyParser(), update())
-        .post(CLOSE, bodyParser(), close())
-        .post(REOPEN, bodyParser(), reopen())
+    router.post(ADD, sessionChecker(), bodyParser(), add())
+        .post(UPDATE, sessionChecker(), bodyParser(), update())
+        .post(CLOSE, sessionChecker(), bodyParser(), close())
+        .post(REOPEN, sessionChecker(), bodyParser(), reopen())
         .get(IS_MERGEABLE, JSONQuerystringParser(), isMergeable())
-        .post(MERGE, bodyParser(), merge())
+        .post(MERGE, sessionChecker(), bodyParser(), merge())
         .get(GET, JSONQuerystringParser(), get())
         .get(GET_BY_REPOSITORY, JSONQuerystringParser(), getByRepository())
         .get(GET_PULL_REQUEST_AMOUNT, JSONQuerystringParser(), getPullRequestAmount())
-        .post(ADD_COMMENT, bodyParser(), addComment())
-        .post(UPDATE_COMMENT, bodyParser(), updateComment())
+        .post(ADD_COMMENT, sessionChecker(), bodyParser(), addComment())
+        .post(UPDATE_COMMENT, sessionChecker(), bodyParser(), updateComment())
         .get(GET_COMMENTS, JSONQuerystringParser(), getComments())
         .get(GET_CONFLICTS, JSONQuerystringParser(), getConflicts())
-        .post(RESOLVE_CONFLICTS, bodyParser(), resolveConflicts())
+        .post(RESOLVE_CONFLICTS, sessionChecker(), bodyParser(), resolveConflicts())
         .get(GET_COMMITS, JSONQuerystringParser(), getCommits())
         .get(GET_COMMIT_AMOUNT, JSONQuerystringParser(), getCommitAmount())
         .get(GET_FILE_DIFFS, JSONQuerystringParser(), getFileDiffs())

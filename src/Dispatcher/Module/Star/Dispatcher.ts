@@ -20,12 +20,13 @@ import {
     remove,
 } from './Middleware';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
+import sessionChecker from '../../Middleware/sessionChecker';
 
 export default (router: Router<IState, IContext>) =>
 {
     router
-        .post(ADD, bodyParser(), add())
-        .post(REMOVE, bodyParser(), remove())
+        .post(ADD, sessionChecker(), bodyParser(), add())
+        .post(REMOVE, sessionChecker(), bodyParser(), remove())
         .get(GET_STARED_REPOSITORIES, JSONQuerystringParser(), getStaredRepositories())
         .get(GET_STARED_REPOSITORIES_AMOUNT, JSONQuerystringParser(), getStaredRepositoriesAmount())
         .get(IS_STARED_REPOSITORY, JSONQuerystringParser(), isStaredRepository())

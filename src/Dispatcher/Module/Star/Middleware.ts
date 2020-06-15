@@ -8,16 +8,12 @@ export const add: IRouteHandler = () =>
     return async (ctx) =>
     {
         const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.add(ctx.request.body))
         {
             throw new WrongParameterError();
         }
         const {repository} = ctx.request.body;
-        ctx.state.serviceResponse = await StarService.add(repository, username);
+        ctx.state.serviceResponse = await StarService.add(repository, username!);
     };
 };
 
@@ -26,16 +22,12 @@ export const remove: IRouteHandler = () =>
     return async (ctx) =>
     {
         const {username} = ctx.session;
-        if (typeof username !== 'string')
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.remove(ctx.request.body))
         {
             throw new WrongParameterError();
         }
         const {repository} = ctx.request.body;
-        ctx.state.serviceResponse = await StarService.remove(repository, username);
+        ctx.state.serviceResponse = await StarService.remove(repository, username!);
     };
 };
 

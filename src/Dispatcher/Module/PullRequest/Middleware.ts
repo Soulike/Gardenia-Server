@@ -1,6 +1,5 @@
 import {IRouteHandler} from '../../Interface';
-import {Session as SessionFunction} from '../../../Function';
-import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {WrongParameterError} from '../../Class';
 import * as ParameterValidator from './PatameterValidator';
 import {PullRequest as PullRequestService} from '../../../Service';
 
@@ -8,10 +7,6 @@ export const add: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.add(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -34,10 +29,6 @@ export const update: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.update(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -52,10 +43,6 @@ export const close: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.close(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -70,10 +57,6 @@ export const reopen: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.reopen(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -101,10 +84,6 @@ export const merge: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.merge(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -161,10 +140,6 @@ export const addComment: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.addComment(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -180,10 +155,6 @@ export const updateComment: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.updateComment(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -227,10 +198,6 @@ export const resolveConflicts: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.resolveConflicts(ctx.request.body))
         {
             throw new WrongParameterError();

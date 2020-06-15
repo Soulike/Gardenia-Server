@@ -1,17 +1,12 @@
 import {IRouteHandler} from '../../Interface';
 import {Repository as RepositoryService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
-import {InvalidSessionError, WrongParameterError} from '../../Class';
-import {Session as SessionFunction} from '../../../Function';
+import {WrongParameterError} from '../../Class';
 
 export const create: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.create(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -26,10 +21,6 @@ export const del: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.del(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -59,16 +50,12 @@ export const fork: IRouteHandler = () =>
     return async ctx =>
     {
         const {username: usernameInSession} = ctx.session;
-        if (typeof usernameInSession !== 'string')
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.fork(ctx.request.body))
         {
             throw new WrongParameterError();
         }
         const {username, name} = ctx.request.body;
-        ctx.state.serviceResponse = await RepositoryService.fork({username, name}, usernameInSession);
+        ctx.state.serviceResponse = await RepositoryService.fork({username, name}, usernameInSession!);
     };
 };
 

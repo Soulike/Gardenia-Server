@@ -1,17 +1,12 @@
 import {IRouteHandler} from '../../Interface';
 import * as ParameterValidator from './ParameterValidator';
-import {InvalidSessionError, WrongParameterError} from '../../Class';
+import {WrongParameterError} from '../../Class';
 import {Group as GroupService} from '../../../Service';
-import {Session as SessionFunction} from '../../../Function';
 
 export const add: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.add(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -26,10 +21,6 @@ export const dismiss: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.dismiss(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -57,10 +48,6 @@ export const changeName: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.changeName(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -88,10 +75,6 @@ export const addAccount: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.addAccount(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -106,10 +89,6 @@ export const addAccounts: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.addAccounts(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -124,10 +103,6 @@ export const removeAccounts: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.removeAccounts(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -181,10 +156,6 @@ export const addAdmin: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.addAdmin(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -199,10 +170,6 @@ export const addAdmins: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.addAdmins(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -217,10 +184,6 @@ export const removeAdmins: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.removeAdmins(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -262,10 +225,6 @@ export const addRepository: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.addRepository(ctx.request.body))
         {
             throw new WrongParameterError();
@@ -280,10 +239,6 @@ export const removeRepositories: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.removeRepositories(ctx.request.body))
         {
             throw new WrongParameterError();

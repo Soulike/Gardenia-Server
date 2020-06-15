@@ -12,6 +12,7 @@ import {
 } from './ROUTE';
 import bodyParser from '../../Middleware/bodyParser';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
+import sessionChecker from '../../Middleware/sessionChecker';
 import {
     changePassword,
     checkIfUsernameAvailable,
@@ -36,5 +37,5 @@ export default (router: Router<IState, IContext>) =>
         .post(CHANGE_PASSWORD, bodyParser(), changePassword())
         .get(CHECK_SESSION, JSONQuerystringParser(), checkSession())
         .post(LOGOUT, bodyParser(), logout())
-        .post(CHECK_PASSWORD, bodyParser(), checkPassword());
+        .post(CHECK_PASSWORD, sessionChecker(), bodyParser(), checkPassword());
 };

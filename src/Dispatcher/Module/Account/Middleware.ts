@@ -1,8 +1,7 @@
 import {Account as AccountService} from '../../../Service';
 import * as ParameterValidator from './ParameterValidator';
 import {IRouteHandler} from '../../Interface';
-import {InvalidSessionError, WrongParameterError} from '../../Class';
-import {Session as SessionFunction} from '../../../Function';
+import {WrongParameterError} from '../../Class';
 
 export const login: IRouteHandler = () =>
 {
@@ -109,10 +108,6 @@ export const checkPassword: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        if (!SessionFunction.isSessionValid(ctx.session))
-        {
-            throw new InvalidSessionError();
-        }
         if (!ParameterValidator.checkPassword(ctx.request.body))
         {
             throw new WrongParameterError();
