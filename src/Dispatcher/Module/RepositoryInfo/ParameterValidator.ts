@@ -1,510 +1,761 @@
-import {IParameterValidator} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {Account, Repository} from '../../../Class';
 import Validator from '../../Validator';
 import {LIMITS} from '../../../CONFIG';
+import {WrongParameterError} from '../../Class';
 
-export const repository: IParameterValidator = body =>
+export const repository: IRouteHandler = () =>
 {
-    const {account, repository} = body;
-    if (typeof account === 'undefined' || account === null
-        || typeof repository === 'undefined' || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    else
+        const {account, repository} = ctx.request.body;
+        if (typeof account === 'undefined' || account === null
+            || typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        else
+        {
+            const {username} = account;
+            const {name} = repository;
+            if (Validator.Account.username(username)
+                && Validator.Repository.name(name)
+                && Account.validate({username, hash: 'a'.repeat(64)})
+                && Repository.validate({name, isPublic: true, description: '', username: ''}))
+            {
+                await next();
+            }
+            else
+            {
+                throw new WrongParameterError();
+            }
+        }
+    };
+};
+
+export const branches: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
     {
+        const {repository} = ctx.request.body;
+        if (repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, isPublic: true, description: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const branchNames: IRouteHandler = branches;
+
+export const lastBranchCommit: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {account, repository, branch, filePath} = ctx.request.body;
+        if (typeof account === 'undefined' || account === null
+            || typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
         const {username} = account;
         const {name} = repository;
-        return Validator.Account.username(username)
+        if (Validator.Account.username(username)
             && Validator.Repository.name(name)
             && Account.validate({username, hash: 'a'.repeat(64)})
-            && Repository.validate({name, isPublic: true, description: '', username: ''});
-    }
+            && Repository.validate({name, isPublic: true, description: '', username: ''})
+            && typeof branch === 'string'
+            && (typeof filePath === 'undefined' || typeof filePath === 'string'))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const branches: IParameterValidator = body =>
+export const lastCommit: IRouteHandler = () =>
 {
-    const {repository} = body;
-    if (repository === undefined || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, isPublic: true, description: ''});
+        const {repository} = ctx.request.body;
+        if (repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate(new Repository(username, name, '', false)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const branchNames: IParameterValidator = branches;
-
-export const lastBranchCommit: IParameterValidator = body =>
+export const directory: IRouteHandler = () =>
 {
-    const {account, repository, branch, filePath} = body;
-    if (typeof account === 'undefined' || account === null
-        || typeof repository === 'undefined' || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username} = account;
-    const {name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Account.validate({username, hash: 'a'.repeat(64)})
-        && Repository.validate({name, isPublic: true, description: '', username: ''})
-        && typeof branch === 'string'
-        && (typeof filePath === 'undefined' || typeof filePath === 'string');
+        const {account, repository, commitHash, directoryPath} = ctx.request.body;
+        if (typeof account === 'undefined' || account === null
+            || typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = account;
+        const {name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Account.validate({username, hash: 'a'.repeat(64)})
+            && Repository.validate({name, isPublic: true, description: '', username: ''})
+            && typeof commitHash === 'string'
+            && typeof directoryPath === 'string')
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const lastCommit: IParameterValidator = body =>
+export const commitCount: IRouteHandler = () =>
 {
-    const {repository} = body;
-    if (repository === undefined || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate(new Repository(username, name, '', false));
+        const {account, repository, commitHash} = ctx.request.body;
+        if (typeof account === 'undefined' || account === null
+            || typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = account;
+        const {name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Account.validate({username, hash: 'a'.repeat(64)})
+            && Repository.validate({name, isPublic: true, description: '', username: ''})
+            && typeof commitHash === 'string')
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const directory: IParameterValidator = body =>
+export const commitCountBetweenCommits: IRouteHandler = () =>
 {
-    const {account, repository, commitHash, directoryPath} = body;
-    if (typeof account === 'undefined' || account === null
-        || typeof repository === 'undefined' || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username} = account;
-    const {name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Account.validate({username, hash: 'a'.repeat(64)})
-        && Repository.validate({name, isPublic: true, description: '', username: ''})
-        && typeof commitHash === 'string'
-        && typeof directoryPath === 'string';
+        const {repository, baseCommitHash, targetCommitHash} = ctx.request.body;
+        if (typeof repository === 'undefined' || repository === null
+            || typeof baseCommitHash !== 'string' || typeof targetCommitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({name, isPublic: true, description: '', username}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const commitCount: IParameterValidator = body =>
+export const fileInfo: IRouteHandler = () =>
 {
-    const {account, repository, commitHash} = body;
-    if (typeof account === 'undefined' || account === null
-        || typeof repository === 'undefined' || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username} = account;
-    const {name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Account.validate({username, hash: 'a'.repeat(64)})
-        && Repository.validate({name, isPublic: true, description: '', username: ''})
-        && typeof commitHash === 'string';
-};
-
-export const commitCountBetweenCommits: IParameterValidator = body =>
-{
-    const {repository, baseCommitHash, targetCommitHash} = body;
-    if (typeof repository === 'undefined' || repository === null
-        || typeof baseCommitHash !== 'string' || typeof targetCommitHash !== 'string')
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({name, isPublic: true, description: '', username});
-};
-
-export const fileInfo: IParameterValidator = body =>
-{
-    const {account, repository, filePath, commitHash} = body;
-    if (typeof account === 'undefined' || account === null
-        || typeof repository === 'undefined' || repository === null)
-    {
-        return false;
-    }
-    const {username} = account;
-    const {name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Account.validate({username, hash: 'a'.repeat(64)})
-        && Repository.validate({name, isPublic: true, description: '', username: ''})
-        && typeof filePath === 'string'
-        && typeof commitHash === 'string';
+        const {account, repository, filePath, commitHash} = ctx.request.body;
+        if (typeof account === 'undefined' || account === null
+            || typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = account;
+        const {name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Account.validate({username, hash: 'a'.repeat(64)})
+            && Repository.validate({name, isPublic: true, description: '', username: ''})
+            && typeof filePath === 'string'
+            && typeof commitHash === 'string')
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
 export const rawFile = fileInfo;
 
-export const setName: IParameterValidator = body =>
+export const setName: IRouteHandler = () =>
 {
-    const {repository, newRepository} = body;
-    if (typeof newRepository === 'undefined' || newRepository === null
-        || typeof repository === 'undefined' || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {name} = repository;
-    const {name: newName} = newRepository;
-    return Validator.Repository.name(name)
-        && Validator.Repository.name(newName)
-        && Repository.validate({name, isPublic: true, description: '', username: ''})
-        && Repository.validate({name: newName, isPublic: true, description: '', username: ''});
+        const {repository, newRepository} = ctx.request.body;
+        if (typeof newRepository === 'undefined' || newRepository === null
+            || typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {name} = repository;
+        const {name: newName} = newRepository;
+        if (Validator.Repository.name(name)
+            && Validator.Repository.name(newName)
+            && Repository.validate({name, isPublic: true, description: '', username: ''})
+            && Repository.validate({name: newName, isPublic: true, description: '', username: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const setDescription: IParameterValidator = body =>
+export const setDescription: IRouteHandler = () =>
 {
-    const {repository} = body;
-    if (typeof repository === 'undefined' || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {name, description} = repository;
-    return Validator.Repository.name(name)
-        && Repository.validate({name, description, username: '', isPublic: true});
+        const {repository} = ctx.request.body;
+        if (typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {name, description} = repository;
+        if (Validator.Repository.name(name)
+            && Repository.validate({name, description, username: '', isPublic: true}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const setIsPublic: IParameterValidator = body =>
+export const setIsPublic: IRouteHandler = () =>
 {
-    const {repository} = body;
-    if (typeof repository === 'undefined' || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {name, isPublic} = repository;
-    return Validator.Repository.name(name)
-        && Repository.validate({name, isPublic, username: '', description: ''});
+        const {repository} = ctx.request.body;
+        if (typeof repository === 'undefined' || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {name, isPublic} = repository;
+        if (Validator.Repository.name(name)
+            && Repository.validate({name, isPublic, username: '', description: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const commitHistoryBetweenCommits: IParameterValidator = body =>
+export const commitHistoryBetweenCommits: IRouteHandler = () =>
 {
-    const {repository, baseCommitHash, targetCommitHash, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || typeof baseCommitHash !== 'string'
-        || typeof targetCommitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+        const {repository, baseCommitHash, targetCommitHash, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof baseCommitHash !== 'string'
+            || typeof targetCommitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const commitHistory: IParameterValidator = body =>
+export const commitHistory: IRouteHandler = () =>
 {
-    const {repository, targetCommitHash, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || typeof targetCommitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+        const {repository, targetCommitHash, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof targetCommitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const fileCommitHistoryBetweenCommits: IParameterValidator = body =>
+export const fileCommitHistoryBetweenCommits: IRouteHandler = () =>
 {
-    const {repository, filePath, baseCommitHash, targetCommitHash, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || typeof filePath !== 'string'
-        || typeof baseCommitHash !== 'string'
-        || typeof targetCommitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+        const {repository, filePath, baseCommitHash, targetCommitHash, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof filePath !== 'string'
+            || typeof baseCommitHash !== 'string'
+            || typeof targetCommitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const fileCommitHistory: IParameterValidator = body =>
+export const fileCommitHistory: IRouteHandler = () =>
 {
-    const {repository, filePath, targetCommitHash, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || typeof filePath !== 'string'
-        || typeof targetCommitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+        const {repository, filePath, targetCommitHash, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof filePath !== 'string'
+            || typeof targetCommitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const diffBetweenCommits: IParameterValidator = body =>
+export const diffBetweenCommits: IRouteHandler = () =>
 {
-    const {repository, baseCommitHash, targetCommitHash, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || typeof baseCommitHash !== 'string'
-        || typeof targetCommitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+        const {repository, baseCommitHash, targetCommitHash, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof baseCommitHash !== 'string'
+            || typeof targetCommitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const diffAmountBetweenCommits: IParameterValidator = diffBetweenCommits;
+export const diffAmountBetweenCommits: IRouteHandler = diffBetweenCommits;
 
-export const fileDiffBetweenCommits: IParameterValidator = body =>
+export const fileDiffBetweenCommits: IRouteHandler = () =>
 {
-    const {repository, filePath, baseCommitHash, targetCommitHash} = body;
-    if (repository === undefined || repository === null
-        || typeof filePath !== 'string'
-        || typeof baseCommitHash !== 'string'
-        || typeof targetCommitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+        const {repository, filePath, baseCommitHash, targetCommitHash} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof filePath !== 'string'
+            || typeof baseCommitHash !== 'string'
+            || typeof targetCommitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const commit: IParameterValidator = body =>
+export const commit: IRouteHandler = () =>
 {
-    const {repository, commitHash} = body;
-    if (repository === undefined || repository === null || typeof commitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, isPublic: true, description: ''});
+        const {repository, commitHash} = ctx.request.body;
+        if (repository === undefined || repository === null || typeof commitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, isPublic: true, description: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const commitDiff: IParameterValidator = body =>
+export const commitDiff: IRouteHandler = () =>
 {
-    const {repository, commitHash, offset, limit} = body;
-    if (repository === undefined || repository === null
-        || typeof commitHash !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
-    {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, isPublic: true, description: ''});
+        const {repository, commitHash, offset, limit} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof commitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, isPublic: true, description: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const commitDiffAmount: IParameterValidator = commit;
+export const commitDiffAmount: IRouteHandler = commit;
 
-export const fileCommit: IParameterValidator = body =>
+export const fileCommit: IRouteHandler = () =>
 {
-    const {repository, filePath, commitHash} = body;
-    if (repository === undefined || repository === null
-        || typeof commitHash !== 'string'
-        || typeof filePath !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, isPublic: true, description: ''});
+        const {repository, filePath, commitHash} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || typeof commitHash !== 'string'
+            || typeof filePath !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, isPublic: true, description: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const forkAmount: IParameterValidator = body =>
+export const forkAmount: IRouteHandler = () =>
 {
-    const {username, name} = body;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+    return async (ctx, next) =>
+    {
+        const {username, name} = ctx.request.body;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const forkRepositories: IParameterValidator = forkAmount;
-export const forkFrom: IParameterValidator = forkAmount;
+export const forkRepositories: IRouteHandler = forkAmount;
+export const forkFrom: IRouteHandler = forkAmount;
 
-export const forkCommitHistory: IParameterValidator = body =>
+export const forkCommitHistory: IRouteHandler = () =>
 {
-    const {
-        sourceRepository, sourceRepositoryBranch,
-        targetRepository, targetRepositoryBranch,
-        offset, limit,
-    } = body;
-    if (sourceRepository === undefined
-        || sourceRepository === null
-        || typeof sourceRepositoryBranch !== 'string'
-        || targetRepository === undefined
-        || targetRepository === null
-        || typeof targetRepositoryBranch !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
-    {
-        return false;
-    }
-    const {
-        username: sourceRepositoryUsername,
-        name: sourceRepositoryName,
-    } = sourceRepository;
-    const {
-        username: targetRepositoryUsername,
-        name: targetRepositoryName,
-    } = targetRepository;
-    return Validator.Account.username(sourceRepositoryUsername)
-        && Validator.Repository.name(sourceRepositoryName)
-        && Validator.Account.username(targetRepositoryUsername)
-        && Validator.Repository.name(targetRepositoryName)
-        && Repository.validate(new Repository(
-            sourceRepositoryUsername,
-            sourceRepositoryName, '', false))
-        && Repository.validate(new Repository(
-            targetRepositoryUsername,
-            targetRepositoryName, '', false));
+        const {
+            sourceRepository, sourceRepositoryBranch,
+            targetRepository, targetRepositoryBranch,
+            offset, limit,
+        } = ctx.request.body;
+        if (sourceRepository === undefined
+            || sourceRepository === null
+            || typeof sourceRepositoryBranch !== 'string'
+            || targetRepository === undefined
+            || targetRepository === null
+            || typeof targetRepositoryBranch !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.COMMIT)
+        {
+            throw new WrongParameterError();
+        }
+        const {
+            username: sourceRepositoryUsername,
+            name: sourceRepositoryName,
+        } = sourceRepository;
+        const {
+            username: targetRepositoryUsername,
+            name: targetRepositoryName,
+        } = targetRepository;
+        if (Validator.Account.username(sourceRepositoryUsername)
+            && Validator.Repository.name(sourceRepositoryName)
+            && Validator.Account.username(targetRepositoryUsername)
+            && Validator.Repository.name(targetRepositoryName)
+            && Repository.validate(new Repository(
+                sourceRepositoryUsername,
+                sourceRepositoryName, '', false))
+            && Repository.validate(new Repository(
+                targetRepositoryUsername,
+                targetRepositoryName, '', false)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const forkCommitAmount: IParameterValidator = body =>
+export const forkCommitAmount: IRouteHandler = () =>
 {
-    const {
-        sourceRepository, sourceRepositoryBranch,
-        targetRepository, targetRepositoryBranch,
-    } = body;
-    if (sourceRepository === undefined
-        || sourceRepository === null
-        || typeof sourceRepositoryBranch !== 'string'
-        || targetRepository === undefined
-        || targetRepository === null
-        || typeof targetRepositoryBranch !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {
-        username: sourceRepositoryUsername,
-        name: sourceRepositoryName,
-    } = sourceRepository;
-    const {
-        username: targetRepositoryUsername,
-        name: targetRepositoryName,
-    } = targetRepository;
-    return Validator.Account.username(sourceRepositoryUsername)
-        && Validator.Repository.name(sourceRepositoryName)
-        && Validator.Account.username(targetRepositoryUsername)
-        && Validator.Repository.name(targetRepositoryName)
-        && Repository.validate(new Repository(
-            sourceRepositoryUsername,
-            sourceRepositoryName, '', false))
-        && Repository.validate(new Repository(
-            targetRepositoryUsername,
-            targetRepositoryName, '', false));
+        const {
+            sourceRepository, sourceRepositoryBranch,
+            targetRepository, targetRepositoryBranch,
+        } = ctx.request.body;
+        if (sourceRepository === undefined
+            || sourceRepository === null
+            || typeof sourceRepositoryBranch !== 'string'
+            || targetRepository === undefined
+            || targetRepository === null
+            || typeof targetRepositoryBranch !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {
+            username: sourceRepositoryUsername,
+            name: sourceRepositoryName,
+        } = sourceRepository;
+        const {
+            username: targetRepositoryUsername,
+            name: targetRepositoryName,
+        } = targetRepository;
+        if (Validator.Account.username(sourceRepositoryUsername)
+            && Validator.Repository.name(sourceRepositoryName)
+            && Validator.Account.username(targetRepositoryUsername)
+            && Validator.Repository.name(targetRepositoryName)
+            && Repository.validate(new Repository(
+                sourceRepositoryUsername,
+                sourceRepositoryName, '', false))
+            && Repository.validate(new Repository(
+                targetRepositoryUsername,
+                targetRepositoryName, '', false)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const forkFileDiff: IParameterValidator = body =>
+export const forkFileDiff: IRouteHandler = () =>
 {
-    const {
-        sourceRepository, sourceRepositoryBranch,
-        targetRepository, targetRepositoryBranch,
-        offset, limit,
-    } = body;
-    if (sourceRepository === undefined
-        || sourceRepository === null
-        || typeof sourceRepositoryBranch !== 'string'
-        || targetRepository === undefined
-        || targetRepository === null
-        || typeof targetRepositoryBranch !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (!Number.isInteger(offset) || !Number.isInteger(limit)
-        || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
-    {
-        return false;
-    }
-    const {
-        username: sourceRepositoryUsername,
-        name: sourceRepositoryName,
-    } = sourceRepository;
-    const {
-        username: targetRepositoryUsername,
-        name: targetRepositoryName,
-    } = targetRepository;
-    return Validator.Account.username(sourceRepositoryUsername)
-        && Validator.Repository.name(sourceRepositoryName)
-        && Validator.Account.username(targetRepositoryUsername)
-        && Validator.Repository.name(targetRepositoryName)
-        && Repository.validate(new Repository(
-            sourceRepositoryUsername,
-            sourceRepositoryName, '', false))
-        && Repository.validate(new Repository(
-            targetRepositoryUsername,
-            targetRepositoryName, '', false));
+        const {
+            sourceRepository, sourceRepositoryBranch,
+            targetRepository, targetRepositoryBranch,
+            offset, limit,
+        } = ctx.request.body;
+        if (sourceRepository === undefined
+            || sourceRepository === null
+            || typeof sourceRepositoryBranch !== 'string'
+            || targetRepository === undefined
+            || targetRepository === null
+            || typeof targetRepositoryBranch !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        if (!Number.isInteger(offset) || !Number.isInteger(limit)
+            || offset < 0 || limit < 0 || limit > LIMITS.DIFF)
+        {
+            throw new WrongParameterError();
+        }
+        const {
+            username: sourceRepositoryUsername,
+            name: sourceRepositoryName,
+        } = sourceRepository;
+        const {
+            username: targetRepositoryUsername,
+            name: targetRepositoryName,
+        } = targetRepository;
+        if (Validator.Account.username(sourceRepositoryUsername)
+            && Validator.Repository.name(sourceRepositoryName)
+            && Validator.Account.username(targetRepositoryUsername)
+            && Validator.Repository.name(targetRepositoryName)
+            && Repository.validate(new Repository(
+                sourceRepositoryUsername,
+                sourceRepositoryName, '', false))
+            && Repository.validate(new Repository(
+                targetRepositoryUsername,
+                targetRepositoryName, '', false)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const forkFileDiffAmount: IParameterValidator = forkCommitAmount;
+export const forkFileDiffAmount: IRouteHandler = forkCommitAmount;
 
-export const hasCommonAncestor: IParameterValidator = body =>
+export const hasCommonAncestor: IRouteHandler = () =>
 {
-    const {
-        sourceRepository, sourceRepositoryBranchName,
-        targetRepository, targetRepositoryBranchName,
-    } = body;
-    if (sourceRepository === undefined
-        || sourceRepository === null
-        || typeof sourceRepositoryBranchName !== 'string'
-        || targetRepository === undefined
-        || targetRepository === null
-        || typeof targetRepositoryBranchName !== 'string')
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {
-        username: sourceRepositoryUsername,
-        name: sourceRepositoryName,
-    } = sourceRepository;
-    const {
-        username: targetRepositoryUsername,
-        name: targetRepositoryName,
-    } = targetRepository;
-    return Validator.Account.username(sourceRepositoryUsername)
-        && Validator.Repository.name(sourceRepositoryName)
-        && Validator.Account.username(targetRepositoryUsername)
-        && Validator.Repository.name(targetRepositoryName)
-        && Repository.validate(new Repository(
-            sourceRepositoryUsername,
-            sourceRepositoryName, '', false))
-        && Repository.validate(new Repository(
-            targetRepositoryUsername,
-            targetRepositoryName, '', false));
+        const {
+            sourceRepository, sourceRepositoryBranchName,
+            targetRepository, targetRepositoryBranchName,
+        } = ctx.request.body;
+        if (sourceRepository === undefined
+            || sourceRepository === null
+            || typeof sourceRepositoryBranchName !== 'string'
+            || targetRepository === undefined
+            || targetRepository === null
+            || typeof targetRepositoryBranchName !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {
+            username: sourceRepositoryUsername,
+            name: sourceRepositoryName,
+        } = sourceRepository;
+        const {
+            username: targetRepositoryUsername,
+            name: targetRepositoryName,
+        } = targetRepository;
+        if (Validator.Account.username(sourceRepositoryUsername)
+            && Validator.Repository.name(sourceRepositoryName)
+            && Validator.Account.username(targetRepositoryUsername)
+            && Validator.Repository.name(targetRepositoryName)
+            && Repository.validate(new Repository(
+                sourceRepositoryUsername,
+                sourceRepositoryName, '', false))
+            && Repository.validate(new Repository(
+                targetRepositoryUsername,
+                targetRepositoryName, '', false)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };

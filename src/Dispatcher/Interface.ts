@@ -21,3 +21,8 @@ export interface IRouteHandler
 {
     (): Router.Middleware<IState, IContext>
 }
+
+export interface IDispatcher
+{
+    (router: Router<IState, IContext>): void
+}

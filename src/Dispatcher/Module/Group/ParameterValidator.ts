@@ -1,97 +1,151 @@
-import {IParameterValidator} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {Account, Group, Repository} from '../../../Class';
 import Validator from '../../Validator';
 import {LIMITS} from '../../../CONFIG';
+import {WrongParameterError} from '../../Class';
 
 const {GROUP_ID} = LIMITS;
 
-export const add: IParameterValidator = body =>
+export const add: IRouteHandler = () =>
 {
-    const {group} = body;
-    if (group === undefined || group === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {name} = group;
-    return Validator.Group.name(name);
+        const {group} = ctx.request.ctx.request.body;
+        if (group === undefined || group === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {name} = group;
+        if (Validator.Group.name(name))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const dismiss: IParameterValidator = body =>
+export const dismiss: IRouteHandler = () =>
 {
-    const {group} = body;
-    if (group === undefined || group === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {id} = group;
-    return id >= GROUP_ID.MIN
-        && id <= GROUP_ID.MAX
-        && Group.validate(new Group(id, ''));
+        const {group} = ctx.request.body;
+        if (group === undefined || group === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = group;
+        if (id >= GROUP_ID.MIN
+            && id <= GROUP_ID.MAX
+            && Group.validate(new Group(id, '')))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
 export const info = dismiss;
 
-export const changeName: IParameterValidator = body =>
+export const changeName: IRouteHandler = () =>
 {
-    const {id, name} = body;
-    return id >= GROUP_ID.MIN
-        && id <= GROUP_ID.MAX
-        && Validator.Group.name(name)
-        && Group.validate(new Group(id, name));
+    return async (ctx, next) =>
+    {
+        const {id, name} = ctx.request.body;
+        if (id >= GROUP_ID.MIN
+            && id <= GROUP_ID.MAX
+            && Validator.Group.name(name)
+            && Group.validate(new Group(id, name)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
 export const accounts = dismiss;
 
-export const addAccount: IParameterValidator = body =>
+export const addAccount: IRouteHandler = () =>
 {
-    const {group, account} = body;
-    if (group === undefined || group === null
-        || account === undefined || account === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {id} = group;
-    const {username} = account;
-    return Group.validate({id, name: 'dad'})
-        && Validator.Account.username(username);
+        const {group, account} = ctx.request.body;
+        if (group === undefined || group === null
+            || account === undefined || account === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = group;
+        const {username} = account;
+        if (Group.validate({id, name: 'dad'})
+            && Validator.Account.username(username))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const addAccounts: IParameterValidator = body =>
+export const addAccounts: IRouteHandler = () =>
 {
-    const {group, usernames} = body;
-    if (group === undefined || group === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {id} = group;
-    if (!Group.validate(new Group(id, '')) || !Array.isArray(usernames))
-    {
-        return false;
-    }
-    else if (id > GROUP_ID.MAX || id < GROUP_ID.MIN)
-    {
-        return false;
-    }
-    else    // Group.validate(new Group(id, '')) && Array.isArray(usernames)
-    {
-        for (const username of usernames)
+        const {group, usernames} = ctx.request.body;
+        if (group === undefined || group === null)
         {
-            if (!Validator.Account.username(username))
-            {
-                return false;
-            }
+            throw new WrongParameterError();
         }
-        return true;
-    }
+        const {id} = group;
+        if (!Group.validate(new Group(id, '')) || !Array.isArray(usernames))
+        {
+            throw new WrongParameterError();
+        }
+        else if (id > GROUP_ID.MAX || id < GROUP_ID.MIN)
+        {
+            throw new WrongParameterError();
+        }
+        else    // Group.validate(new Group(id, '')) && Array.isArray(usernames)
+        {
+            for (const username of usernames)
+            {
+                if (!Validator.Account.username(username))
+                {
+                    throw new WrongParameterError();
+                }
+            }
+            await next();
+        }
+    };
 };
 
 export const removeAccounts = addAccounts;
 
-export const getByAccount: IParameterValidator = body =>
+export const getByAccount: IRouteHandler = () =>
 {
-    const {username} = body;
-    return Validator.Account.username(username)
-        && Account.validate({username, hash: ''});
+    return async (ctx, next) =>
+    {
+        const {username} = ctx.request.body;
+        if (Validator.Account.username(username)
+            && Account.validate({username, hash: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
 export const getAdministratingByAccount = getByAccount;
@@ -104,67 +158,90 @@ export const addAdmins = addAccounts;
 
 export const removeAdmins = removeAccounts;
 
-export const getByRepository: IParameterValidator = body =>
+export const getByRepository: IRouteHandler = () =>
 {
-    const {repository} = body;
-    if (repository === undefined || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: true});
+        const {repository} = ctx.request.body;
+        if (repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: true}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
 export const repositories = dismiss;
 
-export const addRepository: IParameterValidator = body =>
+export const addRepository: IRouteHandler = () =>
 {
-    const {group, repository} = body;
-    if (group === undefined || group === null
-        || repository === undefined || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {id} = group;
-    const {username, name} = repository;
-    return id >= GROUP_ID.MIN
-        && id <= GROUP_ID.MAX
-        && Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Group.validate(new Group(id, ''))
-        && Repository.validate(new Repository(username, name, '', false));
+        const {group, repository} = ctx.request.body;
+        if (group === undefined || group === null
+            || repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {id} = group;
+        const {username, name} = repository;
+        if (id >= GROUP_ID.MIN
+            && id <= GROUP_ID.MAX
+            && Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Group.validate(new Group(id, ''))
+            && Repository.validate(new Repository(username, name, '', false)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const removeRepositories: IParameterValidator = body =>
+export const removeRepositories: IRouteHandler = () =>
 {
-    const {group, repositories} = body;
-    if (group === undefined || group === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {id} = group;
-    if (!Group.validate(new Group(id, '')) || !Array.isArray(repositories))
-    {
-        return false;
-    }
-    else if (id > GROUP_ID.MAX || id < GROUP_ID.MIN)
-    {
-        return false;
-    }
-    else    // Group.validate(new Group(id, '')) && Array.isArray(repositories)
-    {
-        for (const repository of repositories)
+        const {group, repositories} = ctx.request.body;
+        if (group === undefined || group === null)
         {
-            const {username, name} = repository;
-            if (!Validator.Account.username(username) || !Validator.Repository.name(name))
-            {
-                return false;
-            }
+            throw new WrongParameterError();
         }
-        return true;
-    }
+        const {id} = group;
+        if (!Group.validate(new Group(id, '')) || !Array.isArray(repositories))
+        {
+            throw new WrongParameterError();
+        }
+        else if (id > GROUP_ID.MAX || id < GROUP_ID.MIN)
+        {
+            throw new WrongParameterError();
+        }
+        else    // Group.validate(new Group(id, '')) && Array.isArray(repositories)
+        {
+            for (const repository of repositories)
+            {
+                const {username, name} = repository;
+                if (!Validator.Account.username(username) || !Validator.Repository.name(name))
+                {
+                    throw new WrongParameterError();
+                }
+            }
+            await next();
+        }
+    };
 };
 
 export const isAdmin = dismiss;

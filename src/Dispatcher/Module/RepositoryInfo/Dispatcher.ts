@@ -1,4 +1,3 @@
-import Router from '@koa/router';
 import {
     BRANCH_NAMES,
     BRANCHES,
@@ -69,40 +68,42 @@ import {
     setIsPublic,
     setName,
 } from './Middleware';
-import {IContext, IState} from '../../Interface';
+import {IDispatcher} from '../../Interface';
+import sessionChecker from '../../Middleware/sessionChecker';
+import * as ParameterValidator from './ParameterValidator';
 
-export default (router: Router<IState, IContext>) =>
+export default (router =>
 {
-    router.get(REPOSITORY, JSONQuerystringParser(), repository())
-        .get(BRANCHES, JSONQuerystringParser(), branches())
-        .get(BRANCH_NAMES, JSONQuerystringParser(), branchNames())
-        .get(LAST_BRANCH_COMMIT, JSONQuerystringParser(), lastBranchCommit())
-        .get(LAST_COMMIT, JSONQuerystringParser(), lastCommit())
-        .get(DIRECTORY, JSONQuerystringParser(), directory())
-        .get(COMMIT_COUNT, JSONQuerystringParser(), commitCount())
-        .get(COMMIT_COUNT_BETWEEN_COMMITS, JSONQuerystringParser(), commitCountBetweenCommits())
-        .get(FILE_INFO, JSONQuerystringParser(), fileInfo())
-        .get(RAW_FILE, JSONQuerystringParser(), rawFile())
-        .post(SET_NAME, bodyParser(), setName())
-        .post(SET_DESCRIPTION, bodyParser(), setDescription())
-        .post(SET_IS_PUBLIC, bodyParser(), setIsPublic())
-        .get(COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), commitHistoryBetweenCommits())
-        .get(COMMIT_HISTORY, JSONQuerystringParser(), commitHistory())
-        .get(FILE_COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), fileCommitHistoryBetweenCommits())
-        .get(FILE_COMMIT_HISTORY, JSONQuerystringParser(), fileCommitHistory())
-        .get(DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), diffBetweenCommits())
-        .get(DIFF_AMOUNT_BETWEEN_COMMITS, JSONQuerystringParser(), diffAmountBetweenCommits())
-        .get(FILE_DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), fileDiffBetweenCommits())
-        .get(COMMIT, JSONQuerystringParser(), commit())
-        .get(COMMIT_DIFF, JSONQuerystringParser(), commitDiff())
-        .get(COMMIT_DIFF_AMOUNT, JSONQuerystringParser(), commitDiffAmount())
-        .get(FILE_COMMIT, JSONQuerystringParser(), fileCommit())
-        .get(FORK_AMOUNT, JSONQuerystringParser(), forkAmount())
-        .get(FORK_REPOSITORIES, JSONQuerystringParser(), forkRepositories())
-        .get(FORK_FROM, JSONQuerystringParser(), forkFrom())
-        .get(FORK_COMMIT_HISTORY, JSONQuerystringParser(), forkCommitHistory())
-        .get(FORK_COMMIT_AMOUNT, JSONQuerystringParser(), forkCommitAmount())
-        .get(FORK_FILE_DIFF, JSONQuerystringParser(), forkFileDiff())
-        .get(FORK_FILE_DIFF_AMOUNT, JSONQuerystringParser(), forkFileDiffAmount())
-        .get(HAS_COMMON_ANCESTOR, JSONQuerystringParser(), hasCommonAncestor());
-};
+    router.get(REPOSITORY, JSONQuerystringParser(), ParameterValidator.repository(), repository())
+        .get(BRANCHES, JSONQuerystringParser(), ParameterValidator.branches(), branches())
+        .get(BRANCH_NAMES, JSONQuerystringParser(), ParameterValidator.branchNames(), branchNames())
+        .get(LAST_BRANCH_COMMIT, JSONQuerystringParser(), ParameterValidator.lastBranchCommit(), lastBranchCommit())
+        .get(LAST_COMMIT, JSONQuerystringParser(), ParameterValidator.lastCommit(), lastCommit())
+        .get(DIRECTORY, JSONQuerystringParser(), ParameterValidator.directory(), directory())
+        .get(COMMIT_COUNT, JSONQuerystringParser(), ParameterValidator.commitCount(), commitCount())
+        .get(COMMIT_COUNT_BETWEEN_COMMITS, JSONQuerystringParser(), ParameterValidator.commitCountBetweenCommits(), commitCountBetweenCommits())
+        .get(FILE_INFO, JSONQuerystringParser(), ParameterValidator.fileInfo(), fileInfo())
+        .get(RAW_FILE, JSONQuerystringParser(), ParameterValidator.rawFile(), rawFile())
+        .post(SET_NAME, sessionChecker(), bodyParser(), ParameterValidator.setName(), setName())
+        .post(SET_DESCRIPTION, sessionChecker(), bodyParser(), ParameterValidator.setDescription(), setDescription())
+        .post(SET_IS_PUBLIC, sessionChecker(), bodyParser(), ParameterValidator.setIsPublic(), setIsPublic())
+        .get(COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), ParameterValidator.commitHistoryBetweenCommits(), commitHistoryBetweenCommits())
+        .get(COMMIT_HISTORY, JSONQuerystringParser(), ParameterValidator.commitHistory(), commitHistory())
+        .get(FILE_COMMIT_HISTORY_BETWEEN_COMMITS, JSONQuerystringParser(), ParameterValidator.fileCommitHistoryBetweenCommits(), fileCommitHistoryBetweenCommits())
+        .get(FILE_COMMIT_HISTORY, JSONQuerystringParser(), ParameterValidator.fileCommitHistory(), fileCommitHistory())
+        .get(DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), ParameterValidator.diffAmountBetweenCommits(), diffBetweenCommits())
+        .get(DIFF_AMOUNT_BETWEEN_COMMITS, JSONQuerystringParser(), ParameterValidator.diffAmountBetweenCommits(), diffAmountBetweenCommits())
+        .get(FILE_DIFF_BETWEEN_COMMITS, JSONQuerystringParser(), ParameterValidator.fileDiffBetweenCommits(), fileDiffBetweenCommits())
+        .get(COMMIT, JSONQuerystringParser(), ParameterValidator.commit(), commit())
+        .get(COMMIT_DIFF, JSONQuerystringParser(), ParameterValidator.commitDiff(), commitDiff())
+        .get(COMMIT_DIFF_AMOUNT, JSONQuerystringParser(), ParameterValidator.commitDiffAmount(), commitDiffAmount())
+        .get(FILE_COMMIT, JSONQuerystringParser(), ParameterValidator.fileCommit(), fileCommit())
+        .get(FORK_AMOUNT, JSONQuerystringParser(), ParameterValidator.forkAmount(), forkAmount())
+        .get(FORK_REPOSITORIES, JSONQuerystringParser(), ParameterValidator.forkRepositories(), forkRepositories())
+        .get(FORK_FROM, JSONQuerystringParser(), ParameterValidator.forkFrom(), forkFrom())
+        .get(FORK_COMMIT_HISTORY, JSONQuerystringParser(), ParameterValidator.forkCommitHistory(), forkCommitHistory())
+        .get(FORK_COMMIT_AMOUNT, JSONQuerystringParser(), ParameterValidator.forkCommitAmount(), forkCommitAmount())
+        .get(FORK_FILE_DIFF, JSONQuerystringParser(), ParameterValidator.forkFileDiff(), forkFileDiff())
+        .get(FORK_FILE_DIFF_AMOUNT, JSONQuerystringParser(), ParameterValidator.forkFileDiffAmount(), forkFileDiffAmount())
+        .get(HAS_COMMON_ANCESTOR, JSONQuerystringParser(), ParameterValidator.hasCommonAncestor(), hasCommonAncestor());
+}) as IDispatcher;

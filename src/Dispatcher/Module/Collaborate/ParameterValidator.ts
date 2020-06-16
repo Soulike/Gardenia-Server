@@ -1,60 +1,101 @@
-import {IParameterValidator} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {Account, Repository} from '../../../Class';
 import Validator from '../../Validator';
+import {WrongParameterError} from '../../Class';
 
-export const generateCode: IParameterValidator = body =>
+export const generateCode: IRouteHandler = () =>
 {
-    const {repository} = body;
-    if (repository === undefined || repository === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username, name} = repository;
-    return Validator.Account.username(username)
-        && Validator.Repository.name(name)
-        && Repository.validate({username, name, description: '', isPublic: false});
+        const {repository} = ctx.request.body;
+        if (repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, description: '', isPublic: false}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const add: IParameterValidator = body =>
+export const add: IRouteHandler = () =>
 {
-    const {code} = body;
-    return Validator.Collaborator.code(code);
+    return async (ctx, next) =>
+    {
+        const {code} = ctx.request.body;
+        if (Validator.Collaborator.code(code))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const remove: IParameterValidator = body =>
+export const remove: IRouteHandler = () =>
 {
-    const {repository, account} = body;
-    if (repository === undefined || repository === null
-        || account === undefined || account === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {username: usernameOfRepository, name} = repository;
-    const {username} = account;
-    return Validator.Account.username(usernameOfRepository)
-        && Validator.Repository.name(name)
-        && Validator.Account.username(username)
-        && Repository.validate({username: usernameOfRepository, name, isPublic: false, description: ''})
-        && Account.validate({username, hash: ''});
+        const {repository, account} = ctx.request.body;
+        if (repository === undefined || repository === null
+            || account === undefined || account === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username: usernameOfRepository, name} = repository;
+        const {username} = account;
+        if (Validator.Account.username(usernameOfRepository)
+            && Validator.Repository.name(name)
+            && Validator.Account.username(username)
+            && Repository.validate({username: usernameOfRepository, name, isPublic: false, description: ''})
+            && Account.validate({username, hash: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const getCollaborators: IParameterValidator = generateCode;
-export const getCollaboratorsAmount: IParameterValidator = generateCode;
+export const getCollaborators: IRouteHandler = generateCode;
+export const getCollaboratorsAmount: IRouteHandler = generateCode;
 
-export const getCollaboratingRepositories: IParameterValidator = body =>
+export const getCollaboratingRepositories: IRouteHandler = () =>
 {
-    const {account} = body;
-    if (account === undefined)
+    return async (ctx, next) =>
     {
-        return true;
-    }
-    if (account === null)
-    {
-        return false;
-    }
-    const {username} = account;
-    return Validator.Account.username(username)
-        && Account.validate({username, hash: ''});
+        const {account} = ctx.request.body;
+        if (account === undefined)
+        {
+            return await next();
+        }
+        if (account === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username} = account;
+        if (Validator.Account.username(username)
+            && Account.validate({username, hash: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const getCollaboratingRepositoriesAmount: IParameterValidator = getCollaboratingRepositories;
+export const getCollaboratingRepositoriesAmount: IRouteHandler = getCollaboratingRepositories;

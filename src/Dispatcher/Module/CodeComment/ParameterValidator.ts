@@ -1,76 +1,117 @@
-import {IParameterValidator} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import {CodeComment} from '../../../Class';
 import Validator from '../../Validator';
 import {LIMITS} from '../../../CONFIG';
+import {WrongParameterError} from '../../Class';
 
 const {CODE_COMMENT_ID, CODE_COMMENT_LINE_NUMBER} = LIMITS;
 
-export const add: IParameterValidator = body =>
+export const add: IRouteHandler = () =>
 {
-    const {
-        repositoryUsername, repositoryName,
-        filePath, columnNumber, content, creationCommitHash,
-    } = body;
-    if (columnNumber <= 0)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    return Validator.Account.username(repositoryUsername)
-        && Validator.Repository.name(repositoryName)
-        && Validator.Repository.codeCommentContent(content)
-        && columnNumber >= CODE_COMMENT_LINE_NUMBER.MIN
-        && columnNumber <= CODE_COMMENT_LINE_NUMBER.MAX
-        && CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName,
-            filePath, columnNumber, content, '', creationCommitHash,
-            0, 0));
+        const {
+            repositoryUsername, repositoryName,
+            filePath, columnNumber, content, creationCommitHash,
+        } = ctx.request.body;
+        if (columnNumber <= 0)
+        {
+            throw new WrongParameterError();
+        }
+        if (Validator.Account.username(repositoryUsername)
+            && Validator.Repository.name(repositoryName)
+            && Validator.Repository.codeCommentContent(content)
+            && columnNumber >= CODE_COMMENT_LINE_NUMBER.MIN
+            && columnNumber <= CODE_COMMENT_LINE_NUMBER.MAX
+            && CodeComment.validate(new CodeComment(0, repositoryUsername, repositoryName,
+                filePath, columnNumber, content, '', creationCommitHash,
+                0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const del: IParameterValidator = body =>
+export const del: IRouteHandler = () =>
 {
-    const {id} = body;
-    return id >= CODE_COMMENT_ID.MIN
-        && id <= CODE_COMMENT_ID.MAX
-        && CodeComment.validate(new CodeComment(id, '', '', '', 1, '', '', '', 0, 0));
+    return async (ctx, next) =>
+    {
+        const {id} = ctx.request.body;
+        if (id >= CODE_COMMENT_ID.MIN
+            && id <= CODE_COMMENT_ID.MAX
+            && CodeComment.validate(new CodeComment(id, '', '', '', 1, '', '', '', 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const get: IParameterValidator = body =>
+export const get: IRouteHandler = () =>
 {
-    const {codeComment, commitHash} = body;
-    if (codeComment === undefined || codeComment === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    if (typeof commitHash !== 'string')
-    {
-        return false;
-    }
-    const {repositoryUsername, repositoryName, filePath, columnNumber} = codeComment;
-    if (Number.isInteger(columnNumber) &&
-        (columnNumber < CODE_COMMENT_LINE_NUMBER.MIN
-            || columnNumber > CODE_COMMENT_LINE_NUMBER.MAX))
-    {
-        return false;
-    }
-    return CodeComment.validate(new CodeComment(
-        0,
-        repositoryUsername, repositoryName, filePath,
-        columnNumber ? columnNumber : 1,
-        '', '', '',
-        0, 0));
+        const {codeComment, commitHash} = ctx.request.body;
+        if (codeComment === undefined || codeComment === null)
+        {
+            throw new WrongParameterError();
+        }
+        if (typeof commitHash !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {repositoryUsername, repositoryName, filePath, columnNumber} = codeComment;
+        if (Number.isInteger(columnNumber) &&
+            (columnNumber < CODE_COMMENT_LINE_NUMBER.MIN
+                || columnNumber > CODE_COMMENT_LINE_NUMBER.MAX))
+        {
+            throw new WrongParameterError();
+        }
+        if (CodeComment.validate(new CodeComment(
+            0,
+            repositoryUsername, repositoryName, filePath,
+            columnNumber ? columnNumber : 1,
+            '', '', '',
+            0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const update: IParameterValidator = body =>
+export const update: IRouteHandler = () =>
 {
-    const {codeComment, primaryKey} = body;
-    if (codeComment === undefined || codeComment === null
-        || primaryKey === undefined || primaryKey === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    const {content} = codeComment;
-    const {id} = primaryKey;
-    return id >= CODE_COMMENT_ID.MIN
-        && id <= CODE_COMMENT_ID.MAX
-        && Validator.Repository.codeCommentContent(content)
-        && CodeComment.validate(new CodeComment(id, '', '', '', 1, content, '', '', 0, 0));
+        const {codeComment, primaryKey} = ctx.request.body;
+        if (codeComment === undefined || codeComment === null
+            || primaryKey === undefined || primaryKey === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {content} = codeComment;
+        const {id} = primaryKey;
+        if (id >= CODE_COMMENT_ID.MIN
+            && id <= CODE_COMMENT_ID.MAX
+            && Validator.Repository.codeCommentContent(content)
+            && CodeComment.validate(new CodeComment(id, '', '', '', 1, content, '', '', 0, 0)))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };

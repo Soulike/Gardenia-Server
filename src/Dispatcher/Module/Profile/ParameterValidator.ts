@@ -1,52 +1,117 @@
-import {IParameterValidator} from '../../Interface';
+import {IRouteHandler} from '../../Interface';
 import Validator from '../../Validator';
 import {LIMITS} from '../../../CONFIG';
+import {WrongParameterError} from '../../Class';
 
-export const get: IParameterValidator = body =>
+export const get: IRouteHandler = () =>
 {
-    const {account} = body;
-    if (typeof account === 'undefined' || account === null)
+    return async (ctx, next) =>
     {
-        return true;
-    }
-    const {username} = account;
-    return typeof username === 'string';    // 这里不用 validate 方法是因为允许 username 是任何字符串
+        const {account} = ctx.request.body;
+        if (typeof account === 'undefined' || account === null)
+        {
+            return await next();
+        }
+        const {username} = account;
+        if (typeof username === 'string')    // 这里不用 validate 方法是因为允许 username 是任何字符串
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
 
-export const getByEmail: IParameterValidator = body =>
+export const getByEmail: IRouteHandler = () =>
 {
-    const {email} = body;
-    return typeof email === 'string'; // 这里不用 validate 方法是因为允许 email 是不是邮箱的字符串
-};
-
-export const setNickname: IParameterValidator = body =>
-{
-    const {nickname} = body;
-    return Validator.Profile.nickname(nickname);
-};
-
-export const setEmail: IParameterValidator = body =>
-{
-    const {email, verificationCode} = body;
-    return Validator.Profile.email(email) && typeof verificationCode === 'string';
-};
-
-export const sendSetEmailVerificationCodeToEmail: IParameterValidator = body =>
-{
-    const {email} = body;
-    return Validator.Profile.email(email);
-};
-
-export const uploadAvatar: IParameterValidator = body =>
-{
-    const {avatar} = body; // 这里的 avatar 是 File 类型
-    if (typeof avatar === 'undefined' || avatar === null)
+    return async (ctx, next) =>
     {
-        return false;
-    }
-    // 限制文件的类型和尺寸
-    const {size, type} = avatar;
-    return typeof type === 'string'
-        && LIMITS.AVATAR_MIME_TYPES.includes(type)
-        && size <= LIMITS.AVATAR_SIZE;
+        const {email} = ctx.request.body;
+        if (typeof email === 'string') // 这里不用 validate 方法是因为允许 email 是不是邮箱的字符串
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const setNickname: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {nickname} = ctx.request.body;
+        if (Validator.Profile.nickname(nickname))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const setEmail: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {email, verificationCode} = ctx.request.body;
+        if (Validator.Profile.email(email) && typeof verificationCode === 'string')
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const sendSetEmailVerificationCodeToEmail: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {email} = ctx.request.body;
+        if (Validator.Profile.email(email))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
+
+export const uploadAvatar: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        if (ctx.request.files === undefined || ctx.request.files === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {avatar} = ctx.request.files; // 这里的 avatar 是 File 类型
+        if (typeof avatar === 'undefined' || avatar === null)
+        {
+            throw new WrongParameterError();
+        }
+        // 限制文件的类型和尺寸
+        const {size, type} = avatar;
+        if (typeof type === 'string'
+            && LIMITS.AVATAR_MIME_TYPES.includes(type)
+            && size <= LIMITS.AVATAR_SIZE)
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
 };
