@@ -122,7 +122,7 @@ export async function setCollaborateCode(code: string, repository: Pick<Reposito
     const result = await redis.set(code, JSON.stringify(repository), 'EX', 7 * 24 * 60 * 60); // 单位是秒
     if (result !== 'OK')
     {
-        throw new Error(result);
+        throw new Error('Redis 设置验证码失败');
     }
 }
 
