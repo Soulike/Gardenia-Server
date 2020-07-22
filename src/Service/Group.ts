@@ -3,6 +3,7 @@ import {
     Account as AccountTable,
     AccountGroup as AccountGroupTable,
     Group as GroupTable,
+    GroupRelated,
     Repository as RepositoryTable,
     RepositoryGroup as RepositoryGroupTable,
 } from '../Database';
@@ -17,7 +18,7 @@ export async function add(group: Readonly<Omit<Group, 'id'>>, usernameInSession:
         return new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, `已存在同名小组`));
     }
-    const groupId = await GroupTable.insertAndReturnId({name}, usernameInSession);
+    const groupId = await GroupRelated.createdGroupAndReturnId({name}, usernameInSession);
     return new ServiceResponse<Pick<Group, 'id'>>(200, {},
         new ResponseBody<Pick<Group, 'id'>>(true, '', {id: groupId}));
 }

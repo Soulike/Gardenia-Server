@@ -1,5 +1,5 @@
 import {Repository, ResponseBody, ServiceResponse} from '../Class';
-import {PullRequest as PullRequestTable, Repository as RepositoryTable} from '../Database';
+import {PullRequest as PullRequestTable, Repository as RepositoryTable, RepositoryRelated} from '../Database';
 import {SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
@@ -126,7 +126,10 @@ export async function del(repository: Readonly<Pick<Repository, 'name'>>, userna
             try
             {
                 // 在数据库中标记删除
-                await RepositoryTable.markDeleteByUsernameAndName({username: usernameInSession, name: deletedName});
+                await RepositoryRelated.markRepositoryDeletedByUsernameAndName({
+                    username: usernameInSession,
+                    name: deletedName,
+                });
             }
             catch (e)   // 标记删除失败了，把名字改回去
             {
@@ -200,7 +203,7 @@ export async function fork(sourceRepository: Pick<Repository, 'username' | 'name
     try
     {
         await cloneBareRepository(sourceRepositoryPath, targetRepositoryPath);
-        await RepositoryTable.fork(sourceRepository, {username: usernameInSession, name});
+        await RepositoryRelated.forkRepository(sourceRepository, {username: usernameInSession, name});
     }
     catch (e)
     {
