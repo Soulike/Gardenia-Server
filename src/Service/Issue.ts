@@ -1,5 +1,10 @@
 import {Issue, IssueComment, Repository, ResponseBody, ServiceResponse} from '../Class';
-import {Issue as IssueTable, IssueComment as IssueCommentTable, Repository as RepositoryTable} from '../Database';
+import {
+    Issue as IssueTable,
+    IssueComment as IssueCommentTable,
+    IssueRelated,
+    Repository as RepositoryTable,
+} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 import {ISSUE_STATUS} from '../CONSTANT';
 import {ILoggedInSession, ISession} from '../Interface';
@@ -19,7 +24,7 @@ export async function add(issue: Readonly<Pick<Issue, 'repositoryUsername' | 're
     }
     const maxNo = await IssueTable.selectMaxNoOfRepository({repositoryUsername, repositoryName});
     const timestamp = Date.now();
-    await IssueTable.insertAndReturnId({
+    await IssueRelated.createIssueAndReturnId({
         repositoryUsername,
         repositoryName,
         title,

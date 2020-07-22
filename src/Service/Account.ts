@@ -1,5 +1,5 @@
 import {Account, Profile, ResponseBody, ServiceResponse} from '../Class';
-import {Account as AccountTable, Profile as ProfileTable} from '../Database';
+import {Account as AccountTable, AccountRelated, Profile as ProfileTable} from '../Database';
 import {Authentication, Mail, Session as SessionFunction} from '../Function';
 import {VERIFICATION_CODE_TYPE} from '../CONSTANT';
 import {ILoggedInSession, ISession} from '../Interface';
@@ -53,7 +53,7 @@ export async function register(account: Readonly<Account>, profile: Readonly<Omi
         return new ServiceResponse<void>(200, {},
             new ResponseBody<void>(false, `邮箱 ${email} 已被使用`));
     }
-    await AccountTable.create(account, {username: account.username, ...profile});
+    await AccountRelated.register(account, {username: account.username, ...profile});
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true), {verification: undefined});
 }
