@@ -7,6 +7,7 @@ import {
     Repository as RepositoryTable,
 } from '../Database';
 import {ILoggedInSession, ISession} from '../Interface';
+import {CollaborateCode as CollaborateCodeRAMDatabase} from '../RAMDatabase';
 
 export async function generateCode(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ code: string } | void>>
 {
@@ -22,14 +23,14 @@ export async function generateCode(repository: Pick<Repository, 'username' | 'na
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const code = RepositoryFunction.generateCollaborateCode(repository);
-    await RepositoryFunction.setCollaborateCode(code, repository);
+    await CollaborateCodeRAMDatabase.setCollaborateCodeToRepository(code, repository);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {code}));
 }
 
 export async function add(code: string, username: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
-    const repositoryPk = await RepositoryFunction.getCollaborateCodeRepository(code);
+    const repositoryPk = await CollaborateCodeRAMDatabase.getRepositoryFromCollaborateCode(code);
     if (repositoryPk === null)
     {
         return new ServiceResponse<void>(200, {},
@@ -61,7 +62,7 @@ export async function add(code: string, username: ILoggedInSession['username']):
     }
     await CollaborateTable.insert(
         new AccountRepository(username, repositoryUsername, repositoryName));
-    await RepositoryFunction.deleteCollaborateCode(code);
+    await CollaborateCodeRAMDatabase.deleteCollaborateCode(code);
     return new ServiceResponse<void>(200, {},
         new ResponseBody(true));
 }
