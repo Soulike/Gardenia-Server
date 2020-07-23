@@ -12,6 +12,7 @@ import {
 import {
     Collaborate as CollaborateTable,
     Fork as ForkTable,
+    IssueAndPullRequest,
     Profile as ProfileTable,
     PullRequest as PullRequestTable,
     PullRequestComment as PullRequestCommentTable,
@@ -98,8 +99,8 @@ export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 
     }
     // 创建 PR
     // 获取编号
-    const maxNo = await PullRequestTable.selectMaxNoOfRepository({
-        targetRepositoryUsername, targetRepositoryName,
+    const maxNo = await IssueAndPullRequest.selectMaxNoOfRepository({
+        username: targetRepositoryUsername, name: targetRepositoryName,
     });
     // 获取双方 commit hash
     const sourceRepositoryCommitHash = await Git.getLastCommitHash(sourceRepositoryPath, sourceRepositoryBranchName);

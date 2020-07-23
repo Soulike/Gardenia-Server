@@ -51,12 +51,3 @@ export async function count(issue: Readonly<Partial<Issue>>): Promise<number>
         values);
     return Number.parseInt(rows[0]['count']);
 }
-
-export async function selectMaxNoOfRepository(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName'>>): Promise<number>
-{
-    const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(issue, 'AND');
-    const {rows} = await pool.query(
-        `SELECT CASE COUNT("no") WHEN 0 THEN 0 ELSE MAX("no") END AS "maxNo" FROM "issues" WHERE ${parameterizedStatement}`,
-        values);
-    return Number.parseInt(rows[0]['maxNo']);
-}

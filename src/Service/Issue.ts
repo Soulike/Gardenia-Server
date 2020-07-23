@@ -1,6 +1,7 @@
 import {Issue, IssueComment, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {
     Issue as IssueTable,
+    IssueAndPullRequest,
     IssueComment as IssueCommentTable,
     IssueRelated,
     Repository as RepositoryTable,
@@ -22,7 +23,10 @@ export async function add(issue: Readonly<Pick<Issue, 'repositoryUsername' | 're
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repositoryUsername}/${repositoryName} 不存在`));
     }
-    const maxNo = await IssueTable.selectMaxNoOfRepository({repositoryUsername, repositoryName});
+    const maxNo = await IssueAndPullRequest.selectMaxNoOfRepository({
+        username: repositoryUsername,
+        name: repositoryName,
+    });
     const timestamp = Date.now();
     await IssueRelated.createIssueAndReturnId({
         repositoryUsername,
