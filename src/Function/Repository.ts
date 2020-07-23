@@ -1,7 +1,6 @@
 import {Account, AccountRepository, Repository} from '../Class';
 import * as Authentication from './Authentication';
 import {Account as AccountTable, Collaborate as CollaborateTable, PullRequest as PullRequestTable} from '../Database';
-import {redis} from '../Singleton';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
 import path from 'path';
 import {GIT} from '../CONFIG';
@@ -115,35 +114,6 @@ export function generateCollaborateCode(repository: Pick<Repository, 'username' 
 {
     const {username, name} = repository;
     return `${username}_${name}_${Date.now()}`;
-}
-
-export async function setCollaborateCode(code: string, repository: Pick<Repository, 'username' | 'name'>): Promise<void>
-{
-    const result = await redis.set(code, JSON.stringify(repository), 'EX', 7 * 24 * 60 * 60); // 单位是秒
-    if (result !== 'OK')
-    {
-        throw new Error('Redis 设置验证码失败');
-    }
-}
-
-export async function getCollaborateCodeRepository(code: string): Promise<Pick<Repository, 'username' | 'name'> | null>
-{
-    const result = await redis.get(code);
-    if (result === null)
-    {
-        return null;
-    }
-    const {username, name} = JSON.parse(result);
-    if (!Repository.validate(new Repository(username, name, '', true)))
-    {
-        return null;
-    }
-    return {username, name};
-}
-
-export async function deleteCollaborateCode(code: string): Promise<void>
-{
-    await redis.del(code);
 }
 
 export async function closePullRequestWithBranch(repository: Readonly<Pick<Repository, 'username' | 'name'>>, branchName: string): Promise<void>
