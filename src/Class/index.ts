@@ -18,3 +18,4 @@ export * from './IssueComment';
 export * from './AccountGroup';
 export * from './RepositoryGroup';
 export * from './CodeComment';
+export * from './Tag';
