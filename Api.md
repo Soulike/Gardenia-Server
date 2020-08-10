@@ -708,6 +708,49 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
   - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
+#### `/tag`
+
+- 功能：获取仓库某标签信息
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username' | 'name'>,
+        tagName: string,
+    },
+}
+```
+- 响应体：`Tag`
+- 响应消息：
+  - 404：仓库 `${username}/${name}` 不存在
+  - 404：标签 `${tagName}` 不存在
+- 其他说明：无
+
+#### `/tags`
+
+- 功能：获取仓库标签信息列表
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username' | 'name'>,
+        offset: number,
+        limit: number,
+    },
+}
+```
+- 响应体：
+```ts
+{
+    tags: Tag[],
+}
+```
+- 响应消息：
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
+
 #### `/lastBranchCommit`
 
 - 功能：获取仓库分支（文件）最后一次提交信息
