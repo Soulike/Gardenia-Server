@@ -7,3 +7,4 @@ export * from './Merge';
 export * from './Branch';
 export * from './Tool';
 export * from './PullRequest';
+export * from './Tag';
