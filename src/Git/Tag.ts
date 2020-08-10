@@ -1,8 +1,21 @@
 import {Promisify, String} from '../Function';
+import {Tag} from '../Class';
+import {getCommit} from './Commit';
 
 export async function getTagNames(repositoryPath: string): Promise<string[]>
 {
     const output = await Promisify.execPromise(`git tag`, {cwd: repositoryPath});
     const tagNames = String.splitToLines(output);
     return tagNames.map(tagName => tagName.trim());
+}
+
+export async function getTagInfo(repositoryPath: string, tagName: string): Promise<Tag>
+{
+    return new Tag(tagName, await getCommit(repositoryPath, tagName));
+}
+
+export async function getTagsInfo(repositoryPath: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<Tag[]>
+{
+    const tagNames = (await getTagNames(repositoryPath)).slice(offset, offset + limit);
+    return await Promise.all(tagNames.map(tagName => getTagInfo(repositoryPath, tagName)));
 }
