@@ -1,4 +1,4 @@
-import {Account, Branch, Commit, FileDiff, Repository, ResponseBody, ServiceResponse} from '../Class';
+import {Account, Branch, Commit, FileDiff, Repository, ResponseBody, ServiceResponse, Tag} from '../Class';
 import {Fork as ForkTable, Repository as RepositoryTable, Star as StarTable} from '../Database';
 import {Repository as RepositoryFunction} from '../Function';
 import {SERVER} from '../CONFIG';
@@ -67,6 +67,45 @@ export async function tagNames(repository: Readonly<Pick<Repository, 'username' 
     const tagNames = await Git.getTagNames(repositoryPath);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {tagNames}));
+}
+
+export async function tags(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ tags: Tag[] } | void>>
+{
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
+    }
+    const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
+    const tags = await Git.getTagsInfo(repositoryPath);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {tags}));
+}
+
+export async function tag(repository: Readonly<Pick<Repository, 'username' | 'name'>>, tagName: string, usernameInSession: ISession['username']): Promise<ServiceResponse<Tag | void>>
+{
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
+    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
+    }
+    const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
+    try
+    {
+        const tag = await Git.getTagInfo(repositoryPath, tagName);
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', tag));
+    }
+    catch (e)
+    {
+        SERVER.WARN_LOGGER(e);
+        return new ServiceResponse<void>(404, {},
+            new ResponseBody(false, `标签 ${tagName} 不存在`));
+    }
 }
 
 export async function lastBranchCommit(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, branch: string, filePath: string | undefined, usernameInSession: ISession['username']): Promise<ServiceResponse<Commit | void>>
