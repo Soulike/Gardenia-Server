@@ -46,9 +46,9 @@ export const tags: IRouteHandler = () =>
 {
     return async (ctx) =>
     {
-        const {repository} = ctx.request.body;
+        const {repository, offset, limit} = ctx.request.body;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await RepositoryInfo.tags(repository, username);
+        ctx.state.serviceResponse = await RepositoryInfo.tags(repository, offset, limit, username);
     };
 };
 

@@ -69,7 +69,7 @@ export async function tagNames(repository: Readonly<Pick<Repository, 'username' 
         new ResponseBody(true, '', {tagNames}));
 }
 
-export async function tags(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ tags: Tag[] } | void>>
+export async function tags(repository: Readonly<Pick<Repository, 'username' | 'name'>>, offset: number, limit: number, usernameInSession: ISession['username']): Promise<ServiceResponse<{ tags: Tag[] } | void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
@@ -79,7 +79,7 @@ export async function tags(repository: Readonly<Pick<Repository, 'username' | 'n
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-    const tags = await Git.getTagsInfo(repositoryPath);
+    const tags = await Git.getTagsInfo(repositoryPath, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {tags}));
 }
