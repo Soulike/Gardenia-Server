@@ -58,6 +58,30 @@ export const branches: IRouteHandler = () =>
 
 export const branchNames: IRouteHandler = branches;
 export const tagNames: IRouteHandler = branches;
+export const tags: IRouteHandler = branches;
+
+export const tag: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {repository, tagName} = ctx.request.body;
+        if (repository === undefined || repository === null || typeof tagName !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (Validator.Account.username(username)
+            && Validator.Repository.name(name)
+            && Repository.validate({username, name, isPublic: true, description: ''}))
+        {
+            await next();
+        }
+        else
+        {
+            throw new WrongParameterError();
+        }
+    };
+};
 
 export const lastBranchCommit: IRouteHandler = () =>
 {

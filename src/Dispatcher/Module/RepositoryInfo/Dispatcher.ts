@@ -31,7 +31,9 @@ import {
     SET_DESCRIPTION,
     SET_IS_PUBLIC,
     SET_NAME,
+    TAG,
     TAG_NAMES,
+    TAGS,
 } from './ROUTE';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
 import bodyParser from '../../Middleware/bodyParser';
@@ -68,7 +70,9 @@ import {
     setDescription,
     setIsPublic,
     setName,
+    tag,
     tagNames,
+    tags,
 } from './Middleware';
 import {IDispatcher} from '../../Interface';
 import sessionChecker from '../../Middleware/sessionChecker';
@@ -80,6 +84,8 @@ export default (router =>
         .get(BRANCHES, JSONQuerystringParser(), ParameterValidator.branches(), branches())
         .get(BRANCH_NAMES, JSONQuerystringParser(), ParameterValidator.branchNames(), branchNames())
         .get(TAG_NAMES, JSONQuerystringParser(), ParameterValidator.tagNames(), tagNames())
+        .get(TAGS, JSONQuerystringParser(), ParameterValidator.tags(), tags())
+        .get(TAG, JSONQuerystringParser(), ParameterValidator.tag(), tag())
         .get(LAST_BRANCH_COMMIT, JSONQuerystringParser(), ParameterValidator.lastBranchCommit(), lastBranchCommit())
         .get(LAST_COMMIT, JSONQuerystringParser(), ParameterValidator.lastCommit(), lastCommit())
         .get(DIRECTORY, JSONQuerystringParser(), ParameterValidator.directory(), directory())

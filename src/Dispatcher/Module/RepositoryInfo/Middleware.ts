@@ -42,6 +42,26 @@ export const tagNames: IRouteHandler = () =>
     };
 };
 
+export const tags: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        const {repository} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.tags(repository, username);
+    };
+};
+
+export const tag: IRouteHandler = () =>
+{
+    return async (ctx) =>
+    {
+        const {repository, tagName} = ctx.request.body;
+        const {username} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryInfo.tag(repository, tagName, username);
+    };
+};
+
 export const lastBranchCommit: IRouteHandler = () =>
 {
     return async (ctx) =>
