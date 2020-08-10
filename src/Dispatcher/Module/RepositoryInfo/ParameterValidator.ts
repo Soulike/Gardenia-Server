@@ -57,6 +57,7 @@ export const branches: IRouteHandler = () =>
 };
 
 export const branchNames: IRouteHandler = branches;
+export const tagNames: IRouteHandler = branches;
 
 export const lastBranchCommit: IRouteHandler = () =>
 {

@@ -686,6 +686,28 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
   - 404：仓库 `${username}/${name}` 不存在
 - 其他说明：无
 
+#### `/tagNames`
+
+- 功能：获取仓库标签名称列表
+- 方法：GET
+- 请求参数：
+```ts
+{
+    json: {
+        repository: Pick<Repository, 'username' | 'name'>,
+    },
+}
+```
+- 响应体：
+```ts
+{
+    tagNames: string[],
+}
+```
+- 响应消息：
+  - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
+
 #### `/lastBranchCommit`
 
 - 功能：获取仓库分支（文件）最后一次提交信息
