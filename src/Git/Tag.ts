@@ -4,7 +4,7 @@ import {getCommit} from './Commit';
 
 export async function getTagNames(repositoryPath: string): Promise<string[]>
 {
-    const output = await Promisify.execPromise(`git tag`, {cwd: repositoryPath});
+    const output = await Promisify.execPromise(`git tag --sort=-creatordate`, {cwd: repositoryPath});
     const tagNames = String.splitToLines(output);
     return tagNames.map(tagName => tagName.trim());
 }
@@ -13,10 +13,10 @@ export async function getTagInfo(repositoryPath: string, tagName: string): Promi
 {
     const subject = (await Promisify.execPromise(
         `git tag -l --format='%(contents:subject)' '${tagName}'`,
-        {cwd: repositoryPath})).trim();
+        {cwd: repositoryPath})).trimEnd();
     const body = (await Promisify.execPromise(
         `git tag -l --format='%(contents:body)' '${tagName}'`,
-        {cwd: repositoryPath})).trim();
+        {cwd: repositoryPath})).trimEnd();
     return new Tag(tagName, {subject, body}, await getCommit(repositoryPath, tagName));
 }
 
