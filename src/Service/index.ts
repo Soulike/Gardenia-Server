@@ -9,8 +9,10 @@ import * as Collaborate from './Collaborate';
 import * as PullRequest from './PullRequest';
 import * as Issue from './Issue';
 import * as CodeComment from './CodeComment';
+import * as Notification from './Notification';
 
 export {
     Account, Profile, RepositoryInfo, Repository,
     Group, Git, Star, Collaborate, PullRequest, Issue, CodeComment,
+    Notification,
 };

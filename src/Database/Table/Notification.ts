@@ -71,3 +71,30 @@ export async function count(notification: Readonly<Partial<Notification>>): Prom
         [...values]);
     return Number.parseInt(rows[0]['count']);
 }
+
+export async function update(notification: Readonly<Omit<Partial<Notification>, 'id'>>, primaryKey: Pick<Notification, 'id'>): Promise<void>
+{
+    if (Object.keys(notification).length !== 0)
+    {
+        const client = await pool.connect();
+        try
+        {
+            const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray({
+                ...notification,
+                id: undefined,
+            }, ',');
+            await executeTransaction(client, async client =>
+            {
+                await client.query(
+                    `UPDATE notifications
+                     SET ${parameterizedStatement}
+                     WHERE "id" = $${values.length + 1}`,
+                    [...values, primaryKey.id]);
+            });
+        }
+        finally
+        {
+            client.release();
+        }
+    }
+}

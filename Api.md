@@ -2620,11 +2620,11 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：
 ```ts
 {
-    ids: Pick<Notification, 'id'>[],
-    confirmed: Pick<Notification, 'confirmed'>,
+    notifications: Pick<Notification, 'id'>[],
+    confirmed: Notification['confirmed']
 }
 ```
 - 响应体：无
 - 响应消息：
-  - 404：消息不存在
+  - 200：不能设定他人消息状态
 - 其他说明：无
