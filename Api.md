@@ -2573,7 +2573,14 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取所有消息
 - 方法：GET
-- 请求体：`Pick<Notification, 'username' | 'confirmed'>`
+- 请求体：
+```ts
+{
+    notification: Pick<Notification, 'username' | 'confirmed'>,
+    offset: number,
+    limit: number,
+}
+```
 - 响应体：
 ```ts
 {
@@ -2581,7 +2588,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 404：用户 `${username}` 不存在
+  - 200：不能获取他人消息
 - 其他说明：
   - 以 `confirmed` 作为第一排序，未确认在上
   - 以 `timestamp` 作为第二排序，晚的在上

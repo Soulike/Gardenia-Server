@@ -34,7 +34,10 @@ export async function select(notification: Readonly<Partial<Notification>>, offs
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(notification, 'AND');
     const {rows} = await pool.query(
-        `SELECT * FROM "notifications" WHERE ${parameterizedStatement} OFFSET ${offset} LIMIT ${limit}`,
+        `SELECT * FROM "notifications" 
+WHERE ${parameterizedStatement} 
+ORDER BY "confirmed" DESC, "timestamp" DESC 
+OFFSET ${offset} LIMIT ${limit}`,
         values);
     return rows.map(row => Notification.from(row));
 }
