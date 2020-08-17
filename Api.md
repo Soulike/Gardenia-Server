@@ -219,6 +219,23 @@ class CodeComment
 }
 ```
 
+### `Tag`
+
+```ts
+interface Annotation
+{
+    subject: string,
+    body: string
+}
+
+class Tag
+{
+    public readonly name: string;
+    public readonly annotation: Annotation;
+    public readonly lastCommit: Commit;
+}
+```
+
 ---
 
 ## 常量
