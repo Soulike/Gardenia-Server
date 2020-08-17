@@ -2597,7 +2597,12 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 
 - 功能：获取消息数量
 - 方法：GET
-- 请求体：`Pick<Notification, 'username' | 'confirmed'>`
+- 请求体：
+```ts
+{
+    notification: Pick<Notification, 'username' | 'confirmed'>,
+}
+```
 - 响应体：
 ```ts
 {
@@ -2605,7 +2610,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 }
 ```
 - 响应消息：
-  - 404：用户 `${username}` 不存在
+  - 200：不能获取他人消息数量
 - 其他说明：无
 
 #### `/setConfirmed`

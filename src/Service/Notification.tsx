@@ -15,3 +15,17 @@ export async function get(notification: Pick<Notification, 'username' | 'confirm
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {notifications}));
 }
+
+export async function getCount(notification: Pick<Notification, 'username' | 'confirmed'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<{ count: number } | null>>
+{
+    const {username, confirmed} = notification;
+    if (username !== usernameInSession)
+    {
+        return new ServiceResponse(200, {},
+            new ResponseBody(false, '不能获取他人消息数量'));
+    }
+    const count = await NotificationDatabase.count({username, confirmed});
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {count}));
+}
+
