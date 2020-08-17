@@ -2574,7 +2574,12 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 功能：获取所有消息
 - 方法：GET
 - 请求体：`Pick<Notification, 'username' | 'confirmed'>`
-- 响应体：`Notification[]`
+- 响应体：
+```ts
+{
+    notifications: Notification[],
+}
+```
 - 响应消息：
   - 404：用户 `${username}` 不存在
 - 其他说明：
