@@ -67,7 +67,7 @@ export async function count(notification: Readonly<Partial<Notification>>): Prom
     }
     const {parameterizedStatement, values} = generateParameterizedStatementAndValuesArray(notification, 'AND');
     const {rows} = await pool.query(
-        `SELECT COUNT(*) AS "count" FROM profiles WHERE ${parameterizedStatement}`,
+        `SELECT COUNT(*) AS "count" FROM notifications WHERE ${parameterizedStatement}`,
         [...values]);
     return Number.parseInt(rows[0]['count']);
 }
