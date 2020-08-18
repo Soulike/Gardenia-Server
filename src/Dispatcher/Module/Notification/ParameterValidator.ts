@@ -12,9 +12,9 @@ export const get: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, confirmed} = notification;
+        const {confirmed} = notification;
         if (Notification.validate({
-                username, confirmed, timestamp: 0, type: '', content: '', id: 0,
+                username: '', confirmed, timestamp: 0, type: '', content: '', id: 0,
             }) && typeof offset === 'number'
             && typeof limit === 'number'
             && limit <= LIMITS.NOTIFICATIONS)
@@ -37,9 +37,9 @@ export const getCount: IRouteHandler = () =>
         {
             throw new WrongParameterError();
         }
-        const {username, confirmed} = notification;
+        const {confirmed} = notification;
         if (Notification.validate({
-            username, confirmed, timestamp: 0, type: '', content: '', id: 0,
+            username: '', confirmed, timestamp: 0, type: '', content: '', id: 0,
         }))
         {
             await next();

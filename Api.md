@@ -2576,7 +2576,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：
 ```ts
 {
-    notification: Pick<Notification, 'username' | 'confirmed'>,
+    notification: Pick<Notification, 'confirmed'>,
     offset: number,
     limit: number,
 }
@@ -2587,8 +2587,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     notifications: Notification[],
 }
 ```
-- 响应消息：
-  - 200：不能获取他人消息
+- 响应消息：无
 - 其他说明：
   - 以 `confirmed` 作为第一排序，未确认在上
   - 以 `timestamp` 作为第二排序，晚的在上
@@ -2600,7 +2599,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：
 ```ts
 {
-    notification: Pick<Notification, 'username' | 'confirmed'>,
+    notification: Pick<Notification, 'confirmed'>,
 }
 ```
 - 响应体：
@@ -2609,8 +2608,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
     count: number,
 }
 ```
-- 响应消息：
-  - 200：不能获取他人消息数量
+- 响应消息：无
 - 其他说明：无
 
 #### `/setConfirmed`
