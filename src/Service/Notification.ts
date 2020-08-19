@@ -2,7 +2,7 @@ import {Notification, ResponseBody, ServiceResponse} from '../Class';
 import {ILoggedInSession} from '../Interface';
 import {Notification as NotificationDatabase} from '../Database';
 
-export async function get(notification: Pick<Notification, 'confirmed'>, offset: number, limit: number, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<{ notifications: Notification[] } | void>>
+export async function get(notification: Readonly<Partial<Pick<Notification, 'confirmed'>>>, offset: number, limit: number, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<{ notifications: Notification[] } | void>>
 {
     const {confirmed} = notification;
     const notifications = await NotificationDatabase.select(
@@ -11,7 +11,7 @@ export async function get(notification: Pick<Notification, 'confirmed'>, offset:
         new ResponseBody(true, '', {notifications}));
 }
 
-export async function getCount(notification: Pick<Notification, 'confirmed'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<{ count: number } | void>>
+export async function getCount(notification: Readonly<Partial<Pick<Notification, 'confirmed'>>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<{ count: number } | void>>
 {
     const {confirmed} = notification;
     const count = await NotificationDatabase.count({username: usernameInSession, confirmed});

@@ -2576,7 +2576,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：
 ```ts
 {
-    notification: Pick<Notification, 'confirmed'>,
+    notification: Partial<Pick<Notification, 'confirmed'>>,
     offset: number,
     limit: number,
 }
@@ -2599,7 +2599,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 请求体：
 ```ts
 {
-    notification: Pick<Notification, 'confirmed'>,
+    notification: Partial<Pick<Notification, 'confirmed'>>,
 }
 ```
 - 响应体：

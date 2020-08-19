@@ -36,7 +36,7 @@ export async function select(notification: Readonly<Partial<Notification>>, offs
     const {rows} = await pool.query(
         `SELECT * FROM "notifications" 
 WHERE ${parameterizedStatement} 
-ORDER BY "confirmed" DESC, "timestamp" DESC 
+ORDER BY "id" DESC
 OFFSET ${offset} LIMIT ${limit}`,
         values);
     return rows.map(row => Notification.from(row));
