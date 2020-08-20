@@ -2589,8 +2589,7 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 ```
 - 响应消息：无
 - 其他说明：
-  - 以 `confirmed` 作为第一排序，未确认在上
-  - 以 `timestamp` 作为第二排序，晚的在上
+  - 以 `id` 降序排列
 
 #### `/getCount`
 
