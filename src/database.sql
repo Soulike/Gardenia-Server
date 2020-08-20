@@ -168,4 +168,16 @@ CREATE TABLE "code_comments"
     CHECK ( "columnNumber" > 0 )
 );
 
+CREATE TABLE "notifications"
+(
+    "id"        BIGSERIAL    NOT NULL,
+    "username"  VARCHAR(255) NOT NULL,
+    "content"   TEXT         NOT NULL,
+    "type"      VARCHAR(255) NOT NULL,
+    "timestamp" BIGINT       NOT NULL,
+    "confirmed" BOOLEAN      NOT NULL,
+    PRIMARY KEY ("id"),
+    FOREIGN KEY ("username") REFERENCES accounts ("username") ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 COMMIT;

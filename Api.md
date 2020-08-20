@@ -236,6 +236,20 @@ class Tag
 }
 ```
 
+### Notification
+
+```ts
+class Notification
+{
+    public readonly id: number;
+    public readonly username: string;
+    public readonly content: string;
+    public readonly type: string;
+    public readonly timestamp: number;
+    public readonly confirmed: boolean;
+}
+```
+
 ---
 
 ## 常量
@@ -2552,3 +2566,62 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 200：只有代码批注创建者可以修改此批注
 - 其他说明：
   - 只有代码批注创建者可以修改批注
+
+### Notification 模块（`/notification`）
+
+#### `/get`
+
+- 功能：获取所有消息
+- 方法：GET
+- 请求体：
+```ts
+{
+    notification: Partial<Pick<Notification, 'confirmed'>>,
+    offset: number,
+    limit: number,
+}
+```
+- 响应体：
+```ts
+{
+    notifications: Notification[],
+}
+```
+- 响应消息：无
+- 其他说明：
+  - 以 `id` 降序排列
+
+#### `/getCount`
+
+- 功能：获取消息数量
+- 方法：GET
+- 请求体：
+```ts
+{
+    notification: Partial<Pick<Notification, 'confirmed'>>,
+}
+```
+- 响应体：
+```ts
+{
+    count: number,
+}
+```
+- 响应消息：无
+- 其他说明：无
+
+#### `/setConfirmed`
+
+- 功能：设定消息确认状态
+- 方法：POST
+- 请求体：
+```ts
+{
+    notifications: Pick<Notification, 'id'>[],
+    confirmed: Notification['confirmed']
+}
+```
+- 响应体：无
+- 响应消息：
+  - 200：不能设定他人消息状态
+- 其他说明：无

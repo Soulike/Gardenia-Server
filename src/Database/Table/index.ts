@@ -12,6 +12,7 @@ import * as IssueComment from './IssueComment';
 import * as AccountGroup from './AccountGroup';
 import * as RepositoryGroup from './RepositoryGroup';
 import * as CodeComment from './CodeComment';
+import * as Notification from './Notification';
 
 export {
     Account, Profile,
@@ -20,4 +21,5 @@ export {
     Issue, IssueComment,
     AccountGroup, RepositoryGroup,
     CodeComment,
+    Notification,
 };
