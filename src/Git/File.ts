@@ -96,7 +96,7 @@ export async function fileExists(repositoryPath: string, filePath: string, commi
 export async function isBinaryFile(repositoryPath: string, objectHash: string): Promise<boolean>
 {
     const stdout = (await execPromise(`git cat-file -p ${objectHash} | file -`, {cwd: repositoryPath})).toLowerCase();
-    return !(stdout.includes('text') || stdout.includes('json') || stdout.includes('svg'));
+    return !(stdout.includes('text') || stdout.includes('json') || stdout.includes('svg') || stdout.includes('pdf'));
 }
 
 /**
