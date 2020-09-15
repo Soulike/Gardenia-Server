@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS "profiles"
     "avatar"   VARCHAR(255) NOT NULL
 );
 
+CREATE INDEX profiles_username ON "profiles" ("username");
+CREATE INDEX profiles_nickname ON "profiles" ("nickname");
+
 CREATE TABLE IF NOT EXISTS "repositories"
 (
     "username"    VARCHAR(255) REFERENCES "accounts" ("username") ON UPDATE CASCADE NOT NULL,
@@ -23,6 +26,8 @@ CREATE TABLE IF NOT EXISTS "repositories"
     "deleted"     BOOLEAN                                                           NOT NULL DEFAULT FALSE,
     PRIMARY KEY ("username", "name")
 );
+
+CREATE INDEX repositories_name ON "repositories" ("name");
 
 CREATE TABLE IF NOT EXISTS "groups"
 (
