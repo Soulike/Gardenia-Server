@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS "profiles"
 
 CREATE INDEX profiles_username ON "profiles" ("username");
 CREATE INDEX profiles_nickname ON "profiles" ("nickname");
+CREATE INDEX profiles_email ON "profiles" ("email");
 
 CREATE TABLE IF NOT EXISTS "repositories"
 (
