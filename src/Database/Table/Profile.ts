@@ -126,3 +126,19 @@ export async function count(profile: Readonly<Partial<Profile>>): Promise<number
         [...values]);
     return Number.parseInt(rows[0]['count']);
 }
+
+export async function search(keyword: string): Promise<Profile[]>
+{
+    if (keyword.length === 0)
+    {
+        return [];
+    }
+
+    /*此处存在的问题是如何支持大小写混合查询，如果用 LOWER 和 UPPER 会导致索引失效*/
+    const {rows} = await pool.query(`SELECT DISTINCT *
+                                     FROM profiles
+                                     WHERE username LIKE $1
+                                        OR nickname LIKE $1
+                                        OR email LIKE $1`, [`%${keyword}%`]);
+    return rows.map(row => Profile.from(row));
+}

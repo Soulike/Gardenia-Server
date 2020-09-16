@@ -17,9 +17,9 @@ export interface IContext
     session: Session & ISession;
 }
 
-export interface IRouteHandler
+export interface IRouteHandler<T extends any[] = void[]>
 {
-    (): Router.Middleware<IState, IContext>
+    (...args: T): Router.Middleware<IState, IContext>
 }
 
 export interface IDispatcher
