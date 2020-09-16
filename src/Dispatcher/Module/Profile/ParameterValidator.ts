@@ -115,3 +115,19 @@ export const uploadAvatar: IRouteHandler = () =>
         }
     };
 };
+
+export const search: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {keyword} = ctx.request.body;
+        if (typeof keyword !== 'string' || keyword.length === 0)
+        {
+            throw new WrongParameterError();
+        }
+        else
+        {
+            await next();
+        }
+    };
+};

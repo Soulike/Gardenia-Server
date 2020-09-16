@@ -59,3 +59,12 @@ export const uploadAvatar: IRouteHandler = () =>
         ctx.state.serviceResponse = await Profile.uploadAvatar(avatar, username!);
     };
 };
+
+export const search: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        const {keyword} = ctx.request.body;
+        ctx.state.serviceResponse = await Profile.search(keyword);
+    };
+};

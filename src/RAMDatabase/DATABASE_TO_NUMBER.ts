@@ -4,4 +4,5 @@ export enum DATABASE_TO_NUMBER
 {
     SESSION = 0,
     COLLABORATE_CODE = 1,
+    RATE_LIMIT = 2,
 }

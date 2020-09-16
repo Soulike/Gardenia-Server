@@ -128,3 +128,10 @@ export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: IL
     return new ServiceResponse<void>(200, {},
         new ResponseBody<void>(true));
 }
+
+export async function search(keyword: string): Promise<ServiceResponse<{ profiles: Profile[] }>>
+{
+    const profiles = await ProfileTable.search(keyword);
+    return new ServiceResponse(200, {},
+        new ResponseBody(true, '', {profiles}));
+}

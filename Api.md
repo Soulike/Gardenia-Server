@@ -538,6 +538,27 @@ enum ISSUE_STATUS
 - 其他说明：
   - 修改 Session 对应的账号头像
 
+#### `/search`
+
+- 功能：搜索用户
+- 方法：POST
+- 请求体：
+```ts
+{
+    keyword: string,
+}
+```
+- 响应体：
+```ts
+{
+    profiles: Profile[],
+}
+```
+- 响应消息：无
+- 其他说明：
+  - 搜索关键词不能为空
+  - 搜索范围是用户名、昵称和 email
+
 ### Git 模块
 
 Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下请求。各个请求的详细作用见[这篇文章](https://soulike.tech/article?id=43)。模块中对各个请求增加了权限判断。
