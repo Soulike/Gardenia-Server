@@ -137,9 +137,9 @@ export async function search(keyword: string, offset: number, limit: number): Pr
     /*此处存在的问题是如何支持大小写混合查询，如果用 LOWER 和 UPPER 会导致索引失效*/
     const {rows} = await pool.query(`SELECT DISTINCT *
                                      FROM profiles
-                                     WHERE username LIKE $1
-                                        OR nickname LIKE $1
-                                        OR email LIKE $1
+                                     WHERE LOWER(username) LIKE LOWER($1)
+                                        OR LOWER(nickname) LIKE LOWER($1)
+                                        OR LOWER(email) LIKE LOWER($1)
                                      OFFSET $2 LIMIT $3`, [`%${keyword}%`, offset, limit]);
     return rows.map(row => Profile.from(row));
 }
