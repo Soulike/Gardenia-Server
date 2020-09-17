@@ -546,6 +546,8 @@ enum ISSUE_STATUS
 ```ts
 {
     keyword: string,
+    offset: number,
+    limit: number,
 }
 ```
 - 响应体：

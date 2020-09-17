@@ -64,7 +64,7 @@ export const search: IRouteHandler = () =>
 {
     return async ctx =>
     {
-        const {keyword} = ctx.request.body;
-        ctx.state.serviceResponse = await Profile.search(keyword);
+        const {keyword, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await Profile.search(keyword, offset, limit);
     };
 };

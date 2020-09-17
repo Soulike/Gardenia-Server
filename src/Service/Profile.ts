@@ -129,9 +129,9 @@ export async function uploadAvatar(avatar: Readonly<File>, usernameInSession: IL
         new ResponseBody<void>(true));
 }
 
-export async function search(keyword: string): Promise<ServiceResponse<{ profiles: Profile[] }>>
+export async function search(keyword: string, offset: number, limit: number): Promise<ServiceResponse<{ profiles: Profile[] }>>
 {
-    const profiles = await ProfileTable.search(keyword);
+    const profiles = await ProfileTable.search(keyword, offset, limit);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {profiles}));
 }

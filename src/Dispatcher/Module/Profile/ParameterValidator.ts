@@ -120,8 +120,9 @@ export const search: IRouteHandler = () =>
 {
     return async (ctx, next) =>
     {
-        const {keyword} = ctx.request.body;
-        if (typeof keyword !== 'string' || keyword.length === 0)
+        const {keyword, offset, limit} = ctx.request.body;
+        if (typeof keyword !== 'string' || keyword.length === 0
+            || typeof offset !== 'number' || typeof limit !== 'number')
         {
             throw new WrongParameterError();
         }

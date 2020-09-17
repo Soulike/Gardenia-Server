@@ -127,7 +127,7 @@ export async function count(profile: Readonly<Partial<Profile>>): Promise<number
     return Number.parseInt(rows[0]['count']);
 }
 
-export async function search(keyword: string): Promise<Profile[]>
+export async function search(keyword: string, offset: number, limit: number): Promise<Profile[]>
 {
     if (keyword.length === 0)
     {
@@ -139,6 +139,7 @@ export async function search(keyword: string): Promise<Profile[]>
                                      FROM profiles
                                      WHERE username LIKE $1
                                         OR nickname LIKE $1
-                                        OR email LIKE $1`, [`%${keyword}%`]);
+                                        OR email LIKE $1
+                                     OFFSET $2 LIMIT $3`, [`%${keyword}%`, offset, limit]);
     return rows.map(row => Profile.from(row));
 }
