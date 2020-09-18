@@ -110,3 +110,20 @@ export const isMergeable: IRouteHandler = () =>
         }
     };
 };
+
+export const search: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {keyword, offset, limit} = ctx.request.body;
+        if (typeof keyword !== 'string' || keyword.length === 0
+            || typeof offset !== 'number' || typeof limit !== 'number')
+        {
+            throw new WrongParameterError();
+        }
+        else
+        {
+            await next();
+        }
+    };
+};
