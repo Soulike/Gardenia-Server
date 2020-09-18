@@ -673,6 +673,28 @@ Git 模块供普通 Git 命令行指令调用。在前端不会使用到以下�
   - 404：仓库 `${username}/${name}` 分支 `${branch}` 不存在
 - 其他说明：无
 
+#### `/search`
+
+- 功能：搜索仓库
+- 方法：POST
+- 请求体：
+```ts
+{
+    keyword: string,
+    offset: number,
+    limit: number,
+}
+```
+- 响应体：
+```ts
+{
+    repositories: Repository[],
+}
+```
+- 响应消息：无
+- 其他说明：
+  - 搜索范围包括仓库名以及仓库描述
+
 ### RepositoryInfo 模块（`/repositoryInfo`）
 
 本模块负责执行 Git 仓库内容信息操作。

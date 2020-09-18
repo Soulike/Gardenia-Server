@@ -127,3 +127,19 @@ export async function count(repository: Readonly<Partial<Repository>>): Promise<
         [...values]);
     return Number.parseInt(rows[0]['count']);
 }
+
+export async function search(keyword: string, offset: number, limit: number): Promise<Repository[]>
+{
+    if (keyword.length === 0)
+    {
+        return [];
+    }
+
+    /*此处存在的问题是如何支持大小写混合查询，如果用 LOWER 和 UPPER 会导致索引失效*/
+    const {rows} = await pool.query(`SELECT DISTINCT *
+                                     FROM repositories
+                                     WHERE LOWER(name) LIKE $1
+                                        OR LOWER(description) LIKE $1
+                                     OFFSET $2 LIMIT $3`, [`%${keyword.toLowerCase()}%`, offset, limit]);
+    return rows.map(row => Repository.from(row));
+}
