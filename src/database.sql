@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS "repositories"
 );
 
 CREATE INDEX repositories_name ON "repositories" ("name");
+CREATE INDEX repositories_description ON "repositories" ("description");
 
 CREATE TABLE IF NOT EXISTS "groups"
 (
