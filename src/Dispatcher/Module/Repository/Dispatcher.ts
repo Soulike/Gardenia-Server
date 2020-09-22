@@ -1,10 +1,11 @@
-import {CREATE, DEL, FORK, GET_REPOSITORIES, IS_MERGEABLE} from './ROUTE';
+import {CREATE, DEL, FORK, GET_REPOSITORIES, IS_MERGEABLE, SEARCH} from './ROUTE';
 import JSONQuerystringParser from '../../Middleware/JSONQuerystringParser';
-import {create, del, fork, getRepositories, isMergeable} from './Middleware';
+import {create, del, fork, getRepositories, isMergeable, search} from './Middleware';
 import bodyParser from '../../Middleware/bodyParser';
 import {IDispatcher} from '../../Interface';
 import sessionChecker from '../../Middleware/sessionChecker';
 import * as ParameterValidator from './ParameterValidator';
+import rateLimiter from '../../Middleware/rateLimiter';
 
 export default (router =>
 {
@@ -12,5 +13,6 @@ export default (router =>
         .post(DEL, sessionChecker(), bodyParser(), ParameterValidator.del(), del())
         .get(GET_REPOSITORIES, JSONQuerystringParser(), ParameterValidator.getRepositories(), getRepositories())
         .post(FORK, sessionChecker(), bodyParser(), ParameterValidator.fork(), fork())
-        .get(IS_MERGEABLE, JSONQuerystringParser(), ParameterValidator.isMergeable(), isMergeable());
+        .get(IS_MERGEABLE, JSONQuerystringParser(), ParameterValidator.isMergeable(), isMergeable())
+        .post(SEARCH, rateLimiter(120), bodyParser(), ParameterValidator.search(), search());
 }) as IDispatcher;

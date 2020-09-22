@@ -55,3 +55,12 @@ export const isMergeable: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryService.isMergeable(sourceRepository, sourceRepositoryBranch, targetRepository, targetRepositoryBranch, usernameInSession);
     };
 };
+
+export const search: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        const {keyword, offset, limit} = ctx.request.body;
+        ctx.state.serviceResponse = await RepositoryService.search(keyword, offset, limit);
+    };
+};
