@@ -117,7 +117,8 @@ export const search: IRouteHandler = () =>
     {
         const {keyword, offset, limit} = ctx.request.body;
         if (typeof keyword !== 'string' || keyword.length === 0
-            || typeof offset !== 'number' || typeof limit !== 'number')
+            || typeof offset !== 'number' || typeof limit !== 'number'
+            || limit > LIMITS.REPOSITORIES)
         {
             throw new WrongParameterError();
         }

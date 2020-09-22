@@ -27,6 +27,7 @@ export const PULL_REQUEST_COMMENTS = 100;
 export const ISSUES = 100;
 export const ISSUE_COMMENTS = 100;
 export const NOTIFICATIONS = 50;
+export const PROFILES = 50;
 
 // 头像的最大尺寸，单位字节
 export const AVATAR_SIZE = 2 * 1024 * 1024;
