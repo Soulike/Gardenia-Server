@@ -270,7 +270,7 @@ export async function isMergeable(sourceRepository: Readonly<Pick<Repository, 'u
 
 export async function search(keyword: string, offset: number, limit: number): Promise<ServiceResponse<{ repositories: Repository[] }>>
 {
-    const repositories = await RepositoryTable.search(keyword, offset, limit);
+    const repositories = await RepositoryTable.search(keyword, offset, limit, true);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {repositories}));
 }
