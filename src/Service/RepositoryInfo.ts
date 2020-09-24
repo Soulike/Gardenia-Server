@@ -300,13 +300,22 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
         Git.getFileObjectHash(repositoryPath, filePath, commitHash),
         Git.getFileObjectType(repositoryPath, filePath, commitHash),
     ]);
-    const [fileType, fileSize] = await Promise.all([
-        Git.getFileType(repositoryPath, objectHash),
-        Git.getFileSize(repositoryPath, objectHash),
-    ]);
-    return new ServiceResponse<{ objectType: ObjectType | null; fileType: string | null; fileSize: number | null } | void>(
-        200, {},
-        new ResponseBody(true, '', {objectType, fileType, fileSize}));
+    if (objectType === ObjectType.BLOB)
+    {
+        const [fileType, fileSize] = await Promise.all([
+            Git.getFileType(repositoryPath, objectHash),
+            Git.getFileSize(repositoryPath, objectHash),
+        ]);
+        return new ServiceResponse<{ objectType: ObjectType | null; fileType: string | null; fileSize: number | null } | void>(
+            200, {},
+            new ResponseBody(true, '', {objectType, fileType, fileSize}));
+    }
+    else
+    {
+        return new ServiceResponse<{ objectType: ObjectType | null; fileType: string | null; fileSize: number | null } | void>(
+            200, {},
+            new ResponseBody(true, '', {objectType, fileType: null, fileSize: null}));
+    }
 }
 
 export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, filePath: string, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<Readable | void>>
