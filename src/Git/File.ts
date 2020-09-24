@@ -91,12 +91,11 @@ export async function fileExists(repositoryPath: string, filePath: string, commi
 }
 
 /**
- * @description 查看某提交中的某个文件是否是二进制文件
+ * @description 利用 file 命令行得到文件类型
  * */
-export async function isBinaryFile(repositoryPath: string, objectHash: string): Promise<boolean>
+export async function getFileType(repositoryPath: string, objectHash: string): Promise<string>
 {
-    const stdout = (await execPromise(`git cat-file -p ${objectHash} | file -`, {cwd: repositoryPath})).toLowerCase();
-    return !(stdout.includes('text') || stdout.includes('json') || stdout.includes('svg') || stdout.includes('pdf'));
+    return await execPromise(`git cat-file -p ${objectHash} | file -`, {cwd: repositoryPath});
 }
 
 /**

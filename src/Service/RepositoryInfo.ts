@@ -270,7 +270,7 @@ export async function commitCountBetweenCommits(repository: Readonly<Pick<Reposi
     }
 }
 
-export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, filePath: string, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ exists: boolean, type?: ObjectType, size?: number, isBinary?: boolean } | void>>
+export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, filePath: string, commitHash: string, usernameInSession: ISession['username']): Promise<ServiceResponse<{ objectType: ObjectType | null, fileType: string | null, fileSize: number | null } | void>>
 {
     const {username} = account;
     const {name} = repository;
@@ -285,8 +285,9 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     {
         if (!(await Git.fileExists(repositoryPath, filePath, commitHash)))
         {
-            return new ServiceResponse(200, {},
-                new ResponseBody(true, '', {exists: false}));
+            return new ServiceResponse<{ objectType: ObjectType | null; fileType: string | null; fileSize: number | null } | void>(
+                200, {},
+                new ResponseBody(true, '', {objectType: null, fileType: null, fileSize: null}));
         }
     }
     catch (e)
@@ -299,24 +300,21 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
         Git.getFileObjectHash(repositoryPath, filePath, commitHash),
         Git.getFileObjectType(repositoryPath, filePath, commitHash),
     ]);
-    const size = await Git.getFileSize(repositoryPath, objectHash);
-    if (!(await Git.isBinaryFile(repositoryPath, objectHash)))
+    if (objectType === ObjectType.BLOB)
     {
-        return new ServiceResponse(200, {},
-            new ResponseBody(
-                true, '', {
-                    exists: true, isBinary: false, type: objectType, size,
-                },
-            ));
+        const [fileType, fileSize] = await Promise.all([
+            Git.getFileType(repositoryPath, objectHash),
+            Git.getFileSize(repositoryPath, objectHash),
+        ]);
+        return new ServiceResponse<{ objectType: ObjectType | null; fileType: string | null; fileSize: number | null } | void>(
+            200, {},
+            new ResponseBody(true, '', {objectType, fileType, fileSize}));
     }
-    else    // 是二进制文件
+    else
     {
-        return new ServiceResponse(200, {},
-            new ResponseBody(
-                true, '', {
-                    exists: true, isBinary: true, size,
-                },
-            ));
+        return new ServiceResponse<{ objectType: ObjectType | null; fileType: string | null; fileSize: number | null } | void>(
+            200, {},
+            new ResponseBody(true, '', {objectType, fileType: null, fileSize: null}));
     }
 }
 
