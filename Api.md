@@ -964,10 +964,9 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
 - 响应体：
 ```ts
 {
-    exists: boolean,        // 文件是否存在，如果不存在，就不需要返回其他参数
-    type?: ObjectType,      // 对象类型，如果是 TREE 就不需要下面剩余参数
-    size?: number,          // 文件大小
-    isBinary?: boolean,     // 是否是二进制文件
+    objectType: ObjectType | null,  // 文件的 git object 类型，当文件不存在时是 null
+    fileType: string | null,        // 文件的文件类型，当文件不是 BLOB 类型时是 null
+    fileSize: number | null,        // 文件的大小，当文件不是 BLOB 类型时是 null
 }
 ```
 - 响应消息：
