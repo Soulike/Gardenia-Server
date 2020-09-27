@@ -11,3 +11,4 @@ export const GET_REPOSITORIES = repositoryPrefix('/getRepositories');
 export const FORK = repositoryPrefix('/fork');
 export const IS_MERGEABLE = repositoryPrefix('/isMergeable');
 export const SEARCH = repositoryPrefix('/search');
+export const SHOULD_SHOW_OPTIONS = repositoryPrefix('/shouldShowOptions');

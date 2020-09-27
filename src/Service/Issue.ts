@@ -6,9 +6,9 @@ import {
     IssueRelated,
     Repository as RepositoryTable,
 } from '../Database';
-import {Repository as RepositoryFunction} from '../Function';
 import {ISSUE_STATUS} from '../CONSTANT';
 import {ILoggedInSession, ISession} from '../Interface';
+import {hasReadAuthority, hasWriteAuthority} from '../RepositoryAuthorityCheck';
 
 export async function add(issue: Readonly<Pick<Issue, 'repositoryUsername' | 'repositoryName' | 'title'>>, issueComment: Readonly<Pick<IssueComment, 'content'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
@@ -18,7 +18,7 @@ export async function add(issue: Readonly<Pick<Issue, 'repositoryUsername' | 're
         username: repositoryUsername,
         name: repositoryName,
     });
-    if (repository === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+    if (repository === null || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repositoryUsername}/${repositoryName} 不存在`));
@@ -57,14 +57,14 @@ export async function close(issue: Readonly<Pick<Issue, 'repositoryUsername' | '
     );
     if (issuesInDatabase === null || issuesInDatabase.length === 0
         || repository === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+        || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `Issue #${no} 不存在`));
     }
     const {id, username} = issuesInDatabase[0];
     if (username !== usernameInSession  // 不是 Issue 的创建者
-        && !await RepositoryFunction.repositoryIsModifiableToTheViewer(repository, {username: usernameInSession}))  // 也不是仓库的合作者
+        && !await hasWriteAuthority(repository, {username: usernameInSession}))  // 也不是仓库的合作者
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false, `只有仓库 ${repositoryUsername}/${repositoryName} 的合作者与 Issue #${no} 的创建者可关闭 Issue`));
@@ -87,14 +87,14 @@ export async function reopen(issue: Readonly<Pick<Issue, 'repositoryUsername' | 
     );
     if (issuesInDatabase === null || issuesInDatabase.length === 0
         || repository === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+        || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `Issue #${no} 不存在`));
     }
     const {id, username} = issuesInDatabase[0];
     if (username !== usernameInSession  // 不是 Issue 的创建者
-        && !await RepositoryFunction.repositoryIsModifiableToTheViewer(repository, {username: usernameInSession}))  // 也不是仓库的合作者
+        && !await hasWriteAuthority(repository, {username: usernameInSession}))  // 也不是仓库的合作者
     {
         return new ServiceResponse<void>(200, {},
             new ResponseBody(false, `只有仓库 ${repositoryUsername}/${repositoryName} 的合作者与 Issue #${no} 的创建者可开启 Issue`));
@@ -111,7 +111,7 @@ export async function getByRepository(repository: Readonly<Pick<Repository, 'use
         username, name,
     });
     if (repositoryInDatabase === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+        || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -128,7 +128,7 @@ export async function getAmountByRepository(repository: Readonly<Pick<Repository
         username, name,
     });
     if (repositoryInDatabase === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+        || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -151,7 +151,7 @@ export async function get(issue: Readonly<Pick<Issue, 'repositoryUsername' | 're
     );
     if (issuesInDatabase === null || issuesInDatabase.length === 0
         || repository === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+        || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<null>(404, {},
             new ResponseBody(true, '', null));
@@ -173,7 +173,7 @@ export async function getComments(issue: Readonly<Pick<Issue, 'repositoryUsernam
     );
     if (issuesInDatabase === null || issuesInDatabase.length === 0
         || repository === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+        || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `Issue #${no} 不存在`));
@@ -197,7 +197,7 @@ export async function addComment(issue: Readonly<Pick<Issue, 'repositoryUsername
     );
     if (issuesInDatabase === null || issuesInDatabase.length === 0
         || repository === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+        || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `Issue #${no} 不存在`));

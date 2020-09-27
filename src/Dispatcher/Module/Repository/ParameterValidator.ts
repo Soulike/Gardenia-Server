@@ -128,3 +128,21 @@ export const search: IRouteHandler = () =>
         }
     };
 };
+
+export const shouldShowOptions: IRouteHandler = () =>
+{
+    return async (ctx, next) =>
+    {
+        const {repository} = ctx.request.body;
+        if (repository === undefined || repository === null)
+        {
+            throw new WrongParameterError();
+        }
+        const {username, name} = repository;
+        if (typeof username !== 'string' || typeof name !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+        await next();
+    };
+};

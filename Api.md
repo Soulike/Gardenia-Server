@@ -1484,6 +1484,26 @@ Array<{ type: ObjectType, path: string, commit: Commit }>
   - 404：`${username}/${name}` 的分支 `${branch}` 不存在
 - 其他说明：无
 
+#### `/shouldShowOptions`
+
+- 功能：判断是否访问者可访问设置页面
+- 方法：GET
+- 请求体：
+```ts
+{
+    repository: Pick<Repository, 'username' | 'name'>,
+}
+```
+- 响应体：
+```ts
+{
+    showOptions: boolean,
+}
+```
+- 响应消息：
+    - 404：仓库 `${username}/${name}` 不存在
+- 其他说明：无
+
 ### Group 模块（`/group`）
 
 #### `/add`

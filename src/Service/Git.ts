@@ -14,7 +14,7 @@ export async function file(repository: Readonly<Pick<Repository, 'username' | 'n
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await RepositoryFunction.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFunction.repositoryIsReadableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
@@ -47,7 +47,7 @@ export async function advertise(repository: Readonly<Pick<Repository, 'username'
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await RepositoryFunction.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFunction.repositoryIsReadableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
@@ -72,7 +72,7 @@ export async function rpc(repository: Readonly<Pick<Repository, 'username' | 'na
     {
         return new ServiceResponse<string>(404, {}, '仓库不存在');
     }
-    if (!(await RepositoryFunction.repositoryIsAvailableToTheRequest(repositoryInDatabase, headers)))
+    if (!(await RepositoryFunction.repositoryIsReadableToTheRequest(repositoryInDatabase, headers)))
     {
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }

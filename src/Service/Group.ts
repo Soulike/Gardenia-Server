@@ -7,8 +7,9 @@ import {
     Repository as RepositoryTable,
     RepositoryGroup as RepositoryGroupTable,
 } from '../Database';
-import {Group as GroupFunction, Repository as RepositoryFunction} from '../Function';
+import {Group as GroupFunction} from '../Function';
 import {ILoggedInSession, ISession} from '../Interface';
+import {hasReadAuthority} from '../RepositoryAuthorityCheck';
 
 export async function add(group: Readonly<Omit<Group, 'id'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<Pick<Group, 'id'> | void>>
 {
@@ -321,7 +322,7 @@ export async function getByRepository(repository: Readonly<Pick<Repository, 'use
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<Group[]>(404, {},
             new ResponseBody<Group[]>(false, `仓库 ${username}/${name} 不存在`));
