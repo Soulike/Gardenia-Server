@@ -5,6 +5,10 @@ export async function hasModifyOptionAuthority(repository: Readonly<Pick<Reposit
 {
     const {username, name} = repository;
     const {username: visitorUsername} = account;
+    if (visitorUsername === undefined)
+    {
+        return false;
+    }
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
     if (repositoryInDatabase !== null)
     {

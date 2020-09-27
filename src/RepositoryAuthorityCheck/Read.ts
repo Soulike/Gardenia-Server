@@ -1,7 +1,7 @@
 import {Account, Repository} from '../Class';
 import {Collaborate as CollaborateTable, Repository as RepositoryTable} from '../Database';
 
-export async function hasReadAuthority(repository: Readonly<Pick<Repository, 'username' | 'name'>>, account: Readonly<Pick<Account, 'username'>>): Promise<boolean>
+export async function hasReadAuthority(repository: Readonly<Pick<Repository, 'username' | 'name'>>, account: Readonly<Record<keyof Pick<Account, 'username'>, string | undefined>>): Promise<boolean>
 {
     const {username, name} = repository;
     const {username: visitorUsername} = account;
@@ -12,6 +12,10 @@ export async function hasReadAuthority(repository: Readonly<Pick<Repository, 'us
         if (isPublic)
         {
             return true;
+        }
+        else if (visitorUsername === undefined)
+        {
+            return false;
         }
         else if (visitorUsername === username)    // !isPublic
         {
