@@ -3,11 +3,11 @@ import {PullRequest as PullRequestTable, Repository as RepositoryTable, Reposito
 import {SERVER} from '../CONFIG';
 import {promises as fsPromise} from 'fs';
 import {spawn} from 'child_process';
-import {Repository as RepositoryFunction} from '../Function';
 import fse from 'fs-extra';
 import {generateRepositoryPath} from '../Function/Repository';
 import {cloneBareRepository, hasBranch, isMergeable as isMergeable1} from '../Git';
 import {ILoggedInSession, ISession} from '../Interface';
+import {hasReadAuthority} from '../RepositoryAuthorityCheck';
 
 export async function create(repository: Readonly<Omit<Repository, 'username'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
@@ -179,7 +179,7 @@ export async function fork(sourceRepository: Pick<Repository, 'username' | 'name
             new ResponseBody(false, '不能 fork 自己的仓库'));
     }
     const sourceRepositoryInDatabase = await RepositoryTable.selectByUsernameAndName(sourceRepository);
-    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    if (sourceRepositoryInDatabase === null || !await hasReadAuthority(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -224,14 +224,14 @@ export async function isMergeable(sourceRepository: Readonly<Pick<Repository, 'u
         RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
     ]);
     if (sourceRepositoryInDatabase === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+        || !await hasReadAuthority(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse(404, {},
             new ResponseBody(false,
                 `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
     }
     if (targetRepositoryInDatabase === null
-        || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+        || !await hasReadAuthority(targetRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse(404, {},
             new ResponseBody(false,

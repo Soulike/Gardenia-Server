@@ -1,14 +1,14 @@
 import {Account, AccountRepository, Profile, Repository, ResponseBody, ServiceResponse} from '../Class';
 import {Profile as ProfileTable, Repository as RepositoryTable, Star as StarTable} from '../Database';
-import {Repository as RepositoryFunction} from '../Function';
 import {ILoggedInSession, ISession} from '../Interface';
+import {hasReadAuthority} from '../RepositoryAuthorityCheck';
 
 export async function add(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
+        || !(await hasReadAuthority(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -27,7 +27,7 @@ export async function remove(repository: Pick<Repository, 'username' | 'name'>, 
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
+        || !(await hasReadAuthority(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -81,7 +81,7 @@ export async function getRepositoryStarAmount(repository: Pick<Repository, 'user
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
+        || !(await hasReadAuthority(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -99,7 +99,7 @@ export async function getRepositoryStarUsers(repository: Pick<Repository, 'usern
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName(repository);
     if (repositoryInDatabase === null
-        || !(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
+        || !(await hasReadAuthority(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));

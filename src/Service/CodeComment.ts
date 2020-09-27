@@ -4,9 +4,9 @@ import {
     Collaborate as CollaborateTable,
     Repository as RepositoryTable,
 } from '../Database';
-import {Repository as RepositoryFunction} from '../Function';
 import {SERVER} from '../CONFIG';
 import {ILoggedInSession, ISession} from '../Interface';
+import {hasReadAuthority} from '../RepositoryAuthorityCheck';
 
 export async function add(codeComment: Readonly<Pick<CodeComment, 'repositoryUsername' | 'repositoryName' | 'filePath' | 'columnNumber' | 'content' | 'creationCommitHash'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
@@ -15,7 +15,7 @@ export async function add(codeComment: Readonly<Pick<CodeComment, 'repositoryUse
         username: repositoryUsername,
         name: repositoryName,
     });
-    if (repository === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+    if (repository === null || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repositoryUsername}/${repositoryName} 不存在`));
@@ -68,7 +68,7 @@ export async function get(codeComment: Readonly<Pick<CodeComment, 'repositoryUse
         username: repositoryUsername,
         name: repositoryName,
     });
-    if (repository === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repository, {username: usernameInSession}))
+    if (repository === null || !await hasReadAuthority(repository, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repositoryUsername}/${repositoryName} 不存在`));

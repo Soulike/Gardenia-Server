@@ -18,12 +18,12 @@ import {
     PullRequestComment as PullRequestCommentTable,
     Repository as RepositoryTable,
 } from '../Database';
-import {Repository as RepositoryFunction} from '../Function';
 import {PULL_REQUEST_STATUS} from '../CONSTANT';
 import {generateRepositoryPath} from '../Function/Repository';
 import * as Git from '../Git';
 import {getChangedFilesBetweenRepositoriesCommits, updateRelatedPullRequest} from '../Git';
 import {ILoggedInSession, ISession} from '../Interface';
+import {hasReadAuthority} from '../RepositoryAuthorityCheck';
 
 export async function add(pullRequest: Readonly<Omit<PullRequest, 'id' | 'no' | 'sourceRepositoryCommitHash' | 'targetRepositoryCommitHash' | 'creationTime' | 'modificationTime' | 'status'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
@@ -403,7 +403,7 @@ export async function get(repository: Readonly<Pick<Repository, 'username' | 'na
     }
     // 访问权限查看
     const repositories = await RepositoryTable.select({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession}))
     {
@@ -426,7 +426,7 @@ export async function getByRepository(repository: Pick<Repository, 'username' | 
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
     // 查看访问权限
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositories[0], {username: usernameInSession}))
+    if (!await hasReadAuthority(repositories[0], {username: usernameInSession}))
     {
         return new ServiceResponse(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -450,7 +450,7 @@ export async function getPullRequestAmount(repository: Readonly<Pick<Repository,
         return new ServiceResponse(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
     }
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositories[0], {username: usernameInSession}))
+    if (!await hasReadAuthority(repositories[0], {username: usernameInSession}))
     {
         return new ServiceResponse(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -486,7 +486,7 @@ export async function addComment(pullRequestComment: Readonly<Omit<PullRequestCo
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))
@@ -551,7 +551,7 @@ export async function getComments(repository: Readonly<Pick<Repository, 'usernam
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))
@@ -593,7 +593,7 @@ export async function getConflicts(pullRequest: Readonly<Pick<PullRequest, 'id'>
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))
@@ -640,7 +640,7 @@ export async function resolveConflicts(pullRequest: Readonly<Pick<PullRequest, '
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))
@@ -687,7 +687,7 @@ export async function getCommits(pullRequest: Readonly<Pick<PullRequest, 'id'>>,
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))
@@ -732,7 +732,7 @@ export async function getCommitAmount(pullRequest: Readonly<Pick<PullRequest, 'i
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))
@@ -776,7 +776,7 @@ export async function getFileDiffs(pullRequest: Readonly<Pick<PullRequest, 'id'>
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))
@@ -821,7 +821,7 @@ export async function getFileDiffAmount(pullRequest: Readonly<Pick<PullRequest, 
         username: targetRepositoryUsername,
         name: targetRepositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(
+    if (!await hasReadAuthority(
         repositories[0],    // 一定存在
         {username: usernameInSession},
     ))

@@ -9,13 +9,14 @@ import {Readable} from 'stream';
 import * as Git from '../Git';
 import path from 'path';
 import {ILoggedInSession, ISession} from '../Interface';
+import {hasReadAuthority} from '../RepositoryAuthorityCheck';
 
 export async function repository(account: Readonly<Pick<Account, 'username'>>, repository: Readonly<Pick<Repository, 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<Repository | null>>
 {
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<null>(404, {},
             new ResponseBody(true, '', null));
@@ -28,7 +29,7 @@ export async function branches(repository: Readonly<Pick<Repository, 'username' 
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -43,7 +44,7 @@ export async function branchNames(repository: Readonly<Pick<Repository, 'usernam
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -58,7 +59,7 @@ export async function tagNames(repository: Readonly<Pick<Repository, 'username' 
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -73,7 +74,7 @@ export async function tags(repository: Readonly<Pick<Repository, 'username' | 'n
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -88,7 +89,7 @@ export async function tag(repository: Readonly<Pick<Repository, 'username' | 'na
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -113,7 +114,7 @@ export async function lastBranchCommit(account: Readonly<Pick<Account, 'username
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -155,7 +156,7 @@ export async function lastCommit(repository: Readonly<Pick<Repository, 'username
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -179,7 +180,7 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -228,7 +229,7 @@ export async function commitCount(account: Readonly<Pick<Account, 'username'>>, 
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -251,7 +252,7 @@ export async function commitCountBetweenCommits(repository: Readonly<Pick<Reposi
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -275,7 +276,7 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -323,7 +324,7 @@ export async function rawFile(account: Readonly<Pick<Account, 'username'>>, repo
     const {username} = account;
     const {name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${username}/${name} 不存在`));
@@ -360,7 +361,7 @@ export async function setName(repository: Readonly<Pick<Repository, 'name'>>, ne
         username: usernameInSession,
         name: repositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${usernameInSession}/${repositoryName} 不存在`));
@@ -408,7 +409,7 @@ export async function setDescription(repository: Readonly<Pick<Repository, 'name
         username: usernameInSession,
         name: repositoryName,
     });
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${usernameInSession}/${repositoryName} 不存在`));
@@ -421,7 +422,7 @@ export async function setIsPublic(repository: Readonly<Pick<Repository, 'name' |
 {
     const {name, isPublic} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username: usernameInSession, name});
-    if (!await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase !== null && !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${usernameInSession}/${name} 不存在`));
@@ -438,7 +439,7 @@ export async function commitHistoryBetweenCommits(repository: Pick<Repository, '
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -462,7 +463,7 @@ export async function commitHistory(repository: Pick<Repository, 'username' | 'n
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -486,7 +487,7 @@ export async function fileCommitHistoryBetweenCommits(repository: Pick<Repositor
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -510,7 +511,7 @@ export async function fileCommitHistory(repository: Pick<Repository, 'username' 
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -536,7 +537,7 @@ export async function diffBetweenCommits(repository: Pick<Repository, 'username'
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -564,7 +565,7 @@ export async function diffAmountBetweenCommits(repository: Pick<Repository, 'use
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -588,7 +589,7 @@ export async function fileDiffBetweenCommits(repository: Pick<Repository, 'usern
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -612,7 +613,7 @@ export async function commit(repository: Pick<Repository, 'username' | 'name'>, 
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -636,7 +637,7 @@ export async function commitDiff(repository: Pick<Repository, 'username' | 'name
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -660,7 +661,7 @@ export async function commitDiffAmount(repository: Pick<Repository, 'username' |
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -685,7 +686,7 @@ export async function fileCommit(repository: Pick<Repository, 'username' | 'name
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -712,7 +713,7 @@ export async function forkAmount(repository: Pick<Repository, 'username' | 'name
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -729,7 +730,7 @@ export async function forkRepositories(repository: Pick<Repository, 'username' |
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -757,7 +758,7 @@ export async function forkFrom(repository: Pick<Repository, 'username' | 'name'>
 {
     const {username, name} = repository;
     const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
-    if (repositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username: usernameInSession}))
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody<void>(false, `仓库 ${username}/${name} 不存在`));
@@ -793,12 +794,12 @@ export async function forkCommitHistory(sourceRepository: Readonly<Pick<Reposito
         RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
         RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
     ]);
-    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    if (sourceRepositoryInDatabase === null || !await hasReadAuthority(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
     }
-    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    if (targetRepositoryInDatabase === null || !await hasReadAuthority(targetRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
@@ -841,12 +842,12 @@ export async function forkCommitAmount(sourceRepository: Readonly<Pick<Repositor
         RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
         RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
     ]);
-    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    if (sourceRepositoryInDatabase === null || !await hasReadAuthority(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
     }
-    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    if (targetRepositoryInDatabase === null || !await hasReadAuthority(targetRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
@@ -889,12 +890,12 @@ export async function forkFileDiff(sourceRepository: Readonly<Pick<Repository, '
         RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
         RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
     ]);
-    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    if (sourceRepositoryInDatabase === null || !await hasReadAuthority(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
     }
-    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    if (targetRepositoryInDatabase === null || !await hasReadAuthority(targetRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
@@ -937,12 +938,12 @@ export async function forkFileDiffAmount(sourceRepository: Readonly<Pick<Reposit
         RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
         RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
     ]);
-    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    if (sourceRepositoryInDatabase === null || !await hasReadAuthority(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
     }
-    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    if (targetRepositoryInDatabase === null || !await hasReadAuthority(targetRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));
@@ -990,12 +991,12 @@ export async function hasCommonAncestor(sourceRepository: Readonly<Pick<Reposito
         RepositoryTable.selectByUsernameAndName({username: sourceRepositoryUsername, name: sourceRepositoryName}),
         RepositoryTable.selectByUsernameAndName({username: targetRepositoryUsername, name: targetRepositoryName}),
     ]);
-    if (sourceRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(sourceRepositoryInDatabase, {username: usernameInSession}))
+    if (sourceRepositoryInDatabase === null || !await hasReadAuthority(sourceRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${sourceRepositoryUsername}/${sourceRepositoryName} 不存在`));
     }
-    if (targetRepositoryInDatabase === null || !await RepositoryFunction.repositoryIsAvailableToTheViewer(targetRepositoryInDatabase, {username: usernameInSession}))
+    if (targetRepositoryInDatabase === null || !await hasReadAuthority(targetRepositoryInDatabase, {username: usernameInSession}))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${targetRepositoryUsername}/${targetRepositoryName} 不存在`));

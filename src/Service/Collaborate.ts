@@ -8,6 +8,7 @@ import {
 } from '../Database';
 import {ILoggedInSession, ISession} from '../Interface';
 import {CollaborateCode as CollaborateCodeRAMDatabase} from '../RAMDatabase';
+import {hasReadAuthority, hasWriteAuthority} from '../RepositoryAuthorityCheck';
 
 export async function generateCode(repository: Pick<Repository, 'username' | 'name'>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ code: string } | void>>
 {
@@ -82,7 +83,7 @@ export async function remove(repository: Pick<Repository, 'username' | 'name'>, 
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `用户 ${username} 不存在`));
     }
-    if (!(await RepositoryFunction.repositoryIsModifiableToTheViewer(repositoryInDatabase, {username: usernameInSession})))
+    if (!(await hasWriteAuthority(repositoryInDatabase, {username: usernameInSession})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
@@ -101,7 +102,7 @@ export async function getCollaborators(repository: Pick<Repository, 'username' |
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
-    if (!(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
+    if (!(await hasReadAuthority(repositoryInDatabase, {username})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
@@ -134,7 +135,7 @@ export async function getCollaboratorsAmount(repository: Pick<Repository, 'usern
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
     }
-    if (!(await RepositoryFunction.repositoryIsAvailableToTheViewer(repositoryInDatabase, {username})))
+    if (!(await hasReadAuthority(repositoryInDatabase, {username})))
     {
         return new ServiceResponse<void>(404, {},
             new ResponseBody(false, `仓库 ${repository.username}/${repository.name} 不存在`));
