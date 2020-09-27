@@ -189,7 +189,7 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
     try
     {
         const fileCommitInfoList = await Git.getPathInfo(repositoryPath, commitHash, directoryPath);
-        // 对获取的数组进行排序，类型为 TREE 的在前，BLOB 的在后
+        // 对获取的数组进行排序，类型为 TREE 的在前，BLOB 的在后，之后进行姓名排序
         fileCommitInfoList.sort((a, b) =>
         {
             if (a.type === ObjectType.TREE && b.type === ObjectType.BLOB)
@@ -197,6 +197,14 @@ export async function directory(account: Readonly<Pick<Account, 'username'>>, re
                 return -1;
             }
             else if (a.type === ObjectType.BLOB && b.type === ObjectType.TREE)
+            {
+                return 1;
+            }
+            else if (a.path < b.path)
+            {
+                return -1;
+            }
+            else if (a.path > b.path)
             {
                 return 1;
             }
