@@ -7,7 +7,7 @@ import fse from 'fs-extra';
 import {generateRepositoryPath} from '../Function/Repository';
 import {cloneBareRepository, hasBranch, isMergeable as isMergeable1} from '../Git';
 import {ILoggedInSession, ISession} from '../Interface';
-import {hasReadAuthority} from '../RepositoryAuthorityCheck';
+import {hasModifyOptionAuthority, hasReadAuthority} from '../RepositoryAuthorityCheck';
 
 export async function create(repository: Readonly<Omit<Repository, 'username'>>, usernameInSession: ILoggedInSession['username']): Promise<ServiceResponse<void>>
 {
@@ -273,4 +273,27 @@ export async function search(keyword: string, offset: number, limit: number): Pr
     const repositories = await RepositoryTable.search(keyword, offset, limit, true);
     return new ServiceResponse(200, {},
         new ResponseBody(true, '', {repositories}));
+}
+
+export async function shouldShowOptions(repository: Readonly<Pick<Repository, 'username' | 'name'>>, usernameInSession: ISession['username']): Promise<ServiceResponse<{ showOptions: boolean } | void>>
+{
+    if (usernameInSession === undefined)
+    {
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {showOptions: false}));
+    }
+    const {username, name} = repository;
+    const repositoryInDatabase = await RepositoryTable.selectByUsernameAndName({username, name});
+    if (repositoryInDatabase === null || !await hasReadAuthority(repositoryInDatabase, {username: usernameInSession}))
+    {
+        return new ServiceResponse(404, {},
+            new ResponseBody(false, '仓库不存在'));
+    }
+    else
+    {
+        return new ServiceResponse(200, {},
+            new ResponseBody(true, '', {
+                showOptions: await hasModifyOptionAuthority(repositoryInDatabase, {username: usernameInSession}),
+            }));
+    }
 }

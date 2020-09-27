@@ -64,3 +64,13 @@ export const search: IRouteHandler = () =>
         ctx.state.serviceResponse = await RepositoryService.search(keyword, offset, limit);
     };
 };
+
+export const shouldShowOptions: IRouteHandler = () =>
+{
+    return async ctx =>
+    {
+        const {repository} = ctx.request.body;
+        const {username: usernameInSession} = ctx.session;
+        ctx.state.serviceResponse = await RepositoryService.shouldShowOptions(repository, usernameInSession);
+    };
+};
