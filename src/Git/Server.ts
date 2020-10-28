@@ -1,11 +1,12 @@
 import {Readable} from 'stream';
 import {spawn} from 'child_process';
+import {String} from '../Function';
 
 export async function doAdvertiseRPCCall(repositoryPath: string, service: string): Promise<string>
 {
     return new Promise((resolve, reject) =>
     {
-        const childProcess = spawn(`LANG=zh_CN.UTF-8 git ${service.slice(4)} --stateless-rpc --advertise-refs ${repositoryPath}`, {
+        const childProcess = spawn(`LANG=zh_CN.UTF-8 git ${service.slice(4)} --stateless-rpc --advertise-refs ${String.escapeLiteral(repositoryPath)}`, {
             shell: true,
         });
 
@@ -26,7 +27,7 @@ export async function doRPCCall(repositoryPath: string, command: string, paramet
 {
     return new Promise(((resolve, reject) =>
     {
-        const {stdout, stdin} = spawn(`LANG=zh_CN.UTF-8 git ${command} --stateless-rpc ${repositoryPath}`, {
+        const {stdout, stdin} = spawn(`LANG=zh_CN.UTF-8 git ${command} --stateless-rpc ${String.escapeLiteral(repositoryPath)}`, {
             shell: true,
         });
 
@@ -45,7 +46,7 @@ export async function doUpdateServerInfo(repositoryPath: string): Promise<void>
 {
     return new Promise((resolve, reject) =>
     {
-        const childProcess = spawn(`git --git-dir ${repositoryPath} update-server-info`, {
+        const childProcess = spawn(`git --git-dir ${String.escapeLiteral(repositoryPath)} update-server-info`, {
             shell: true,
         });
 

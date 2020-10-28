@@ -26,7 +26,7 @@ export async function getConflicts(sourceRepositoryUsername: string, sourceRepos
         await addRemote(tempRepositoryPath, targetRepositoryPath, tempRemoteName);
         try
         {
-            await Promisify.execPromise(`git merge ${tempRemoteName}/${targetRepositoryBranch}`,
+            await Promisify.execPromise(`git merge ${String.escapeLiteral(`${tempRemoteName}/${targetRepositoryBranch}`)}`,
                 {cwd: tempRepositoryPath});
         }
         catch (e)
@@ -81,9 +81,9 @@ export async function resolveConflicts(sourceRepositoryUsername: string, sourceR
             await addRemote(tempRepositoryPath, targetRepositoryPath, tempSourceRemoteName);
             try
             {
-                await Promisify.execPromise(`git config user.name "${sourceRepositoryUsername}" && git config user.email "${sourceRepositoryUserEmail}"`,
+                await Promisify.execPromise(`git config user.name ${String.escapeLiteral(sourceRepositoryUsername)} && git config user.email ${String.escapeLiteral(sourceRepositoryUserEmail)}"`,
                     {cwd: tempRepositoryPath});
-                await Promisify.execPromise(`git merge ${tempSourceRemoteName}/${targetRepositoryBranch}`,
+                await Promisify.execPromise(`git merge ${String.escapeLiteral(`${tempSourceRemoteName}/${targetRepositoryBranch}`)}`,
                     {cwd: tempRepositoryPath});
             }
             catch (e)

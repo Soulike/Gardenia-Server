@@ -3,6 +3,7 @@ import {execPromise} from '../Function/Promisify';
 import fse from 'fs-extra';
 import {getBranches} from './Branch';
 import {addRemote, makeTemporaryRepository} from './Tool';
+import {String} from '../Function';
 
 /**
  * @description 获取仓库的最后一次提交信息
@@ -11,7 +12,7 @@ export async function getLastCommit(repositoryPath: string): Promise<Commit>
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' --all -1`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b`)} --all -1`,
         {cwd: repositoryPath});
     if (stdout.trim().length === 0)
     {
@@ -28,7 +29,7 @@ export async function getBranchLastCommit(repositoryPath: string, branchName: st
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName}`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b`)} -1 ${String.escapeLiteral(branchName)}`,
         {cwd: repositoryPath});
     if (stdout.trim().length === 0)
     {
@@ -49,7 +50,7 @@ export async function getFileLastCommit(repositoryPath: string, branchName: stri
         filePath = '.';
     }
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${branchName} -- '${filePath}'`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b`)} -1 ${String.escapeLiteral(branchName)} -- ${String.escapeLiteral(filePath)}`,
         {cwd: repositoryPath});
     if (stdout.trim().length === 0)
     {
@@ -72,7 +73,7 @@ export async function getCommitCount(repositoryPath: string, commitHashOrBranchN
         return 0;
     }
     // 以下命令会因为不存在 master 分支报错
-    const stdout = await execPromise(`git rev-list '${commitHashOrBranchName}' --count`, {cwd: repositoryPath});
+    const stdout = await execPromise(`git rev-list ${String.escapeLiteral(commitHashOrBranchName)} --count`, {cwd: repositoryPath});
     return Number.parseInt(stdout);
 }
 
@@ -88,7 +89,7 @@ export async function getCommitCountBetweenCommits(repositoryPath: string, baseC
         return 0;
     }
     // 以下命令会因为不存在 master 分支报错
-    const stdout = await execPromise(`git rev-list ${baseCommitHash}..${targetCommitHash} --count`, {cwd: repositoryPath});
+    const stdout = await execPromise(`git rev-list ${String.escapeLiteral(baseCommitHash)}..${String.escapeLiteral(targetCommitHash)} --count`, {cwd: repositoryPath});
     return Number.parseInt(stdout);
 }
 
@@ -100,7 +101,7 @@ export async function getRepositoryCommitsBetweenCommits(repositoryPath: string,
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${baseCommitHashOrBranchName}..${targetCommitHashOrBranchName}`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}`)} --skip=${offset} --max-count=${limit} ${String.escapeLiteral(baseCommitHashOrBranchName)}..${String.escapeLiteral(targetCommitHashOrBranchName)}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -124,7 +125,7 @@ export async function getRepositoryCommits(repositoryPath: string, targetCommitH
     const SEPARATOR = '|àωⓈ⒧|';
     const LOG_SEPARATOR = '|⑨⑨ⓂⓂ|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${targetCommitHashOrBranchName}`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}`)} --skip=${offset} --max-count=${limit} ${String.escapeLiteral(targetCommitHashOrBranchName)}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -152,7 +153,7 @@ export async function getFileCommitsBetweenCommits(repositoryPath: string, fileP
         filePath = '.';
     }
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${baseCommitHashOrBranchName}..${targetCommitHashOrBranchName} -- '${filePath}'`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}`)} --skip=${offset} --max-count=${limit} ${String.escapeLiteral(baseCommitHashOrBranchName)}..${String.escapeLiteral(targetCommitHashOrBranchName)} -- ${String.escapeLiteral(filePath)}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -180,7 +181,7 @@ export async function getFileCommits(repositoryPath: string, filePath: string, t
         filePath = '.';
     }
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}' --skip=${offset} --max-count=${limit} ${targetCommitHashOrBranchName} -- '${filePath}'`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b${LOG_SEPARATOR}`)} --skip=${offset} --max-count=${limit} ${String.escapeLiteral(targetCommitHashOrBranchName)} -- ${String.escapeLiteral(filePath)}`,
         {cwd: repositoryPath});
     const logs = stdout.split(`${LOG_SEPARATOR}`).filter(line => line.length > 0);
     const commits: Commit[] = [];
@@ -203,7 +204,7 @@ export async function getCommit(repositoryPath: string, commitHash: string): Pro
 {
     const SEPARATOR = '|àωⓈ⒧|';
     const stdout = await execPromise(
-        `git log --pretty=format:'%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b' -1 ${commitHash}`,
+        `git log --pretty=format:${String.escapeLiteral(`%H${SEPARATOR}%cn${SEPARATOR}%ce${SEPARATOR}%ct${SEPARATOR}%s${SEPARATOR}%b`)} -1 ${String.escapeLiteral(commitHash)}`,
         {cwd: repositoryPath});
 
     const [hash, committerName, committerEmail, commitTime, commitMessage, commitBody] = stdout.split(SEPARATOR);
@@ -269,7 +270,7 @@ export async function getFileFirstCommitHash(repositoryPath: string, filePath: s
         filePath = '.';
     }
     return (await execPromise(
-        `git log --pretty=format:'%H' -- '${filePath}' | tail -1`
+        `git log --pretty=format:'%H' -- ${String.escapeLiteral(filePath)} | tail -1`
         , {cwd: repositoryPath})).trim();
 }
 
@@ -279,7 +280,7 @@ export async function getFileFirstCommitHash(repositoryPath: string, filePath: s
 export async function getLastCommitHash(repositoryPath: string, branchName: string): Promise<string>
 {
     return (await execPromise(
-        `git log --pretty=format:'%H' ${branchName} | head -1`
+        `git log --pretty=format:'%H' ${String.escapeLiteral(branchName)} | head -1`
         , {cwd: repositoryPath})).trim();
 }
 
@@ -293,7 +294,7 @@ export async function getFileLastCommitHash(repositoryPath: string, filePath: st
         filePath = '.';
     }
     return (await execPromise(
-        `git log --pretty=format:'%H' -- '${filePath}' | tail -1`
+        `git log --pretty=format:'%H' -- ${String.escapeLiteral(filePath)} | tail -1`
         , {cwd: repositoryPath})).trim();
 }
 
