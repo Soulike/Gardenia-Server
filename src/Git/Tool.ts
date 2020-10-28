@@ -5,6 +5,7 @@ import {Commit} from '../Class';
 import {getFileLastCommit} from './Commit';
 import os from 'os';
 import path from 'path';
+import {String} from '../Function';
 
 /**
  * @description 获取两个提交/分支的公共祖先，在没有公共祖先时返回 EMPTY_TREE_HASH
@@ -22,7 +23,7 @@ export async function getCommonAncestor(repositoryPath: string, branchNameOrComm
         try
         {
             // 如果这个命令报错，证明没有公共祖先
-            commonAncestorHash = (await execPromise(`git merge-base ${branchNameOrCommitHash1} ${branchNameOrCommitHash2}`,
+            commonAncestorHash = (await execPromise(`git merge-base ${String.escapeLiteral(branchNameOrCommitHash1)} ${String.escapeLiteral(branchNameOrCommitHash2)}`,
                 {cwd: repositoryPath})).trim();
         }
         catch (e)
@@ -67,7 +68,7 @@ export async function hasCommonAncestor(repositoryPath1: string, branchNameOfRep
  * */
 export async function cloneBareRepository(sourceRepositoryPath: string, targetRepositoryPath: string): Promise<void>
 {
-    await execPromise(`git clone --bare '${sourceRepositoryPath}' '${targetRepositoryPath}'`);
+    await execPromise(`git clone --bare ${String.escapeLiteral(sourceRepositoryPath)} ${String.escapeLiteral(targetRepositoryPath)}`);
 }
 
 /**
@@ -78,7 +79,7 @@ export async function makeTemporaryRepository(repositoryPath: string, branch?: s
     const tempRepositoryPath = await fse.promises.mkdtemp(path.join(os.tmpdir(), 'gardenia_repository_'));
     try
     {
-        await execPromise(`git clone ${branch ? `-b ${branch}` : ''} '${repositoryPath}' '${tempRepositoryPath}'`);
+        await execPromise(`git clone ${branch ? `-b ${branch}` : ''} ${String.escapeLiteral(repositoryPath)} ${String.escapeLiteral(tempRepositoryPath)}`);
         return tempRepositoryPath;
     }
     catch (e)   // 如果克隆出问题，那么需要删除产生的临时文件夹
@@ -93,7 +94,7 @@ export async function makeTemporaryRepository(repositoryPath: string, branch?: s
  * */
 export async function addRemote(repositoryPath: string, remoteRepositoryPath: string, remoteName: string): Promise<void>
 {
-    await execPromise(`git remote add -f '${remoteName}' '${remoteRepositoryPath}'`,
+    await execPromise(`git remote add -f ${String.escapeLiteral(remoteName)} ${String.escapeLiteral(remoteRepositoryPath)}`,
         {cwd: repositoryPath});
     await execPromise(`git remote update`, {cwd: repositoryPath});
 }
@@ -109,7 +110,7 @@ export async function getPathInfo(repositoryPath: string, commitHash: string, pa
     }
     // 输出格式为 100644 blob 717a1cf8df1d86acd7daef6193298b6f7e4c1ccb	README.md
     // 注意前面的分隔符是空格，但是文件名之前的分隔符是 TAB
-    const stdout = await execPromise(`git ls-tree ${commitHash} '${path}'`,
+    const stdout = await execPromise(`git ls-tree ${String.escapeLiteral(commitHash)} ${String.escapeLiteral(path)}`,
         {cwd: repositoryPath});
     const fileInfoStrings = stdout.split(/\n/).filter(file => file.length !== 0);
     const fileInfos: Array<{ type: ObjectType, path: string, commit: Commit }> = [];

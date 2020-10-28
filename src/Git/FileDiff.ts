@@ -4,6 +4,7 @@ import fse from 'fs-extra';
 import {EMPTY_TREE_HASH, REGEX} from '../CONSTANT';
 import {execPromise} from '../Function/Promisify';
 import {addRemote, getCommonAncestor, makeTemporaryRepository} from './Tool';
+import {String} from '../Function';
 
 /**
  * @description 获取两次提交之间被修改的文件（累计修改，即公共祖先到 target 的修改
@@ -11,7 +12,7 @@ import {addRemote, getCommonAncestor, makeTemporaryRepository} from './Tool';
 export async function getChangedFilesBetweenCommits(repositoryPath: string, baseCommitHashOrBranchName: string, targetCommitHashOrBranchName: string, offset: number = 0, limit: number = Number.MAX_SAFE_INTEGER): Promise<string[]>
 {
     const ancestorHash = await getCommonAncestor(repositoryPath, baseCommitHashOrBranchName, targetCommitHashOrBranchName);
-    const result = await execPromise(`git diff ${ancestorHash}..${targetCommitHashOrBranchName} --name-only`, {cwd: repositoryPath});
+    const result = await execPromise(`git diff ${String.escapeLiteral(ancestorHash)}..${String.escapeLiteral(targetCommitHashOrBranchName)} --name-only`, {cwd: repositoryPath});
     const files = result.split('\n');
     return files.filter(file => file.length !== 0).slice(offset, offset + limit);
 }
@@ -258,7 +259,7 @@ async function getFileGitDiffOutput(repositoryPath: string, filePath: string, ba
         filePath = '.';
     }
     const ancestorHash = await getCommonAncestor(repositoryPath, baseCommitHash, targetCommitHash);
-    return await execPromise(`git diff ${ancestorHash}..${targetCommitHash} -- '${filePath}'`, {cwd: repositoryPath});
+    return await execPromise(`git diff ${String.escapeLiteral(ancestorHash)}..${String.escapeLiteral(targetCommitHash)} -- ${String.escapeLiteral(filePath)}`, {cwd: repositoryPath});
 }
 
 function getFileGitDiffOutputLines(gitDiffOutput: string): string[]
