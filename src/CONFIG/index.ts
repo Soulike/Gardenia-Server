@@ -6,3 +6,4 @@ export * from './MAIL';
 export * as LIMITS from './LIMITS';
 export * from './REDIS';
 export * from './RATE_LIMIT';
+export * from './STARTUP_SCRIPT';

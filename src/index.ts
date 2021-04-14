@@ -1,9 +1,14 @@
 import Koa from 'koa';
 import dispatcher from './Dispatcher';
-import {SERVER, SESSION} from './CONFIG';
+import {SERVER, SESSION, STARTUP_SCRIPT} from './CONFIG';
 import signale from 'signale';
 import session from 'koa-session';
 import koa_static from 'koa-static';
+import {execPromise} from './Function/Promisify';
+
+Promise.all(STARTUP_SCRIPT.map(async command => execPromise(command)))
+    .then(() => SERVER.INFO_LOGGER('启动脚本执行完成'))
+    .catch(e => SERVER.ERROR_LOGGER(`执行启动脚本时发生错误\n${e}`));
 
 const app = new Koa();
 

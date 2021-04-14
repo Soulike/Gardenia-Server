@@ -1,5 +1,6 @@
 import {exec, ExecOptions} from 'child_process';
 import {EventEmitter} from 'events';
+import {SERVER} from '../CONFIG';
 
 export async function execPromise(command: string, options?: ExecOptions): Promise<string>
 {
@@ -7,6 +8,7 @@ export async function execPromise(command: string, options?: ExecOptions): Promi
     {
         exec(command, {...options, encoding: 'utf-8'}, (error, stdout) =>
         {
+            SERVER.INFO_LOGGER(`Executing command: ${command}`);
             if (error)
             {
                 return reject(error);
