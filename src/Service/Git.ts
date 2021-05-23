@@ -23,20 +23,28 @@ export async function file(repository: Readonly<Pick<Repository, 'username' | 'n
     {
         const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
         const absoluteFilePath = path.join(repositoryPath, filePath);
-        const readStream = fs.createReadStream(absoluteFilePath);
+        try
+        {
+            const readStream = fs.createReadStream(absoluteFilePath);
 
-        readStream.on('error', () =>
+            readStream.on('error', () =>
+            {
+                resolve(new ServiceResponse<string>(404, {}, '请求的文件不存在'));
+            });
+
+            readStream.on('ready', () =>
+            {
+                const type = mime.lookup(absoluteFilePath) || 'application/octet-stream';
+                resolve(new ServiceResponse<Readable>(200, {
+                    'Content-Type': mime.contentType(type) || 'application/octet-stream',
+                }, readStream));
+            });
+        }
+        catch (e)
         {
             resolve(new ServiceResponse<string>(404, {}, '请求的文件不存在'));
-        });
-
-        readStream.on('ready', () =>
-        {
-            const type = mime.lookup(absoluteFilePath) || 'application/octet-stream';
-            resolve(new ServiceResponse<Readable>(200, {
-                'Content-Type': mime.contentType(type) || 'application/octet-stream',
-            }, readStream));
-        });
+            throw e;
+        }
     });
 }
 
