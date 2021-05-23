@@ -19,32 +19,30 @@ export async function file(repository: Readonly<Pick<Repository, 'username' | 'n
         return new ServiceResponse(401, {'WWW-Authenticate': 'Basic realm=Gardenia'});
     }
 
+    const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
+    const absoluteFilePath = path.join(repositoryPath, filePath);
+    const stats = await fs.promises.stat(absoluteFilePath);
+    if (!stats.isFile())
+    {
+        return new ServiceResponse<string>(404, {}, '请求的文件不存在');
+    }
+
     return new Promise(resolve =>
     {
-        const repositoryPath = RepositoryFunction.generateRepositoryPath(repository);
-        const absoluteFilePath = path.join(repositoryPath, filePath);
-        try
-        {
-            const readStream = fs.createReadStream(absoluteFilePath);
+        const readStream = fs.createReadStream(absoluteFilePath);
 
-            readStream.on('error', () =>
-            {
-                resolve(new ServiceResponse<string>(404, {}, '请求的文件不存在'));
-            });
-
-            readStream.on('ready', () =>
-            {
-                const type = mime.lookup(absoluteFilePath) || 'application/octet-stream';
-                resolve(new ServiceResponse<Readable>(200, {
-                    'Content-Type': mime.contentType(type) || 'application/octet-stream',
-                }, readStream));
-            });
-        }
-        catch (e)
+        readStream.on('error', () =>
         {
             resolve(new ServiceResponse<string>(404, {}, '请求的文件不存在'));
-            throw e;
-        }
+        });
+
+        readStream.on('ready', () =>
+        {
+            const type = mime.lookup(absoluteFilePath) || 'application/octet-stream';
+            resolve(new ServiceResponse<Readable>(200, {
+                'Content-Type': mime.contentType(type) || 'application/octet-stream',
+            }, readStream));
+        });
     });
 }
 
