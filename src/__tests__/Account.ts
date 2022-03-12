@@ -8,7 +8,7 @@ const request = supertest(server);
 
 afterAll(async () =>
 {
-    return new Promise((resolve, reject) =>
+    return new Promise<void>((resolve, reject) =>
     {
         server.close(err =>
         {
