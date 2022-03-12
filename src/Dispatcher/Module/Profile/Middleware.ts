@@ -1,5 +1,6 @@
 import {Profile} from '../../../Service';
 import {IRouteHandler} from '../../Interface';
+import {File} from 'formidable';
 
 export const get: IRouteHandler = () =>
 {
@@ -56,7 +57,9 @@ export const uploadAvatar: IRouteHandler = () =>
     {
         const {avatar} = ctx.request.files!;
         const {username} = ctx.session;
-        ctx.state.serviceResponse = await Profile.uploadAvatar(avatar, username!);
+        ctx.state.serviceResponse = await Profile.uploadAvatar(
+            avatar as Readonly<File>,   // ensured by ParameterValidator
+            username!);
     };
 };
 

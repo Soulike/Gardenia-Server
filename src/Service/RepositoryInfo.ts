@@ -305,7 +305,7 @@ export async function fileInfo(account: Readonly<Pick<Account, 'username'>>, rep
             new ResponseBody(false, '分支、提交或文件不存在'));
     }
 
-    const [objectHash, objectType] = await Promise.all<string, ObjectType>([
+    const [objectHash, objectType] = await Promise.all([
         Git.getFileObjectHash(repositoryPath, filePath, commitHash),
         Git.getFileObjectType(repositoryPath, filePath, commitHash),
     ]);

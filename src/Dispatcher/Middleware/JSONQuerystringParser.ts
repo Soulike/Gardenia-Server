@@ -16,6 +16,11 @@ const JSONQuerystringParser: IRouteHandler = () =>
             ctx.request.body = {};
             return await next();
         }
+        else if (typeof json !== 'string')
+        {
+            throw new WrongParameterError();
+        }
+
         try
         {
             parseResult = JSON.parse(json);

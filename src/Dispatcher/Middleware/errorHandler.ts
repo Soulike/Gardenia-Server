@@ -19,7 +19,7 @@ const errorHandler: IRouteHandler = () =>
             else
             {
                 ctx.response.status = 500;
-                SERVER.ERROR_LOGGER(`${e.stack}\n请求体：${JSON.stringify(ctx.request.body)}`);
+                SERVER.ERROR_LOGGER(`${e}\n请求体：${JSON.stringify(ctx.request.body)}`);
             }
         }
     };

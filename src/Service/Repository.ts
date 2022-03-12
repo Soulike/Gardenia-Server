@@ -26,7 +26,7 @@ export async function create(repository: Readonly<Omit<Repository, 'username'>>,
         await fsPromise.mkdir(repositoryPath, {recursive: true});
         await (async () =>
         {
-            return new Promise((resolve, reject) =>
+            return new Promise<void>((resolve, reject) =>
             {
                 const childProcess = spawn('git init --bare && cp hooks/post-update.sample hooks/post-update && git update-server-info && git config http.receivepack true', {
                     shell: true,

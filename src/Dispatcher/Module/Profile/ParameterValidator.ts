@@ -97,14 +97,13 @@ export const uploadAvatar: IRouteHandler = () =>
             throw new WrongParameterError();
         }
         const {avatar} = ctx.request.files; // 这里的 avatar 是 File 类型
-        if (typeof avatar === 'undefined' || avatar === null)
+        if (typeof avatar === 'undefined' || avatar === null || !(avatar instanceof File))
         {
             throw new WrongParameterError();
         }
         // 限制文件的类型和尺寸
         const {size, type} = avatar;
-        if (typeof type === 'string'
-            && LIMITS.AVATAR_MIME_TYPES.includes(type)
+        if (LIMITS.AVATAR_MIME_TYPES.includes(type)
             && size <= LIMITS.AVATAR_SIZE)
         {
             await next();
